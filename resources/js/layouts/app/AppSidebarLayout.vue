@@ -23,5 +23,6 @@ withDefaults(defineProps<Props>(), {
             <slot />
         </AppContent>
         <Toaster />
+        <Toast />
     </AppShell>
 </template>

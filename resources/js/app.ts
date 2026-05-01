@@ -1,4 +1,17 @@
 import { createInertiaApp } from '@inertiajs/vue3';
+import Aura from '@primeuix/themes/aura';
+import Button from 'primevue/button';
+import Column from 'primevue/column';
+import PrimeVue from 'primevue/config';
+import DataTable from 'primevue/datatable';
+import Dialog from 'primevue/dialog';
+import FileUpload from 'primevue/fileupload';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+import Toast from 'primevue/toast';
+import ToastService from 'primevue/toastservice';
+import { createApp, h } from 'vue';
+import type { DefineComponent } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -23,6 +36,32 @@ createInertiaApp({
     },
     progress: {
         color: '#4B5563',
+    },
+    setup({ el, App, props, plugin }) {
+        createApp({ render: () => h(App as DefineComponent, props) })
+            .use(plugin)
+            .use(PrimeVue, {
+                theme: {
+                    preset: Aura,
+                    options: {
+                        darkModeSelector: '.dark',
+                        cssLayer: {
+                            name: 'primevue',
+                            order: 'theme, base, primevue, utilities',
+                        },
+                    },
+                },
+            })
+            .use(ToastService)
+            .component('Button', Button)
+            .component('Column', Column)
+            .component('DataTable', DataTable)
+            .component('Dialog', Dialog)
+            .component('FileUpload', FileUpload)
+            .component('InputText', InputText)
+            .component('Select', Select)
+            .component('Toast', Toast)
+            .mount(el as Element);
     },
 });
 

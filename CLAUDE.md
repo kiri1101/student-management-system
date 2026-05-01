@@ -4,12 +4,29 @@ You are an well experienced Senior Software Engineer and Laravel expert. You hav
 
 ## Project Overview
 
-Student Management REST API built with Laravel 13 + Sanctum. Pure API project (no Blade views) — all responses are JSON via Eloquent API Resources. Authentication is token-based via Sanctum.
+This project is meant to be a Student Management System. It is meant to solve some issues i identified in my day-to-day life as a student in the Cameroonian educational system. In a university i attended, the student admission process was done manually. A candidate had to come over to the university campus, fill a physical application form, attach associated documentations to the application form, place all these documents in a single folder then deposit this folder at the student affaires service. Once the application received, the candidate waits for their application to be processed and once a decision has been taken on their admission request, they are notified via mail if they have been admitted or not.
+When the candidate is admitted, they become a student and thus have access to campus facilities and courses for a given period of time during which they're expected to pay their tuition fee. Passed that dateline, students who have not settled their tuition fee loose their status as students and are excluded from campus. One of the issues i noticed is with the student payment validation process. This process begins by the student depositing money into one of the institutes bank accounts i.e. UBA, AFG, AFRICLAND, SCB, SGC and recovering their transaction receipt. Then, they bring their receipt over to the account's office on campus for verification, validation and delivery of a corresponding school receipt that serves as unique proof of payment. Now often than not, a student might loss their bank transaction receipt and are thus unable to provide the receipt at the account's office for processing and delivery of their school receipt. This is sometimes a source of conflict and tension between students and administrative officers because students ask why the accounts do not just go through the university's bank transaction records and confirm the student's payment where as, accountants claim they do not have direct access to university account records. Also, the fact that this school receipt which is suppose to serve as a single source of truth can be tempered with or used by different students to access restricted campus areas shows that the process used to handle student payment validation needs to be revised.
+Another issue is `Requests for tuition payment deferral`. During examination period, only student's who have completely or partially paid their tuition fee are granted access to the examination hall. The university allows payments in installments but define the amount to be paid for each installment. A dateline in also defined for the payment of each payment and after each dateline, all students with total amount paid less than the threshold amount for that installment is no granted access to certain school facilities and any examination halls except they're granted a _payment deferral_ that can only be obtained from the accountant.
+`Course management` is another important aspect of student management and it has its own issues in the university i attended. It spans over course planning, lecturer absence notification, student course attendance, course assignment management and course CA & examination student results. All these as well as earlier issues should be discussed thoroughly before implementation.
+Some other issue faced by students is notification when a lecturer is absent from course lectures. Sometimes the information given by the lecturer about their presence on campus is manipulated by students to whom it is given such that they either deliver the information late or their classmates do not trust the information thy deliver. Thus bringing up a need to improve lecturer course management as well as other services such as `Notifications`, `School receipt verification`, `Access to CA and examination results with the ability to raise disputes`.
 
 ## Database
 
 - Driver: MySQL (`student_management` database, root/no password)
 - API versioning is used for routes (follow existing convention in `routes/api.php`)
+
+## UI Components
+
+- **Library:** PrimeVue with the **Aura** theme preset is the default for all new UI work (forms, modals, tables, file uploads, dropdowns, buttons, toasts).
+- **Coexistence:** the starter kit's shadcn-vue primitives (`reka-ui`, `class-variance-authority`, etc.) and `vue-sonner` flash toaster remain in place. Existing pages keep them; only migrate when a page is being substantially modified anyway.
+- **Wiring:** PrimeVue is registered in `resources/js/app.ts` via `setup({ el, App, props, plugin })` with `darkModeSelector: '.dark'` and `cssLayer.order: 'theme, base, primevue, utilities'`. `tailwindcss-primeui` is imported in `resources/css/app.css` immediately after `tailwindcss`.
+- **Globally registered components** (no per-page import needed): `Button`, `Column`, `DataTable`, `Dialog`, `FileUpload`, `InputText`, `Select`, `Toast`. Other PrimeVue components are imported per page for tree-shaking — e.g. `import Card from 'primevue/card'`.
+- **Toasts:** PrimeVue `<Toast />` is mounted once in `resources/js/layouts/app/AppSidebarLayout.vue` next to the existing vue-sonner `<Toaster />`. Use `useToast()` from `primevue/usetoast` in components for app-side toasts; server flash toasts continue to flow through `initializeFlashToast()` → vue-sonner.
+- **Reference docs:**
+  - https://primevue.org/llms/llms.txt — navigation index
+  - https://primevue.org/llms/llms-full.txt — full component docs
+  - https://primevue.org/tailwind — Tailwind v4 integration
+  - https://primevue.org/laravel — Laravel/Inertia integration
 
 <laravel-boost-guidelines>
 === foundation rules ===
