@@ -32,6 +32,9 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    build: {
+        chunkSizeWarningLimit: 1000,
+    },
     server: {
         host: 'student-management-system.test',
         hmr: {

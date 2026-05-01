@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Check } from 'lucide-vue-next';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
 import { dashboard } from '@/routes';
 
@@ -22,11 +23,11 @@ defineOptions({
         class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
     >
         <div class="flex items-center justify-end">
-            <Button
-                label="PrimeVue ready"
-                icon="pi pi-check"
-                severity="primary"
-            />
+            <Button label="PrimeVue ready" severity="primary">
+                <template #icon>
+                    <Check class="size-4" />
+                </template>
+            </Button>
         </div>
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <div

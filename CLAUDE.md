@@ -21,6 +21,7 @@ Some other issue faced by students is notification when a lecturer is absent fro
 - **Coexistence:** the starter kit's shadcn-vue primitives (`reka-ui`, `class-variance-authority`, etc.) and `vue-sonner` flash toaster remain in place. Existing pages keep them; only migrate when a page is being substantially modified anyway.
 - **Wiring:** PrimeVue is registered in `resources/js/app.ts` via `setup({ el, App, props, plugin })` with `darkModeSelector: '.dark'` and `cssLayer.order: 'theme, base, primevue, utilities'`. `tailwindcss-primeui` is imported in `resources/css/app.css` immediately after `tailwindcss`.
 - **Globally registered components** (no per-page import needed): `Button`, `Column`, `DataTable`, `Dialog`, `FileUpload`, `InputText`, `Select`, `Toast`. Other PrimeVue components are imported per page for tree-shaking — e.g. `import Card from 'primevue/card'`.
+- **Icons inside PrimeVue components:** use the `#icon` slot with `lucide-vue-next` (e.g. `<template #icon><Check class="size-4" /></template>`). PrimeIcons is intentionally not installed — `lucide-vue-next` is the single icon library across the app.
 - **Toasts:** PrimeVue `<Toast />` is mounted once in `resources/js/layouts/app/AppSidebarLayout.vue` next to the existing vue-sonner `<Toaster />`. Use `useToast()` from `primevue/usetoast` in components for app-side toasts; server flash toasts continue to flow through `initializeFlashToast()` → vue-sonner.
 - **Reference docs:**
   - https://primevue.org/llms/llms.txt — navigation index
