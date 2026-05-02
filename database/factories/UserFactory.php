@@ -57,4 +57,20 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * Indicate that the user is a staff member identified by an `employee_id`.
+     *
+     * `employee_id` stays out of `User::$fillable` until Phase 10 plumbs it
+     * through an explicit Form Request — a `forceFill` here keeps tests honest
+     * without widening the mass-assignment surface.
+     */
+    public function staff(?string $employeeId = null): static
+    {
+        return $this->afterCreating(function (User $user) use ($employeeId): void {
+            $user->forceFill([
+                'employee_id' => $employeeId ?? 'emp-'.fake()->unique()->numerify('####'),
+            ])->saveQuietly();
+        });
+    }
 }

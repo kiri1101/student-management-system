@@ -19,7 +19,28 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('applicant.dashboard', absolute: false));
+});
+
+test('staff can authenticate using their employee_id', function () {
+    $user = User::factory()->staff('emp-7777')->create();
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'emp-7777',
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('applicant.dashboard', absolute: false));
+});
+
+test('users cannot authenticate with an unknown identifier', function () {
+    $this->post(route('login.store'), [
+        'email' => 'not-a-real-user@example.com',
+        'password' => 'password',
+    ]);
+
+    $this->assertGuest();
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\RoleName;
+use App\Models\User;
+use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,6 +20,10 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+pest()->beforeEach(function () {
+    $this->seed(RolesSeeder::class);
+})->in('Feature/Auth', 'Feature/Dashboards');
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +51,10 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function userWithRole(RoleName $role): User
 {
-    // ..
+    $user = User::factory()->create();
+    $user->assignRole($role);
+
+    return $user;
 }

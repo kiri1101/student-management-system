@@ -15,7 +15,8 @@ import { request } from '@/routes/password';
 defineOptions({
     layout: {
         title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        description:
+            'Enter your email or employee ID and password below to log in',
     },
 });
 
@@ -44,16 +45,16 @@ defineProps<{
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Email or employee ID</Label>
                 <Input
                     id="email"
-                    type="email"
+                    type="text"
                     name="email"
                     required
                     autofocus
                     :tabindex="1"
-                    autocomplete="email"
-                    placeholder="email@example.com"
+                    autocomplete="username"
+                    placeholder="you@example.com or emp-1234"
                 />
                 <InputError :message="errors.email" />
             </div>

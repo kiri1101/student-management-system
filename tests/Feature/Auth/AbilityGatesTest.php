@@ -2,15 +2,7 @@
 
 use App\Enums\RoleName;
 use App\Models\User;
-use Database\Seeders\RolesSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
-
-uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    $this->seed(RolesSeeder::class);
-});
 
 /**
  * Authoritative gate map mirroring AppServiceProvider::ABILITIES.
@@ -29,14 +21,6 @@ function abilityRoleMap(): array
         'mark-attendance' => [RoleName::Lecturer, RoleName::Admin],
         'view-audit-log' => [RoleName::Admin],
     ];
-}
-
-function userWithRole(RoleName $role): User
-{
-    $user = User::factory()->create();
-    $user->assignRole($role);
-
-    return $user;
 }
 
 dataset('ability_role_pairs', function () {
