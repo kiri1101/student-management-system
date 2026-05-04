@@ -4,6 +4,8 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Enums\AuditAction;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -56,7 +58,12 @@ class CreateNewUser implements CreatesNewUsers
 
                 $existing->roles()->detach();
 
-                // Phase 5 will record an audit row here with context: ['reactivated' => true].
+                AuditLog::record(
+                    AuditAction::Restored,
+                    $existing,
+                    context: ['reactivated' => true],
+                    userId: $existing->id,
+                );
 
                 return $existing->fresh();
             });

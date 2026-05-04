@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\AuditAction;
 use App\Enums\RoleName;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\Features;
@@ -86,6 +88,30 @@ test('reactivation detaches all prior role assignments', function () {
     $reactivated = User::where('email', 'returning@example.com')->sole();
 
     expect($reactivated->roles()->count())->toBe(0);
+});
+
+test('reactivation writes an audit log with the reactivated context flag', function () {
+    $original = User::factory()->create(['email' => 'returning@example.com']);
+    $originalId = $original->id;
+    $original->delete();
+
+    $this->post(route('register.store'), [
+        'name' => 'Returning Student',
+        'email' => 'returning@example.com',
+        'password' => 'fresh-password',
+        'password_confirmation' => 'fresh-password',
+    ]);
+
+    $log = AuditLog::query()
+        ->where('action', AuditAction::Restored->value)
+        ->where('subject_type', (new User)->getMorphClass())
+        ->where('subject_id', $originalId)
+        ->latest('id')
+        ->first();
+
+    expect($log)->not->toBeNull()
+        ->and($log->user_id)->toBe($originalId)
+        ->and($log->context['reactivated'] ?? null)->toBeTrue();
 });
 
 test('re-registering with an active existing email returns 422', function () {
