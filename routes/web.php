@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Applications\ApplicationController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -35,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // a freshly-registered (or reactivated) user lands on before applying.
     Route::inertia('applicant/dashboard', 'dashboards/Applicant')
         ->name('applicant.dashboard');
+
+    Route::post('application', [ApplicationController::class, 'store'])->name('application.store');
 });
 
 require __DIR__.'/settings.php';
