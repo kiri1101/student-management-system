@@ -16,7 +16,7 @@ defineOptions({
     layout: {
         title: 'Log in to your account',
         description:
-            'Enter your email or employee ID and password below to log in',
+            'Enter your email, employee ID, or matricule and password below to log in',
     },
 });
 
@@ -45,7 +45,7 @@ defineProps<{
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email or employee ID</Label>
+                <Label for="email">Email, employee ID, or matricule</Label>
                 <Input
                     id="email"
                     type="text"
@@ -54,7 +54,7 @@ defineProps<{
                     autofocus
                     :tabindex="1"
                     autocomplete="username"
-                    placeholder="you@example.com or emp-1234"
+                    placeholder="you@example.com, emp-1234, or stm-2026-001"
                 />
                 <InputError :message="errors.email" />
             </div>

@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\RoleName;
+use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -32,6 +34,23 @@ test('staff can authenticate using their employee_id', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('applicant.dashboard', absolute: false));
+});
+
+test('students can authenticate using their matricule', function () {
+    $user = User::factory()->create();
+    $user->assignRole(RoleName::Student);
+    StudentProfile::factory()->create([
+        'user_id' => $user->id,
+        'matricule' => 'stm-login-1',
+    ]);
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'STM-LOGIN-1',
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticatedAs($user);
+    $response->assertRedirect(route('student.dashboard', absolute: false));
 });
 
 test('users cannot authenticate with an unknown identifier', function () {

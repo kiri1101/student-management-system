@@ -50,9 +50,8 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Configure the identifier-flexible login resolver.
      *
-     * Accepts the configured username field as either an `email` or a
-     * `users.employee_id`. Phase 6 will append a `student_profiles.matricule`
-     * lookup once that table exists.
+     * Accepts the configured username field as `email`, `users.employee_id`,
+     * or `student_profiles.matricule`.
      */
     private function configureAuthentication(): void
     {
@@ -62,11 +61,9 @@ class FortifyServiceProvider extends ServiceProvider
 
             $user = User::query()->where('email', $identifier)->first();
             $user ??= User::query()->where('employee_id', $identifier)->first();
-
-            // Phase 6: append matricule lookup here.
-            // $user ??= User::query()
-            //     ->whereHas('studentProfile', fn ($q) => $q->where('matricule', $identifier))
-            //     ->first();
+            $user ??= User::query()
+                ->whereHas('studentProfile', fn ($query) => $query->where('matricule', $identifier))
+                ->first();
 
             if ($user !== null && Hash::check($password, $user->password)) {
                 return $user;
