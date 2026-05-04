@@ -26,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         'approve-course-plan' => [RoleName::Sao, RoleName::Admin],
         'mark-attendance' => [RoleName::Lecturer, RoleName::Admin],
         'view-audit-log' => [RoleName::Admin],
+        'manage-references' => [RoleName::Admin],
     ];
 
     /**
