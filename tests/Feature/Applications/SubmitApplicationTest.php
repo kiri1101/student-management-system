@@ -3,6 +3,7 @@
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
 use App\Enums\DegreeProgram;
+use App\Enums\RoleName;
 use App\Models\Application;
 use App\Models\AuditLog;
 use App\Models\Department;
@@ -148,6 +149,33 @@ it('blocks unverified users', function () {
 
     $response->assertRedirect(route('verification.notice'));
     expect(Application::count())->toBe(0);
+});
+
+it('auto-attaches the Applicant role on a roleless user first submit', function () {
+    $user = User::factory()->create();
+    expect($user->roles()->exists())->toBeFalse();
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload());
+
+    expect($user->fresh()->hasRole(RoleName::Applicant))->toBeTrue();
+
+    $roleAssigned = AuditLog::query()
+        ->where('action', AuditAction::RoleAssigned->value)
+        ->where('subject_type', $user->getMorphClass())
+        ->where('subject_id', $user->id)
+        ->sole();
+
+    expect($roleAssigned->changes)->toBe(['role' => RoleName::Applicant->value]);
+});
+
+it('does not change roles when the user already has one', function () {
+    $user = userWithRole(RoleName::Student);
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload());
+
+    expect($user->fresh()->hasRole(RoleName::Student))->toBeTrue();
+    expect($user->fresh()->hasRole(RoleName::Applicant))->toBeFalse();
+    expect(AuditLog::query()->where('action', AuditAction::RoleAssigned->value)->exists())->toBeFalse();
 });
 
 it('keeps audit history queryable after a soft-deleted application', function () {

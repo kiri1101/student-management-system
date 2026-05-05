@@ -34,10 +34,16 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     // Applicant dashboard intentionally has no role guard — it's the roleless fallback
     // a freshly-registered (or reactivated) user lands on before applying.
-    Route::inertia('applicant/dashboard', 'dashboards/Applicant')
-        ->name('applicant.dashboard');
+    Route::get('applicant/dashboard', [ApplicationController::class, 'dashboard'])->name('applicant.dashboard');
 
+    Route::get('application/new', [ApplicationController::class, 'create'])->name('application.create');
     Route::post('application', [ApplicationController::class, 'store'])->name('application.store');
+    Route::get('application/{application}', [ApplicationController::class, 'show'])->name('application.show');
+
+    Route::prefix('api/v1')->name('api.v1.')->group(function (): void {
+        Route::get('program-offerings', [ApplicationController::class, 'offerings'])->name('program-offerings.index');
+        Route::get('level-requirements', [ApplicationController::class, 'levelRequirements'])->name('level-requirements.index');
+    });
 });
 
 require __DIR__.'/settings.php';
