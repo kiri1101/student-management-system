@@ -23,7 +23,7 @@ pest()->extend(TestCase::class)
 
 pest()->beforeEach(function () {
     $this->seed(RolesSeeder::class);
-})->in('Feature/Auth', 'Feature/Dashboards', 'Feature/Admin', 'Feature/Applications');
+})->in('Feature/Auth', 'Feature/Dashboards', 'Feature/Admin', 'Feature/Applications', 'Feature/Sao');
 
 /*
 |--------------------------------------------------------------------------

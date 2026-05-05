@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Applications\ApplicationController;
+use App\Http\Controllers\Applications\DocumentDownloadController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -15,10 +16,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::inertia('admin/dashboard', 'dashboards/Admin')
         ->middleware('role:admin')
         ->name('admin.dashboard');
-
-    Route::inertia('sao/dashboard', 'dashboards/Sao')
-        ->middleware('role:sao')
-        ->name('sao.dashboard');
 
     Route::inertia('accountant/dashboard', 'dashboards/Accountant')
         ->middleware('role:accountant')
@@ -40,6 +37,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('application', [ApplicationController::class, 'store'])->name('application.store');
     Route::get('application/{application}', [ApplicationController::class, 'show'])->name('application.show');
 
+    Route::get('applications/{application}/documents/{document}/download', DocumentDownloadController::class)
+        ->scopeBindings()
+        ->name('application.documents.download');
+
     Route::prefix('api/v1')->name('api.v1.')->group(function (): void {
         Route::get('program-offerings', [ApplicationController::class, 'offerings'])->name('program-offerings.index');
         Route::get('level-requirements', [ApplicationController::class, 'levelRequirements'])->name('level-requirements.index');
@@ -48,3 +49,4 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
+require __DIR__.'/sao.php';

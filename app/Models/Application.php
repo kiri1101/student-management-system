@@ -66,4 +66,46 @@ class Application extends Model
     {
         return $this->hasMany(ApplicationDocument::class);
     }
+
+    /**
+     * Statuses from which no further transition is allowed.
+     *
+     * @var list<ApplicationStatus>
+     */
+    private const TERMINAL_STATUSES = [
+        ApplicationStatus::Admitted,
+        ApplicationStatus::Rejected,
+        ApplicationStatus::Waitlisted,
+        ApplicationStatus::Withdrawn,
+    ];
+
+    /**
+     * Reversible interim statuses owned by the SAO triage flow.
+     *
+     * @var list<ApplicationStatus>
+     */
+    private const INTERIM_STATUSES = [
+        ApplicationStatus::Submitted,
+        ApplicationStatus::UnderReview,
+        ApplicationStatus::DocumentsRequested,
+    ];
+
+    public function isTerminal(): bool
+    {
+        return in_array($this->status, self::TERMINAL_STATUSES, strict: true);
+    }
+
+    public function canTransitionTo(ApplicationStatus $next): bool
+    {
+        if ($this->isTerminal()) {
+            return false;
+        }
+
+        if (! in_array($this->status, self::INTERIM_STATUSES, strict: true)) {
+            return false;
+        }
+
+        return in_array($next, self::INTERIM_STATUSES, strict: true)
+            || in_array($next, self::TERMINAL_STATUSES, strict: true);
+    }
 }

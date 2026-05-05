@@ -59,4 +59,18 @@ class StudentProfile extends Model
     {
         return $this->belongsTo(ProgramOffering::class);
     }
+
+    /**
+     * Compute the next available matricule for the given year. Caller is
+     * responsible for the surrounding `DB::transaction` + `lockForUpdate()` on
+     * the year's existing rows so concurrent admits do not collide.
+     */
+    public static function nextMatriculeForYear(int $year): string
+    {
+        $count = static::withTrashed()
+            ->where('matricule', 'like', "stm-{$year}-%")
+            ->count();
+
+        return sprintf('stm-%d-%04d', $year, $count + 1);
+    }
 }
