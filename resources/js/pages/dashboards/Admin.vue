@@ -1,29 +1,72 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ChevronRight, Database, Shield } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Database,
+    FileText,
+    GraduationCap,
+    History,
+    Shield,
+    Users,
+} from 'lucide-vue-next';
 import Card from 'primevue/card';
+import { ref } from 'vue';
+import AuditLogModal from '@/components/admin/AuditLogModal.vue';
 import admin from '@/routes/admin';
+
+type RoleCount = { role: string; label: string; count: number };
+type StatusCount = { status: string; label: string; count: number };
+
+type RecentAdmission = {
+    id: number;
+    matricule: string;
+    level: number;
+    academic_year: string | null;
+    enrolled_at: string | null;
+    user: { id: number; name: string; email: string };
+    program_offering: {
+        id: number;
+        degree_program: string;
+        department: { id: number; name: string; code: string };
+    };
+};
+
+defineProps<{
+    totals: { users: number; applications: number; student_profiles: number };
+    usersByRole: RoleCount[];
+    applicationsByStatus: StatusCount[];
+    recentAdmissions: RecentAdmission[];
+}>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            {
-                title: 'Admin Dashboard',
-                href: admin.dashboard(),
-            },
-        ],
+        breadcrumbs: [{ title: 'Admin Dashboard', href: admin.dashboard() }],
     },
 });
 
-const shortcuts = [
-    {
-        title: 'Reference data',
-        description:
-            'Departments, program offerings, document types, level requirements.',
-        href: admin.references.index(),
-        icon: Database,
-    },
-];
+const DEGREE_LABELS: Record<string, string> = {
+    hnd: 'HND',
+    bachelors: 'Bachelors',
+    masters: 'Masters',
+};
+
+const auditModalVisible = ref(false);
+
+function degreeLabel(value: string): string {
+    return DEGREE_LABELS[value] ?? value;
+}
+
+function formatDate(value: string | null): string {
+    if (!value) {
+        return '—';
+    }
+
+    return new Date(value).toLocaleDateString();
+}
+
+function openAuditLog(): void {
+    auditModalVisible.value = true;
+}
 </script>
 
 <template>
@@ -32,42 +75,249 @@ const shortcuts = [
     <div class="space-y-4 p-4">
         <Card>
             <template #title>
-                <div class="flex items-center gap-2">
-                    <Shield class="size-5" />
-                    <span>Admin Dashboard</span>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <Shield class="size-5" />
+                        <span>Administrator</span>
+                    </div>
+                    <Button
+                        label="Open audit log"
+                        size="small"
+                        severity="secondary"
+                        @click="openAuditLog"
+                    >
+                        <template #icon>
+                            <History class="size-4" />
+                        </template>
+                    </Button>
                 </div>
             </template>
             <template #content>
-                <p class="text-muted-foreground">Placeholder.</p>
+                <p class="text-sm text-muted-foreground">
+                    Manage reference data, monitor admissions, and review every
+                    audited event across the system.
+                </p>
+            </template>
+        </Card>
+
+        <div class="grid gap-4 md:grid-cols-3">
+            <Card>
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <Users class="size-5" />
+                        <span>Users</span>
+                    </div>
+                </template>
+                <template #content>
+                    <p class="text-3xl font-semibold">
+                        {{ totals.users }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        Active accounts (excludes soft-deleted)
+                    </p>
+                </template>
+            </Card>
+            <Card>
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <FileText class="size-5" />
+                        <span>Applications</span>
+                    </div>
+                </template>
+                <template #content>
+                    <p class="text-3xl font-semibold">
+                        {{ totals.applications }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        Submissions across every status
+                    </p>
+                </template>
+            </Card>
+            <Card>
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <GraduationCap class="size-5" />
+                        <span>Student profiles</span>
+                    </div>
+                </template>
+                <template #content>
+                    <p class="text-3xl font-semibold">
+                        {{ totals.student_profiles }}
+                    </p>
+                    <p class="text-xs text-muted-foreground">
+                        Promoted from admitted applications
+                    </p>
+                </template>
+            </Card>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+            <Card>
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <Users class="size-5" />
+                        <span>Users by role</span>
+                    </div>
+                </template>
+                <template #content>
+                    <ul class="space-y-1">
+                        <li
+                            v-for="row in usersByRole"
+                            :key="row.role"
+                            class="flex justify-between text-sm"
+                        >
+                            <span>{{ row.label }}</span>
+                            <span class="font-mono">{{ row.count }}</span>
+                        </li>
+                    </ul>
+                </template>
+            </Card>
+
+            <Card>
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <FileText class="size-5" />
+                        <span>Applications by status</span>
+                    </div>
+                </template>
+                <template #content>
+                    <ul class="space-y-1">
+                        <li
+                            v-for="row in applicationsByStatus"
+                            :key="row.status"
+                            class="flex justify-between text-sm"
+                        >
+                            <span>{{ row.label }}</span>
+                            <span class="font-mono">{{ row.count }}</span>
+                        </li>
+                    </ul>
+                </template>
+            </Card>
+        </div>
+
+        <Card>
+            <template #title>
+                <div class="flex items-center gap-2">
+                    <GraduationCap class="size-5" />
+                    <span>Recent admissions</span>
+                </div>
+            </template>
+            <template #content>
+                <DataTable
+                    :value="recentAdmissions"
+                    data-key="id"
+                    striped-rows
+                    responsive-layout="scroll"
+                >
+                    <Column header="Matricule" style="width: 11rem">
+                        <template #body="{ data }">
+                            <span class="font-mono text-sm">
+                                {{ data.matricule }}
+                            </span>
+                        </template>
+                    </Column>
+                    <Column header="Student">
+                        <template #body="{ data }">
+                            <div class="flex flex-col">
+                                <span>{{ data.user.name }}</span>
+                                <span class="text-xs text-muted-foreground">
+                                    {{ data.user.email }}
+                                </span>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column header="Programme">
+                        <template #body="{ data }">
+                            <div class="flex flex-col">
+                                <span>
+                                    {{ data.program_offering.department.name }}
+                                </span>
+                                <span class="text-xs text-muted-foreground">
+                                    {{
+                                        degreeLabel(
+                                            data.program_offering
+                                                .degree_program,
+                                        )
+                                    }}
+                                    · L{{ data.level }}
+                                </span>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column
+                        header="Academic year"
+                        field="academic_year"
+                        style="width: 9rem"
+                    >
+                        <template #body="{ data }">
+                            <span>{{ data.academic_year ?? '—' }}</span>
+                        </template>
+                    </Column>
+                    <Column header="Enrolled" style="width: 9rem">
+                        <template #body="{ data }">
+                            <span>{{ formatDate(data.enrolled_at) }}</span>
+                        </template>
+                    </Column>
+                    <template #empty>
+                        <div
+                            class="py-6 text-center text-sm text-muted-foreground"
+                        >
+                            No student profiles yet — admissions will appear
+                            here.
+                        </div>
+                    </template>
+                </DataTable>
             </template>
         </Card>
 
         <div class="grid gap-4 md:grid-cols-2">
             <Link
-                v-for="card in shortcuts"
-                :key="card.title"
-                :href="card.href"
+                :href="admin.references.index().url"
                 class="block focus:outline-none"
             >
-                <Card class="transition-colors hover:bg-muted/50">
+                <Card class="h-full transition-colors hover:bg-muted/50">
                     <template #title>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <component :is="card.icon" class="size-5" />
-                                <span>{{ card.title }}</span>
-                            </div>
-                            <ChevronRight
-                                class="size-4 text-muted-foreground"
-                            />
+                        <div class="flex items-center gap-2">
+                            <Database class="size-5" />
+                            <span>Reference data</span>
                         </div>
                     </template>
                     <template #content>
                         <p class="text-sm text-muted-foreground">
-                            {{ card.description }}
+                            Departments, program offerings, document types,
+                            level requirements.
                         </p>
                     </template>
                 </Card>
             </Link>
+
+            <Card class="h-full">
+                <template #title>
+                    <div class="flex items-center gap-2">
+                        <BookOpen class="size-5" />
+                        <span>Audit log</span>
+                    </div>
+                </template>
+                <template #content>
+                    <p class="text-sm text-muted-foreground">
+                        Inspect every recorded event with filters by actor,
+                        action, subject type, and date range.
+                    </p>
+                </template>
+                <template #footer>
+                    <Button
+                        label="Open audit log"
+                        size="small"
+                        @click="openAuditLog"
+                    >
+                        <template #icon>
+                            <History class="size-4" />
+                        </template>
+                    </Button>
+                </template>
+            </Card>
         </div>
+
+        <AuditLogModal v-model:visible="auditModalVisible" />
     </div>
 </template>
