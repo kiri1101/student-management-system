@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\RecordsAudit;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['program_offering_id', 'level', 'document_type_id', 'required', 'notes'])]
 class LevelCredentialRequirement extends Model
 {
-    use SoftDeletes;
+    use RecordsAudit, SoftDeletes;
 
     /**
      * @return array<string, string>

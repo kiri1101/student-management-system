@@ -13,10 +13,6 @@ Route::inertia('/', 'Welcome', [
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-    Route::inertia('admin/dashboard', 'dashboards/Admin')
-        ->middleware('role:admin')
-        ->name('admin.dashboard');
-
     Route::inertia('accountant/dashboard', 'dashboards/Accountant')
         ->middleware('role:accountant')
         ->name('accountant.dashboard');
