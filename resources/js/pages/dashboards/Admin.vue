@@ -13,6 +13,7 @@ import Card from 'primevue/card';
 import { ref } from 'vue';
 import AuditLogModal from '@/components/admin/AuditLogModal.vue';
 import admin from '@/routes/admin';
+import adminUsers from '@/routes/admin/users';
 
 type RoleCount = { role: string; label: string; count: number };
 type StatusCount = { status: string; label: string; count: number };
@@ -270,7 +271,27 @@ function openAuditLog(): void {
             </template>
         </Card>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-4 md:grid-cols-3">
+            <Link
+                :href="adminUsers.index().url"
+                class="block focus:outline-none"
+            >
+                <Card class="h-full transition-colors hover:bg-muted/50">
+                    <template #title>
+                        <div class="flex items-center gap-2">
+                            <Users class="size-5" />
+                            <span>Manage users</span>
+                        </div>
+                    </template>
+                    <template #content>
+                        <p class="text-sm text-muted-foreground">
+                            Provision lecturers, accountants, SAOs, and other
+                            admins. Send invites, change roles, deactivate.
+                        </p>
+                    </template>
+                </Card>
+            </Link>
+
             <Link
                 :href="admin.references.index().url"
                 class="block focus:outline-none"
