@@ -47,13 +47,23 @@ trait WritesRoleProfile
     }
 
     /**
-     * Soft-delete any active staff profile attached to $user. Used when
-     * changing roles so the unique user_id constraint stays clean.
+     * Soft-delete any active staff profile that does not match $keepRole.
+     * Used during role transitions so the unique user_id constraint stays
+     * clean while leaving a same-role rewrite untouched (no spurious
+     * Deleted/Restored audit churn).
      */
-    protected function softDeleteStaffProfile(User $user): void
+    protected function softDeleteOtherStaffProfiles(User $user, RoleName $keepRole): void
     {
-        $user->lecturerProfile()->delete();
-        $user->accountantProfile()->delete();
-        $user->saoProfile()->delete();
+        if ($keepRole !== RoleName::Lecturer) {
+            $user->lecturerProfile()->delete();
+        }
+
+        if ($keepRole !== RoleName::Accountant) {
+            $user->accountantProfile()->delete();
+        }
+
+        if ($keepRole !== RoleName::Sao) {
+            $user->saoProfile()->delete();
+        }
     }
 }

@@ -149,6 +149,37 @@ it('updates a staff user name + profile fields without changing role', function 
     expect($sao->fresh()->saoProfile->scope)->toBe('Records');
 });
 
+it('rewrites profile fields without audit churn when changeRole keeps the same role', function () {
+    $department = Department::firstOrCreate(['code' => 'CS'], ['name' => 'CS']);
+    $user = User::factory()->create(['email' => 'samerole@example.com']);
+    $user->assignRole(RoleName::Lecturer);
+    $existing = LecturerProfile::create([
+        'user_id' => $user->id,
+        'department_id' => $department->id,
+        'specialization' => 'Old',
+    ]);
+
+    $this->actingAs($this->admin)->patch("/admin/users/{$user->id}/role", [
+        'role' => RoleName::Lecturer->value,
+        'profile' => ['department_id' => $department->id, 'specialization' => 'New'],
+    ])->assertRedirect();
+
+    $fresh = LecturerProfile::find($existing->id);
+    expect($fresh)->not->toBeNull();
+    expect($fresh->trashed())->toBeFalse();
+    expect($fresh->specialization)->toBe('New');
+
+    expect(AuditLog::query()
+        ->where('subject_id', $user->id)
+        ->whereIn('action', [AuditAction::RoleRevoked, AuditAction::RoleAssigned])
+        ->exists())->toBeFalse();
+    expect(AuditLog::query()
+        ->where('subject_type', LecturerProfile::class)
+        ->where('subject_id', $existing->id)
+        ->whereIn('action', [AuditAction::Deleted, AuditAction::Restored])
+        ->exists())->toBeFalse();
+});
+
 it('reuses a previously soft-deleted profile row when re-attaching the same role', function () {
     $department = Department::firstOrCreate(['code' => 'CS'], ['name' => 'CS']);
     $user = User::factory()->create(['email' => 'roundtrip@example.com']);

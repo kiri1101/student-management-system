@@ -48,7 +48,7 @@ class ChangeUserRoleAction
                 );
             }
 
-            $this->softDeleteStaffProfile($user);
+            $this->softDeleteOtherStaffProfiles($user, $newRole);
 
             if (! $user->hasRole($newRole)) {
                 $user->assignRole($newRole);

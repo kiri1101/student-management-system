@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Enums\RoleName;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -32,7 +33,7 @@ class UserInvitationMail extends Mailable implements ShouldQueue
             markdown: 'mail.user-invitation',
             with: [
                 'user' => $this->user,
-                'role' => $this->user->roles()->value('name'),
+                'roleLabel' => $this->roleLabel(),
                 'setupUrl' => route('password.reset', [
                     'token' => $this->token,
                     'email' => $this->user->email,
@@ -40,5 +41,26 @@ class UserInvitationMail extends Mailable implements ShouldQueue
                 'expireHours' => (int) ceil(config('auth.passwords.users.expire') / 60),
             ],
         );
+    }
+
+    private function roleLabel(): ?string
+    {
+        $value = $this->user->roles()->value('name');
+
+        if ($value === null) {
+            return null;
+        }
+
+        $role = RoleName::tryFrom($value);
+
+        return match ($role) {
+            RoleName::Sao => 'SAO',
+            RoleName::Admin => 'Administrator',
+            RoleName::Lecturer => 'Lecturer',
+            RoleName::Accountant => 'Accountant',
+            RoleName::Student => 'Student',
+            RoleName::Applicant => 'Applicant',
+            null => ucfirst($value),
+        };
     }
 }
