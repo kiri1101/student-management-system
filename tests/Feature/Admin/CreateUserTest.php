@@ -172,6 +172,18 @@ it('records Created (User) + RoleAssigned + Created (profile) audit entries', fu
         ->exists())->toBeTrue();
 });
 
+it('renders the invitation mail with the human role label', function () {
+    $user = User::factory()->create(['name' => 'Render Tester', 'email' => 'render@example.com']);
+    $user->assignRole(RoleName::Sao);
+    $token = Password::broker()->createToken($user);
+
+    $rendered = (new UserInvitationMail($user, $token))->render();
+
+    expect($rendered)->toContain('SAO');
+    expect($rendered)->toContain('render@example.com');
+    expect($rendered)->toContain('Set your password');
+});
+
 it('never persists or audits the random plaintext password', function () {
     Mail::fake();
 

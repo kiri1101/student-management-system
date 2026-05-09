@@ -51,7 +51,7 @@ class UserInvitationMail extends Mailable implements ShouldQueue
             return null;
         }
 
-        $role = RoleName::tryFrom($value);
+        $role = $value instanceof RoleName ? $value : RoleName::tryFrom((string) $value);
 
         return match ($role) {
             RoleName::Sao => 'SAO',
@@ -60,7 +60,7 @@ class UserInvitationMail extends Mailable implements ShouldQueue
             RoleName::Accountant => 'Accountant',
             RoleName::Student => 'Student',
             RoleName::Applicant => 'Applicant',
-            null => ucfirst($value),
+            null => ucfirst((string) $value),
         };
     }
 }
