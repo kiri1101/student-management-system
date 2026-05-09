@@ -96,7 +96,9 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
-            'expire' => 60,
+            // 72 hours — admin-issued invite links share this broker, and staff
+            // accounts are often provisioned a day or two before first use.
+            'expire' => 4320,
             'throttle' => 60,
         ],
     ],

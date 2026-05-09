@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             DocumentTypesSeeder::class,
             DemoReferencesSeeder::class,
+            LocalStaffSeeder::class,
         ]);
 
         User::factory()->create([

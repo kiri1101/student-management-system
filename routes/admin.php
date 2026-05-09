@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\References\DepartmentController;
 use App\Http\Controllers\Admin\References\DocumentTypeController;
 use App\Http\Controllers\Admin\References\LevelCredentialRequirementController;
 use App\Http\Controllers\Admin\References\ProgramOfferingController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -16,6 +17,19 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+        // User management
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('users/{user}/restore', [UserController::class, 'restore'])
+            ->withTrashed()
+            ->name('users.restore');
+        Route::post('users/{user}/resend-invite', [UserController::class, 'resendInvite'])->name('users.resend-invite');
+        Route::patch('users/{user}/role', [UserController::class, 'changeRole'])->name('users.role');
 
         Route::prefix('references')
             ->name('references.')
