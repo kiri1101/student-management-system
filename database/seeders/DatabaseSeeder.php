@@ -18,10 +18,17 @@ class DatabaseSeeder extends Seeder
             LocalStaffSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // `User::factory()` triggers `fake()` in the factory's `definition()`,
+        // which is unavailable on environments installed with `--no-dev`.
+        // Use `firstOrCreate` so the seed path stays faker-free.
+        User::query()->firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ],
+        );
 
         $admin = User::query()->firstOrCreate(
             ['email' => 'admin@example.com'],
