@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan *)",
+      "Bash(git stash *)",
+      "Bash(npm run *)",
+      "Bash(npx prettier *)",
+      "Bash(vendor/bin/pint --dirty --format agent)",
+      "Bash(git add *)",
+      "Bash(vendor/bin/pest tests/Feature/Auth/AuthenticationTest.php)",
+      "Bash(vendor/bin/pest tests/Feature/Applications/)",
+      "Bash(php -d memory_limit=512M artisan test --compact tests/Feature/Sao/SaoDashboardTest.php)",
+      "Bash(php -r \"file_put_contents\\('storage/logs/laravel.log', ''\\);\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "laravel-boost"
+  ]
+}

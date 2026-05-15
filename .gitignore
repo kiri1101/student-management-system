@@ -7,6 +7,8 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/plan/ssl_issue/*.key
+/plan/ssl_issue/*.crt
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
