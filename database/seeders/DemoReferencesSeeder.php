@@ -40,7 +40,7 @@ class DemoReferencesSeeder extends Seeder
         }
 
         $documentTypes = DocumentType::query()
-            ->whereIn('code', ['GCE_AL', 'HND', 'BACH'])
+            ->whereIn('code', ['GCE_AL', 'HND', 'BACH'], 'and', false)
             ->pluck('id', 'code');
 
         $rules = [
