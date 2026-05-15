@@ -7,7 +7,7 @@ import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 import fs from 'fs';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
@@ -35,17 +35,20 @@ export default defineConfig({
     build: {
         chunkSizeWarningLimit: 1000,
     },
-    server: {
-        host: 'student-management-system.test',
-        hmr: {
-            host: 'student-management-system.test', // Required for HMR
-            protocol: 'wss', // Use WebSocket Secure (for SSL)
-        },
-        cors: true, // Explicitly enable CORS
-        https: {
-            // Enable HTTPS for Vite
-            key: fs.readFileSync('D:/laragon/etc/ssl/laragon.key'), // Path to Laragon's key
-            cert: fs.readFileSync('D:/laragon/etc/ssl/laragon.crt'), // Path to Laragon's cert
-        },
-    },
-});
+    ...(command === 'serve'
+        ? {
+              server: {
+                  host: 'student-management-system.test',
+                  hmr: {
+                      host: 'student-management-system.test',
+                      protocol: 'wss',
+                  },
+                  cors: true,
+                  https: {
+                      key: fs.readFileSync('D:/laragon/etc/ssl/laragon.key'),
+                      cert: fs.readFileSync('D:/laragon/etc/ssl/laragon.crt'),
+                  },
+              },
+          }
+        : {}),
+}));

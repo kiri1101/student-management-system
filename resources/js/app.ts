@@ -10,6 +10,7 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
 import { createApp, h } from 'vue';
 import type { DefineComponent } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
@@ -61,6 +62,7 @@ createInertiaApp({
             .component('InputText', InputText)
             .component('Select', Select)
             .component('Toast', Toast)
+            .directive('tooltip', Tooltip)
             .mount(el as Element);
     },
 });
