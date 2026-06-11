@@ -941,7 +941,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 | Fix phase | Findings | Status | Commit |
 |---|---|---|---|
 | 1 — Core flow correctness | AUD-001, 010, 003, 005, 006 | ✅ Done | `1956bf2` |
-| 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ⏳ Pending | — |
+| 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ✅ Done | `fa56b44` |
 | 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ⏳ Pending | — |
 | 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ⏳ Pending | — |
 | 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ⏳ Pending | — |
@@ -954,5 +954,15 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - One open application per applicant: `StoreApplicationRequest::after()` + an in-transaction re-check under a per-user `lockForUpdate` on the `users` row (a per-user mutex with no gap-lock risk). Re-applying after any terminal decision remains allowed (AUD-005).
 - Matricule generation now uses a `matricule_sequences (year PK, last_number)` counter table (new migration `2026_06_11_120000`), lazy-seeded from the highest already-issued number per year; query-builder only, no Eloquent model, no timestamps. Constant lock scope, immune to force-deleted profiles (AUD-006).
 - 8 new Pest cases (returning-applicant admit, active-profile admit, Draft refusals on decide+triage, concurrent-finalize 422, force-delete sequence survival, duplicate-submit 422, re-apply-after-decision). **388/388 green**, Pint clean, `migrate:fresh --seed` ✓.
+
+**Fix Phase 2 (`fa56b44`) — what changed:**
+- `ApplicationController::store()` writes uploads to disk *before* opening the transaction (collecting metadata rows), then deletes the stored files in a `catch` if the transaction rolls back — no filesystem I/O inside the transaction, no orphans on failure; covered by a forced-rollback test via an `Application::created` hook (AUD-009).
+- `Create.vue` formats `date_of_birth` from local date components (`toLocalDateString()`) instead of `toISOString()`, fixing the one-day-early shift for UTC+ applicants; the submission test asserts the literal stored date (AUD-015).
+- `Create.vue` cascading lookups extracted into `loadOfferings()`/`loadLevelRequirements()` with `catch` + inline error `Message` + Retry button, mirroring the AuditLogModal pattern (AUD-016).
+- `applications` migration (edited in place): composite `(status, submitted_at)` + `(user_id, status)` replace the single-column status/submitted_at indexes (AUD-019). Caveat: a multi-status `IN` still filesorts the index-filtered subset (MySQL limitation); single-status queries are sort-free.
+- `audit_logs` migration: composite `(occurred_at, id)`, `(user_id, occurred_at)`, `(action, occurred_at)`, `(subject_type, occurred_at)`; single-column indexes dropped; `paginate()` kept since the modal consumes `total`/`last_page` (AUD-008).
+- `DocumentDownloadController` downloads from the default disk (`Storage::download()`), matching the upload path's `$file->store()` (AUD-030).
+- `DatabaseSeeder`'s known-credential accounts (`test@`/`admin@example.com`) now gated to local/testing — `LocalStaffSeeder` already was; new `DatabaseSeederTest` asserts production seeding creates zero users (AUD-012).
+- **391/391 green**, Pint clean, `npm run build` ✓, `migrate:fresh --seed` ✓.
 
 **Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.

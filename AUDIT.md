@@ -145,7 +145,7 @@
 
 - **Severity:** High · **Category:** Performance · **Source:** PERF-1 · **Scale assumption:** ~1M+ rows (every write + every login/logout/failed login appends)
 - **Location:** `database/migrations/2026_05_04_120000_create_audit_logs_table.php`; `app/Http/Controllers/Admin/AuditLogController.php`
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (composite (occurred_at,id)/(user_id,occurred_at)/(action,occurred_at)/(subject_type,occurred_at) indexes; pagination left as `paginate()` — modal shows total/last_page)
 
 **Problem** — `audit_logs` is the fastest-growing table but carries only single-column indexes. The modal's combined filters + `ORDER BY occurred_at, id` cannot be served by any of them → filesort over the filtered set; `paginate()` additionally re-runs `COUNT(*)` on every page/filter change.
 
@@ -159,7 +159,7 @@
 
 - **Severity:** High · **Category:** Performance/Quality · **Source:** PERF-3, QUAL-9
 - **Location:** `app/Http/Controllers/Applications/ApplicationController.php:146-179` (store)
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (files stored before the transaction, deleted in a `catch` on rollback; cleanup covered by test)
 
 **Problem** — `$file->store()` runs per-document *inside* `DB::transaction`, holding the connection and any locks across multi-MB disk I/O (3+ files × 8MB). On rollback (e.g. role-attach failure), already-stored files are orphaned on disk with no cleanup; on storage failure mid-loop, earlier files orphan too.
 
@@ -206,7 +206,7 @@
 
 - **Severity:** Medium · **Category:** Security · **Source:** SEC-3
 - **Location:** `database/seeders/DatabaseSeeder.php`, `database/seeders/LocalStaffSeeder.php`
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (credential accounts in `DatabaseSeeder` gated to local/testing; `LocalStaffSeeder` was already guarded)
 
 **Problem** — `migrate --seed` unconditionally provisions `admin@example.com` / `password` (Admin role, pre-verified) plus known staff accounts. Run against a deployed database, this mints a known-credential admin.
 
@@ -248,7 +248,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-8
 - **Location:** `resources/js/pages/applicant/applications/Create.vue` (date transform)
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (`toLocalDateString()` formats from local date components; literal-date assertion added to submission test)
 
 **Problem** — The submit transform uses `toISOString()` on the DatePicker's local-midnight Date. For any UTC+ timezone (Cameroon is UTC+1), local midnight converts to the *previous* UTC day — every applicant's date of birth is stored one day early.
 
@@ -262,7 +262,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-10
 - **Location:** `resources/js/pages/applicant/applications/Create.vue` (offerings/level-requirements `fetch()` calls)
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (catch + inline error `Message` with retry button on both lookups, mirroring AuditLogModal)
 
 **Problem** — The cascading lookups use `try/finally` with no `catch` and no `response.ok` check: a failed/expired-session fetch leaves the form silently dead (departments never populate, required document slots never render) with zero user feedback. `AuditLogModal.vue` already implements the correct pattern (inline `Message` on failure) — siblings drifted.
 
@@ -303,7 +303,7 @@
 
 - **Severity:** Medium · **Category:** Performance · **Source:** PERF-6 · **Scale assumption:** 10k+ applications
 - **Location:** `database/migrations/2026_05_06_120000_create_applications_table.php`; `app/Http/Controllers/Sao/ApplicationReviewController.php` (index)
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (composite (status,submitted_at) + (user_id,status); note: multi-status `IN` still filesorts the index-filtered subset — MySQL limitation, single-status is sort-free)
 
 **Problem** — The queue runs `whereIn(status, [...]) ORDER BY submitted_at` against separate single-column indexes → filesort; `created_at`/`level` sort options have no index at all.
 
@@ -453,7 +453,7 @@
 
 - **Severity:** Low · **Category:** Quality · **Source:** QUAL-Low
 - **Location:** `app/Http/Controllers/Applications/DocumentDownloadController.php` (`Storage::disk('local')`) vs `ApplicationController::store` (default disk)
-- **Status:** Open
+- **Status:** Fixed in `fa56b44` (download uses the default disk via `Storage::download()`, matching the store path)
 
 **Problem** — Upload uses the default disk; download hardcodes `local`. They coincide today; changing `FILESYSTEM_DISK` (e.g. to s3 at deployment — the plan explicitly says "revisit at deployment") silently 404s every historical download.
 
