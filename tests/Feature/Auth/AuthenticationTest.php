@@ -3,6 +3,7 @@
 use App\Enums\RoleName;
 use App\Models\StudentProfile;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
@@ -59,6 +60,22 @@ test('users cannot authenticate with an unknown identifier', function () {
         'password' => 'password',
     ]);
 
+    $this->assertGuest();
+});
+
+test('the login resolver issues a single users query per attempt', function () {
+    DB::enableQueryLog();
+
+    $this->post(route('login.store'), [
+        'email' => 'ghost@example.com',
+        'password' => 'password',
+    ]);
+
+    $userQueries = collect(DB::getQueryLog())
+        ->filter(fn (array $entry): bool => str_starts_with($entry['query'], 'select') && str_contains($entry['query'], 'users'))
+        ->count();
+
+    expect($userQueries)->toBe(1);
     $this->assertGuest();
 });
 

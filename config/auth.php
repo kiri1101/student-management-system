@@ -67,6 +67,14 @@ return [
             'model' => env('AUTH_MODEL', User::class),
         ],
 
+        // Password-broker-only provider: includes soft-deleted users so the
+        // reset flow doubles as account reactivation, excluding trashed
+        // staff/admin accounts (see App\Services\PasswordBrokerUserProvider).
+        'users-with-trashed' => [
+            'driver' => 'eloquent-with-trashed',
+            'model' => env('AUTH_MODEL', User::class),
+        ],
+
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
@@ -94,7 +102,7 @@ return [
 
     'passwords' => [
         'users' => [
-            'provider' => 'users',
+            'provider' => 'users-with-trashed',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
             // 72 hours — admin-issued invite links share this broker, and staff
             // accounts are often provisioned a day or two before first use.

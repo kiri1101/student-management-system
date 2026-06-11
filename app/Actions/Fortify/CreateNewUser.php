@@ -4,12 +4,10 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
-use App\Enums\AuditAction;
-use App\Models\AuditLog;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -19,60 +17,36 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Validate and create a newly registered user.
      *
-     * Re-registration with a soft-deleted email reactivates the existing row:
-     * the row is restored, name/password are overwritten, `email_verified_at`
-     * is cleared so the standard `MustVerifyEmail` flow re-runs, and all role
-     * assignments are detached. See plan/context.md §13.
+     * Registration never touches existing rows: an email matching an active
+     * *or* soft-deleted user fails the unique rule with the same 422, so the
+     * two cases are indistinguishable and a deactivated account can never be
+     * claimed anonymously (AUDIT.md AUD-004). Returning users reactivate
+     * through the password-reset flow instead — see plan/context.md §13 and
+     * `ResetUserPassword`.
      *
      * @param  array<string, string>  $input
      */
     public function create(array $input): User
     {
-        $email = is_string($input['email'] ?? null) ? $input['email'] : '';
-
-        $existing = User::withTrashed()->where('email', $email)->first();
-
-        // When the email matches a soft-deleted row, ignore it in the unique
-        // check so validation passes; the standard rule still catches active
-        // duplicates with the usual 422.
-        $emailRule = ($existing !== null && $existing->trashed())
-            ? $this->emailRules($existing->id)
-            : $this->emailRules();
-
         Validator::make($input, [
             'name' => $this->nameRules(),
-            'email' => $emailRule,
+            'email' => $this->emailRules(),
             'password' => $this->passwordRules(),
         ])->validate();
 
-        if ($existing !== null && $existing->trashed()) {
-            return DB::transaction(function () use ($existing, $input): User {
-                $existing->restore();
-
-                $existing->forceFill([
-                    'name' => $input['name'],
-                    'password' => Hash::make($input['password']),
-                    'email_verified_at' => null,
-                    'remember_token' => null,
-                ])->save();
-
-                $existing->roles()->detach();
-
-                AuditLog::record(
-                    AuditAction::Restored,
-                    $existing,
-                    context: ['reactivated' => true],
-                    userId: $existing->id,
-                );
-
-                return $existing->fresh();
-            });
+        try {
+            return User::create([
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'password' => $input['password'],
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // A concurrent registration won the race between the unique
+            // validation and the INSERT — answer with the same 422 the
+            // validator would have produced (AUDIT.md AUD-017).
+            throw ValidationException::withMessages([
+                'email' => __('validation.unique', ['attribute' => 'email']),
+            ]);
         }
-
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
     }
 }
