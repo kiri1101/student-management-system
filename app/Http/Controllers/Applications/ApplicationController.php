@@ -14,9 +14,11 @@ use App\Models\AuditLog;
 use App\Models\Department;
 use App\Models\DocumentType;
 use App\Models\ProgramOffering;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -144,6 +146,17 @@ class ApplicationController extends Controller
         $uploads = (array) $request->file('documents', []);
 
         $application = DB::transaction(function () use ($request, $documentTypeIds, $uploads): Application {
+            // Per-user mutex: serializes concurrent submissions by the same
+            // user so the one-open-application rule can't be raced past the
+            // Form Request's check (AUDIT.md AUD-005).
+            User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
+
+            if ($request->userHasOpenApplication()) {
+                throw ValidationException::withMessages([
+                    'program_offering_id' => __('You already have an application in progress. Wait for a decision before submitting another.'),
+                ]);
+            }
+
             $application = Application::create([
                 'user_id' => $request->user()->id,
                 'program_offering_id' => $request->integer('program_offering_id'),

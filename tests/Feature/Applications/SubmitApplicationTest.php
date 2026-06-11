@@ -55,6 +55,32 @@ function applicationPayload(array $overrides = []): array
     ], $overrides);
 }
 
+it('rejects a second application while one is still open', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    $response = $this->actingAs($user)->post(route('application.store'), applicationPayload());
+
+    $response->assertSessionHasErrors('program_offering_id');
+    expect(Application::count())->toBe(1);
+});
+
+it('allows a new application once the previous one is decided', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    Application::sole()->update(['status' => ApplicationStatus::Rejected, 'decided_at' => now()]);
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    expect(Application::count())->toBe(2);
+});
+
 it('persists an application, its documents, and audit entries on submit', function () {
     $user = User::factory()->create();
 

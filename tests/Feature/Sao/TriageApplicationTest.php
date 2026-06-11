@@ -53,6 +53,18 @@ it('persists notes alongside the status change', function () {
         ->and($fresh->decision_notes)->toBe('Please re-upload the GCE A/L scan.');
 });
 
+it('refuses to triage a draft application', function () {
+    $application = Application::factory()->create();
+    $sao = userWithRole(RoleName::Sao);
+
+    $response = $this->actingAs($sao)->post(route('sao.applications.triage', $application), [
+        'status' => 'under_review',
+    ]);
+
+    $response->assertSessionHasErrors('status');
+    expect($application->fresh()->status)->toBe(ApplicationStatus::Draft);
+});
+
 it('refuses to triage a terminal application', function () {
     $application = Application::factory()->state([
         'status' => ApplicationStatus::Admitted,

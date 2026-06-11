@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Applications;
 
+use App\Models\Application;
 use App\Models\DocumentType;
 use App\Models\LevelCredentialRequirement;
 use App\Models\ProgramOffering;
@@ -9,6 +10,7 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreApplicationRequest extends FormRequest
 {
@@ -54,6 +56,38 @@ class StoreApplicationRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    /**
+     * One open application per applicant: a new submission is refused while a
+     * Draft/Submitted/UnderReview/DocumentsRequested one exists. Re-applying
+     * after a decision (rejected, withdrawn — or admitted, e.g. for a higher
+     * level) stays possible. The controller re-checks this inside its
+     * transaction under a per-user lock to close the concurrent-submit race
+     * (AUDIT.md AUD-005).
+     *
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($this->userHasOpenApplication()) {
+                    $validator->errors()->add(
+                        'program_offering_id',
+                        __('You already have an application in progress. Wait for a decision before submitting another.'),
+                    );
+                }
+            },
+        ];
+    }
+
+    public function userHasOpenApplication(): bool
+    {
+        return Application::query()
+            ->where('user_id', $this->user()->id)
+            ->whereIn('status', Application::OPEN_STATUSES)
+            ->exists();
     }
 
     /**

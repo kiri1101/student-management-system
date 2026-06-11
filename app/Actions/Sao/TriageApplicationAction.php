@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Models\Application;
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class TriageApplicationAction
@@ -20,26 +21,35 @@ class TriageApplicationAction
      */
     public function execute(Application $application, ApplicationStatus $next, ?string $notes, User $sao): Application
     {
-        if (! $application->canTransitionTo($next)) {
-            throw ValidationException::withMessages([
-                'status' => __('This application cannot transition to the requested status.'),
-            ]);
-        }
+        return DB::transaction(function () use ($application, $next, $notes, $sao): Application {
+            // Re-fetch under lock so a concurrent decision can't slip past a
+            // stale status check (AUDIT.md AUD-001).
+            $application = Application::query()
+                ->whereKey($application->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $previous = $application->status;
+            if (! $application->canTransitionTo($next)) {
+                throw ValidationException::withMessages([
+                    'status' => __('This application cannot transition to the requested status.'),
+                ]);
+            }
 
-        $application->fill([
-            'status' => $next,
-            'decision_notes' => $notes,
-        ])->saveQuietly();
+            $previous = $application->status;
 
-        AuditLog::record(
-            AuditAction::StatusChanged,
-            $application,
-            ['before' => $previous->value, 'after' => $next->value],
-            userId: $sao->id,
-        );
+            $application->fill([
+                'status' => $next,
+                'decision_notes' => $notes,
+            ])->saveQuietly();
 
-        return $application;
+            AuditLog::record(
+                AuditAction::StatusChanged,
+                $application,
+                ['before' => $previous->value, 'after' => $next->value],
+                userId: $sao->id,
+            );
+
+            return $application;
+        });
     }
 }

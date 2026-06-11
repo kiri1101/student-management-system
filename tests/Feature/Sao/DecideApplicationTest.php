@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Sao\DecideApplicationAction;
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
 use App\Enums\RoleName;
@@ -10,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\StudentProfile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 
 beforeEach(function (): void {
     Carbon::setTestNow(Carbon::create(2026, 9, 1, 12, 0, 0));
@@ -152,6 +154,116 @@ it('refuses to re-decide a terminal application', function () {
 
     $response->assertSessionHasErrors('status');
     expect($application->fresh()->status)->toBe(ApplicationStatus::Admitted);
+});
+
+it('admits a returning applicant by restoring their trashed profile with a fresh matricule', function () {
+    Event::fake([ApplicationDecided::class]);
+
+    $application = Application::factory()->submitted()->create();
+    $prior = StudentProfile::factory()->create([
+        'user_id' => $application->user_id,
+        'matricule' => 'stm-2024-0042',
+        'level' => 2,
+    ]);
+    $prior->delete();
+
+    $sao = userWithRole(RoleName::Sao);
+    $response = $this->actingAs($sao)->post(route('sao.applications.decide', $application), [
+        'status' => 'admitted',
+        'acknowledged_prior_history' => true,
+    ]);
+
+    $response->assertRedirect(route('sao.applications.index'));
+    $response->assertSessionDoesntHaveErrors();
+
+    $profile = StudentProfile::sole();
+    expect($profile->id)->toBe($prior->id)
+        ->and($profile->trashed())->toBeFalse()
+        ->and($profile->matricule)->toBe('stm-2026-0001')
+        ->and($profile->level)->toBe($application->level)
+        ->and($profile->program_offering_id)->toBe($application->program_offering_id)
+        ->and($profile->status)->toBe(StudentStatus::Active)
+        ->and($application->fresh()->status)->toBe(ApplicationStatus::Admitted)
+        ->and($application->fresh()->applicant->hasRole(RoleName::Student))->toBeTrue();
+});
+
+it('keeps the matricule when admitting an applicant who already has an active profile', function () {
+    Event::fake([ApplicationDecided::class]);
+
+    $application = Application::factory()->submitted()->create(['level' => 3]);
+    $profile = StudentProfile::factory()->create([
+        'user_id' => $application->user_id,
+        'matricule' => 'stm-2025-0007',
+        'level' => 2,
+    ]);
+    $application->applicant->assignRole(RoleName::Student);
+
+    $sao = userWithRole(RoleName::Sao);
+    $this->actingAs($sao)->post(route('sao.applications.decide', $application), [
+        'status' => 'admitted',
+    ])->assertSessionDoesntHaveErrors();
+
+    $fresh = $profile->fresh();
+    expect($fresh->matricule)->toBe('stm-2025-0007')
+        ->and($fresh->level)->toBe(3)
+        ->and($fresh->academic_year)->toBe('2026');
+
+    expect(AuditLog::query()
+        ->where('action', AuditAction::RoleAssigned->value)
+        ->where('subject_id', $application->user_id)
+        ->count())->toBe(0);
+});
+
+it('refuses to decide a draft application', function () {
+    $application = Application::factory()->create();
+    $sao = userWithRole(RoleName::Sao);
+
+    $response = $this->actingAs($sao)->post(route('sao.applications.decide', $application), [
+        'status' => 'admitted',
+    ]);
+
+    $response->assertSessionHasErrors('status');
+    expect($application->fresh()->status)->toBe(ApplicationStatus::Draft)
+        ->and(StudentProfile::count())->toBe(0);
+});
+
+it('refuses a decision when the application was finalized concurrently', function () {
+    $application = Application::factory()->submitted()->create();
+    $sao = userWithRole(RoleName::Sao);
+
+    // Simulate a concurrent SAO winning the race after this request resolved
+    // its (now stale) model instance.
+    $stale = Application::query()->find($application->id);
+    Application::query()->whereKey($application->id)->update([
+        'status' => ApplicationStatus::Admitted->value,
+        'decided_at' => now(),
+    ]);
+
+    try {
+        app(DecideApplicationAction::class)
+            ->execute($stale, ApplicationStatus::Rejected, 'second guess', $sao);
+        $this->fail('Expected ValidationException for a concurrently finalized application.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('status');
+    }
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::Admitted);
+});
+
+it('does not reuse matricule numbers after a profile is force-deleted', function () {
+    Event::fake([ApplicationDecided::class]);
+
+    $sao = userWithRole(RoleName::Sao);
+    $first = Application::factory()->submitted()->create();
+    $this->actingAs($sao)->post(route('sao.applications.decide', $first), ['status' => 'admitted']);
+
+    StudentProfile::sole()->forceDelete();
+
+    $second = Application::factory()->submitted()->create();
+    $this->actingAs($sao)->post(route('sao.applications.decide', $second), ['status' => 'admitted'])
+        ->assertSessionDoesntHaveErrors();
+
+    expect(StudentProfile::sole()->matricule)->toBe('stm-2026-0002');
 });
 
 it('records the prior-history acknowledgement in the audit context', function () {
