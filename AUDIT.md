@@ -6,6 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
+- **Remediation progress:** Fix Phase 1 (AUD-001, 003, 005, 006, 010) landed in `1956bf2` — 388/388 tests green. Fix Phases 2–6 pending (see "Suggested fix order").
 
 ## Executive summary
 
@@ -34,7 +35,7 @@
 
 - **Severity:** Critical · **Category:** Quality/Security · **Source:** QUAL-1
 - **Location:** `app/Actions/Sao/DecideApplicationAction.php:47` (also `TriageApplicationAction`, `RestorePriorEnrollment`)
-- **Status:** Open
+- **Status:** Fixed in `1956bf2`
 
 **Problem** — All three SAO actions validate `isTerminal()` / transition legality on the model instance resolved *before* `DB::transaction`, and never re-read or lock the row inside it. Interleaving: SAO-A and SAO-B both load the same `Submitted` application; A admits (creates StudentProfile, assigns Student role, commits); B rejects — B's stale `isTerminal()` check passed, so the application ends `Rejected` while the applicant keeps an active StudentProfile, matricule, and Student role. Same race lets triage overwrite a terminal decision.
 
@@ -68,7 +69,7 @@
 
 - **Severity:** High · **Category:** Quality/Gap · **Source:** QUAL-2, GAP-2
 - **Location:** `app/Actions/Sao/DecideApplicationAction.php:98`
-- **Status:** Open
+- **Status:** Fixed in `1956bf2` (trashed profiles restored with a fresh matricule; active profiles keep theirs)
 
 **Problem** — `student_profiles.user_id` is UNIQUE and soft-deletes don't release the slot. `promoteToStudent()` does a plain `StudentProfile::create()`. The §13.4 "[Admit as new student]" path for a returning student (who by design has a trashed StudentProfile) therefore throws a `QueryException` → 500, and the decision transaction rolls back. The only covering test admits a fresh user, so the suite stays green. The admin module already solved this exact problem with `WritesRoleProfile::writeProfile()` restore-or-create.
 
@@ -99,7 +100,7 @@
 
 - **Severity:** High · **Category:** Quality · **Source:** QUAL-4
 - **Location:** `app/Http/Controllers/Applications/ApplicationController.php` (store), `app/Http/Requests/Applications/StoreApplicationRequest.php`
-- **Status:** Open
+- **Status:** Fixed in `1956bf2` (one open application per applicant; re-apply allowed after any terminal decision)
 
 **Problem** — No uniqueness rule, DB constraint, or status check limits applications per user. An applicant (or an already-admitted Student — also unblocked) can submit unlimited applications, including doubles of the same offering. Two pending twins admitted by different SAOs triggers the AUD-003 crash on the second; even sequentially it produces conflicting StudentProfiles/decisions.
 
@@ -114,7 +115,7 @@
 
 - **Severity:** High · **Category:** Quality/Performance · **Source:** QUAL-5, PERF-2
 - **Location:** `app/Actions/Sao/DecideApplicationAction.php:91-96`, `app/Models/StudentProfile.php` (`nextMatriculeForYear`)
-- **Status:** Open
+- **Status:** Fixed in `1956bf2` (`matricule_sequences` counter table, lazy-seeded per year)
 
 **Problem** — Generation = `lockForUpdate()->get()` of *every* profile of the year, then `withTrashed()->count()+1`. Three defects: (1) the first admit of a year locks zero rows — MySQL gap locks taken by two concurrent first-admits are compatible until insert → deadlock/duplicate; (2) any `forceDelete` of a year's profile makes `count+1` collide with an existing matricule **permanently** — every admit for that year 500s until manual repair; (3) O(n) lock set fully serializes admits and grows with enrollment. SQLite tests cannot exercise any of this.
 
@@ -177,7 +178,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-3
 - **Location:** `app/Actions/Sao/DecideApplicationAction.php:47`, `app/Actions/Sao/RestorePriorEnrollment.php`
-- **Status:** Open
+- **Status:** Fixed in `1956bf2` (transition matrix: Draft → Submitted only; enforced in decide + restore-prior)
 
 **Problem** — Both actions only check `isTerminal()`, never `canTransitionTo()`, so a `Draft` application can be Admitted/Withdrawn directly. Today no UI creates persistent Drafts (store() goes straight to Submitted), so this is latent — but the endpoints are live and the moment draft-saving ships it becomes an armed bypass of the submission (and document-validation) flow.
 

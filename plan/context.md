@@ -925,3 +925,34 @@ Phases 1–10 are all shipped. The §8 design contract is fully satisfied. Remai
 ### Process reminder
 
 Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's audit checklist is green and the commit exists. Update this section + the `project_implementation_progress.md` memory together at every phase-boundary commit.
+
+---
+
+## 15. Global Audit & Remediation (started 2026-06-11)
+
+**Session date:** 2026-06-11. A full security/performance/gap/quality audit of the codebase at `e044f81` was run via four parallel domain agents (methodology captured in the global `codebase-audit` skill at `~/.claude/skills/codebase-audit/`; reusable `security-auditor` + `performance-auditor` agent definitions at `~/.claude/agents/`).
+
+**Artifacts (committed in `f460901`):**
+- **`AUDIT.md` (repo root) — the single source of truth for remediation.** 34 findings (1 Critical, 8 High, 16 Medium, 9 Low), each formatted as a ready-to-open GitHub issue with severity, location, problem, proposed solution, and acceptance criteria. Per-finding `Status:` lines are updated to `Fixed in <sha>` as fixes land. Ends with a 15-item deferred-work backlog table (B1–B15) and a 6-phase suggested fix order.
+- `plan/audit/{security,performance,gap,quality}-findings.md` — the raw domain reports (SEC-n / PERF-n / GAP-n / QUAL-n IDs cross-referenced from AUDIT.md).
+
+**Remediation status (update at every fix-phase commit):**
+
+| Fix phase | Findings | Status | Commit |
+|---|---|---|---|
+| 1 — Core flow correctness | AUD-001, 010, 003, 005, 006 | ✅ Done | `1956bf2` |
+| 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ⏳ Pending | — |
+| 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ⏳ Pending | — |
+| 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ⏳ Pending | — |
+| 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ⏳ Pending | — |
+| 6 — Docs & throttles | AUD-033, 034, 029, 026, 032 | ⏳ Pending | — |
+
+**Fix Phase 1 (`1956bf2`) — what changed:**
+- All three SAO actions (`Decide`, `Triage`, `RestorePriorEnrollment`) re-fetch the application — and the prior profile, where relevant — under `lockForUpdate()` *inside* their transactions and re-run the status guards there, so concurrent decisions 422 instead of corrupting state (AUD-001).
+- `Application::canTransitionTo()` now encodes the full matrix: **Draft → Submitted only**; interim → interim/terminal; terminal → nothing. Decide + restore-prior route through it (AUD-010). New public `Application::OPEN_STATUSES` (Draft + interim trio).
+- `promoteToStudent()` restore-or-creates the `StudentProfile` (unique `user_id` includes trashed rows): trashed → restore + **fresh matricule** ("admit as new"); active → enrollment fields update but **matricule never changes** (it's a login identifier). `RoleAssigned` audit guarded for already-Students (AUD-003).
+- One open application per applicant: `StoreApplicationRequest::after()` + an in-transaction re-check under a per-user `lockForUpdate` on the `users` row (a per-user mutex with no gap-lock risk). Re-applying after any terminal decision remains allowed (AUD-005).
+- Matricule generation now uses a `matricule_sequences (year PK, last_number)` counter table (new migration `2026_06_11_120000`), lazy-seeded from the highest already-issued number per year; query-builder only, no Eloquent model, no timestamps. Constant lock scope, immune to force-deleted profiles (AUD-006).
+- 8 new Pest cases (returning-applicant admit, active-profile admit, Draft refusals on decide+triage, concurrent-finalize 422, force-delete sequence survival, duplicate-submit 422, re-apply-after-decision). **388/388 green**, Pint clean, `migrate:fresh --seed` ✓.
+
+**Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.
