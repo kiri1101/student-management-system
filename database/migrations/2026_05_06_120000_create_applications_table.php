@@ -28,8 +28,11 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('status');
-            $table->index('submitted_at');
+            // SAO queue: WHERE status IN (...) ORDER BY submitted_at
+            // (AUDIT.md AUD-019); the (user_id, status) pair serves the
+            // one-open-application guard and the user_id FK.
+            $table->index(['status', 'submitted_at']);
+            $table->index(['user_id', 'status']);
         });
     }
 

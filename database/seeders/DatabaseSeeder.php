@@ -18,6 +18,14 @@ class DatabaseSeeder extends Seeder
             LocalStaffSeeder::class,
         ]);
 
+        // Known-credential accounts are a local/testing convenience only.
+        // Seeding a deployed database must never mint an admin with a known
+        // password (AUDIT.md AUD-012) — production onboards staff through
+        // the admin user-management UI.
+        if (! app()->environment('local', 'testing')) {
+            return;
+        }
+
         // `User::factory()` triggers `fake()` in the factory's `definition()`,
         // which is unavailable on environments installed with `--no-dev`.
         // Use `firstOrCreate` so the seed path stays faker-free.

@@ -18,9 +18,11 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ApplicationController extends Controller
 {
@@ -145,32 +147,12 @@ class ApplicationController extends Controller
         $documentTypeIds = $request->documentTypeIdMap();
         $uploads = (array) $request->file('documents', []);
 
-        $application = DB::transaction(function () use ($request, $documentTypeIds, $uploads): Application {
-            // Per-user mutex: serializes concurrent submissions by the same
-            // user so the one-open-application rule can't be raced past the
-            // Form Request's check (AUDIT.md AUD-005).
-            User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
+        // Files are written to disk before the transaction opens so multi-MB
+        // I/O never holds the connection or the per-user lock; any failure
+        // after that point removes them again (AUDIT.md AUD-009).
+        $storedDocuments = [];
 
-            if ($request->userHasOpenApplication()) {
-                throw ValidationException::withMessages([
-                    'program_offering_id' => __('You already have an application in progress. Wait for a decision before submitting another.'),
-                ]);
-            }
-
-            $application = Application::create([
-                'user_id' => $request->user()->id,
-                'program_offering_id' => $request->integer('program_offering_id'),
-                'level' => $request->integer('level'),
-                'first_name' => $request->string('first_name')->toString(),
-                'last_name' => $request->string('last_name')->toString(),
-                'contact_email' => $request->string('contact_email')->toString(),
-                'phone' => $request->string('phone')->toString(),
-                'date_of_birth' => $request->date('date_of_birth'),
-                'previous_institute' => $request->input('previous_institute'),
-                'status' => ApplicationStatus::Submitted->value,
-                'submitted_at' => now(),
-            ]);
-
+        try {
             foreach ($request->requiredDocumentCodes() as $code) {
                 $file = $uploads[$code] ?? null;
 
@@ -178,33 +160,68 @@ class ApplicationController extends Controller
                     continue;
                 }
 
-                $path = $file->store('applications');
-
-                ApplicationDocument::create([
-                    'application_id' => $application->id,
+                $storedDocuments[] = [
                     'document_type_id' => $documentTypeIds[$code],
-                    'file_path' => $path,
+                    'file_path' => $file->store('applications'),
                     'original_filename' => $file->getClientOriginalName(),
                     'mime_type' => $file->getClientMimeType(),
                     'size_bytes' => $file->getSize(),
-                    'uploaded_at' => now(),
+                ];
+            }
+
+            $application = DB::transaction(function () use ($request, $storedDocuments): Application {
+                // Per-user mutex: serializes concurrent submissions by the same
+                // user so the one-open-application rule can't be raced past the
+                // Form Request's check (AUDIT.md AUD-005).
+                User::query()->whereKey($request->user()->id)->lockForUpdate()->first();
+
+                if ($request->userHasOpenApplication()) {
+                    throw ValidationException::withMessages([
+                        'program_offering_id' => __('You already have an application in progress. Wait for a decision before submitting another.'),
+                    ]);
+                }
+
+                $application = Application::create([
+                    'user_id' => $request->user()->id,
+                    'program_offering_id' => $request->integer('program_offering_id'),
+                    'level' => $request->integer('level'),
+                    'first_name' => $request->string('first_name')->toString(),
+                    'last_name' => $request->string('last_name')->toString(),
+                    'contact_email' => $request->string('contact_email')->toString(),
+                    'phone' => $request->string('phone')->toString(),
+                    'date_of_birth' => $request->date('date_of_birth'),
+                    'previous_institute' => $request->input('previous_institute'),
+                    'status' => ApplicationStatus::Submitted->value,
+                    'submitted_at' => now(),
                 ]);
-            }
 
-            $user = $request->user();
+                foreach ($storedDocuments as $document) {
+                    ApplicationDocument::create([
+                        'application_id' => $application->id,
+                        ...$document,
+                        'uploaded_at' => now(),
+                    ]);
+                }
 
-            if ($user->roles()->doesntExist()) {
-                $user->assignRole(RoleName::Applicant);
-                AuditLog::record(
-                    AuditAction::RoleAssigned,
-                    $user,
-                    changes: ['role' => RoleName::Applicant->value],
-                    userId: $user->id,
-                );
-            }
+                $user = $request->user();
 
-            return $application;
-        });
+                if ($user->roles()->doesntExist()) {
+                    $user->assignRole(RoleName::Applicant);
+                    AuditLog::record(
+                        AuditAction::RoleAssigned,
+                        $user,
+                        changes: ['role' => RoleName::Applicant->value],
+                        userId: $user->id,
+                    );
+                }
+
+                return $application;
+            });
+        } catch (Throwable $exception) {
+            Storage::delete(array_column($storedDocuments, 'file_path'));
+
+            throw $exception;
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application submitted.')]);
 

@@ -50,8 +50,10 @@ defineOptions({
 
 const offerings = ref<ProgramOffering[]>([]);
 const offeringsLoading = ref(false);
+const offeringsError = ref(false);
 const levelRequirements = ref<LevelRequirement[]>([]);
 const levelRequirementsLoading = ref(false);
+const levelRequirementsError = ref(false);
 
 const form = useForm({
     program_offering_id: null as number | null,
@@ -136,6 +138,46 @@ async function fetchJson<T>(
     return (await response.json()) as T;
 }
 
+async function loadOfferings(): Promise<void> {
+    if (!form.degree_program) {
+        return;
+    }
+
+    offeringsLoading.value = true;
+    offeringsError.value = false;
+
+    try {
+        offerings.value = await fetchJson<ProgramOffering[]>(
+            '/api/v1/program-offerings',
+            { degree_program: form.degree_program },
+        );
+    } catch {
+        offeringsError.value = true;
+    } finally {
+        offeringsLoading.value = false;
+    }
+}
+
+async function loadLevelRequirements(): Promise<void> {
+    if (!form.level || !form.program_offering_id) {
+        return;
+    }
+
+    levelRequirementsLoading.value = true;
+    levelRequirementsError.value = false;
+
+    try {
+        levelRequirements.value = await fetchJson<LevelRequirement[]>(
+            '/api/v1/level-requirements',
+            { offering: form.program_offering_id, level: form.level },
+        );
+    } catch {
+        levelRequirementsError.value = true;
+    } finally {
+        levelRequirementsLoading.value = false;
+    }
+}
+
 watch(
     () => form.degree_program,
     async (next) => {
@@ -144,6 +186,7 @@ watch(
         form.level = null;
         levelRequirements.value = [];
         form.documents = {};
+        offeringsError.value = false;
 
         if (!next) {
             offerings.value = [];
@@ -151,16 +194,7 @@ watch(
             return;
         }
 
-        offeringsLoading.value = true;
-
-        try {
-            offerings.value = await fetchJson<ProgramOffering[]>(
-                '/api/v1/program-offerings',
-                { degree_program: next },
-            );
-        } finally {
-            offeringsLoading.value = false;
-        }
+        await loadOfferings();
     },
 );
 
@@ -185,6 +219,7 @@ watch(
     () => form.level,
     async (next) => {
         form.documents = {};
+        levelRequirementsError.value = false;
 
         if (!next || !form.program_offering_id) {
             levelRequirements.value = [];
@@ -192,16 +227,7 @@ watch(
             return;
         }
 
-        levelRequirementsLoading.value = true;
-
-        try {
-            levelRequirements.value = await fetchJson<LevelRequirement[]>(
-                '/api/v1/level-requirements',
-                { offering: form.program_offering_id, level: next },
-            );
-        } finally {
-            levelRequirementsLoading.value = false;
-        }
+        await loadLevelRequirements();
     },
 );
 
@@ -221,6 +247,18 @@ function onFileClear(code: string): void {
     form.documents = next;
 }
 
+/**
+ * Format from local date components: `toISOString()` converts the picker's
+ * local-midnight Date to UTC, shifting every UTC+ birth date (Cameroon is
+ * UTC+1) one day early (AUDIT.md AUD-015).
+ */
+function toLocalDateString(value: Date | string): string {
+    const date = new Date(value);
+    const pad = (part: number) => String(part).padStart(2, '0');
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 function submit(): void {
     form.transform((data) => ({
         program_offering_id: data.program_offering_id,
@@ -230,7 +268,7 @@ function submit(): void {
         contact_email: data.contact_email,
         phone: data.phone,
         date_of_birth: data.date_of_birth
-            ? new Date(data.date_of_birth).toISOString().slice(0, 10)
+            ? toLocalDateString(data.date_of_birth)
             : null,
         previous_institute: data.previous_institute || null,
         documents: data.documents,
@@ -263,6 +301,28 @@ function submit(): void {
                         >
                             Programme
                         </h2>
+                        <Message
+                            v-if="offeringsError"
+                            severity="error"
+                            :closable="false"
+                        >
+                            <div
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <span>
+                                    Could not load the departments for this
+                                    programme. Check your connection and try
+                                    again.
+                                </span>
+                                <Button
+                                    label="Retry"
+                                    size="small"
+                                    severity="secondary"
+                                    :loading="offeringsLoading"
+                                    @click="() => loadOfferings()"
+                                />
+                            </div>
+                        </Message>
                         <div class="grid gap-4 md:grid-cols-3">
                             <div class="space-y-1">
                                 <label
@@ -487,6 +547,28 @@ function submit(): void {
                             Pick a programme and level to see the level-specific
                             documents required. Identity and birth-certificate
                             uploads are required for every application.
+                        </Message>
+                        <Message
+                            v-if="levelRequirementsError"
+                            severity="error"
+                            :closable="false"
+                        >
+                            <div
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <span>
+                                    Could not load the documents required for
+                                    this level. Check your connection and try
+                                    again.
+                                </span>
+                                <Button
+                                    label="Retry"
+                                    size="small"
+                                    severity="secondary"
+                                    :loading="levelRequirementsLoading"
+                                    @click="() => loadLevelRequirements()"
+                                />
+                            </div>
                         </Message>
 
                         <div class="space-y-3">
