@@ -84,7 +84,7 @@
 
 - **Severity:** High · **Category:** Security · **Source:** SEC-1 · **Attacker model:** anonymous
 - **Location:** `app/Actions/Fortify/CreateNewUser.php:48-69`
-- **Status:** Open
+- **Status:** Fixed in `512a97c` (verify-first via the reset flow: register never touches trashed rows and 422s identically to active emails; `PasswordBrokerUserProvider` + `ResetUserPassword` restore on mailbox proof; trashed staff/admin excluded — admin restore only)
 
 **Problem** — Registering with a soft-deleted user's email immediately `restore()`s the row, overwrites name/password, and detaches roles — before any proof of mailbox ownership. Consequences: (a) an admin's deactivation of a user (incl. a soft-deleted staff/admin account) is reversible by any anonymous party who knows the email; (b) the row's identity (id, audit history, prior profiles linkage) is claimed by whoever registers first, breaking the SAO re-attach path for the legitimate returning student; (c) response differences leak account state (active → 422, soft-deleted → success, unknown → success). Contained by `verified` middleware + role detachment — the attacker gets no privileged session — hence High rather than Critical.
 
@@ -192,7 +192,7 @@
 
 - **Severity:** Medium · **Category:** Security · **Source:** SEC-2 · **Attacker model:** anonymous
 - **Location:** `app/Providers/FortifyServiceProvider.php` (only `login`/`two-factor` limiters exist — confirmed via `route:list -v`)
-- **Status:** Open
+- **Status:** Fixed in `512a97c` (named limiters: register 5/min/IP; forgot-password + reset-password 3/min per email+IP; verification 3/min per user via `fortify.limiters.verification`)
 
 **Problem** — `POST /register`, `/forgot-password`, `/reset-password`, `/email/verification-notification` have no throttle: enables email enumeration at scale (especially combined with AUD-004's response oracle), reset-token brute force, and mail-bombing arbitrary addresses.
 
@@ -276,7 +276,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-11
 - **Location:** `app/Actions/Fortify/CreateNewUser.php:33-76`
-- **Status:** Open
+- **Status:** Fixed in `512a97c` (UniqueConstraintViolationException re-thrown as the standard email-taken 422; reactivation branch removed entirely by AUD-004)
 
 **Problem** — Validate-then-create: two concurrent registrations with the same email both pass the unique rule; the loser hits the DB unique index → raw 500 instead of the standard 422. Same check-then-act applies to the trashed-row reactivation branch (unlocked read).
 
@@ -386,7 +386,7 @@
 
 - **Severity:** Medium · **Category:** Performance/Security · **Source:** PERF-5, SEC-6 · **Attacker model:** anonymous (timing oracle)
 - **Location:** `app/Providers/FortifyServiceProvider.php:58-73`
-- **Status:** Open
+- **Status:** Fixed in `512a97c` (single OR query incl. matricule EXISTS; dummy bcrypt check on the not-found path; query count asserted in test)
 
 **Problem** — Identifier resolution runs up to 3 sequential queries (email → employee_id → matricule); failed logins (the attacker-controlled path) always pay all three plus the audit INSERT. `Hash::check` only runs when a user is found → response-time distinguishes valid from invalid identifiers (enumeration oracle across all three identifier namespaces).
 
@@ -429,7 +429,7 @@
 
 - **Severity:** Low · **Category:** Gap/Security · **Source:** GAP-11
 - **Location:** `app/Actions/Fortify/CreateNewUser.php:59`
-- **Status:** Open
+- **Status:** Fixed in `512a97c` (one RoleRevoked row per detached role with context reactivated=true, written in `ResetUserPassword::reactivate()`)
 
 **Problem** — `roles()->detach()` during reactivation writes no `RoleRevoked` audit rows — the one place roles vanish without trace, in the flow where forensics matter most (see AUD-004).
 

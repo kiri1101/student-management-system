@@ -487,33 +487,37 @@ These were mentioned in the original `CLAUDE.md` but were not designed in this s
 
 ---
 
-## 13. Re-registration & Account Reactivation Flow (decided 2026-05-01)
+## 13. Re-registration & Account Reactivation Flow (decided 2026-05-01, revised 2026-06-11)
 
 ### Why this section exists
 
-Phase 1 (commit `e61d59a`) added `softDeletes()` to `users`. `users.email` is `unique`, so a soft-deleted row blocks re-registration with the same email. This section locks the policy. Implementation is split between **Phase 3** (registration) and **Phase 9** (SAO review) — they ship together as a coherent slice.
+Phase 1 (commit `e61d59a`) added `softDeletes()` to `users`. `users.email` is `unique`, so a soft-deleted row blocks re-registration with the same email. This section locks the policy. Implementation is split between **the auth layer** (registration + password reset) and **Phase 9** (SAO review).
+
+> **Revision (2026-06-11, AUDIT.md AUD-004, commit `512a97c`):** the original policy reactivated the row inline at `/register`, before any proof of mailbox ownership — meaning any anonymous party who knew the email could reverse an admin's deactivation, claim the row's identity/audit history out from under the legitimate returning student, and read account state from the response shape. Reactivation is now **verify-first** through the password-reset flow. The original register-time policy below is superseded where it conflicts.
 
 ### Policy
 
-1. **Self-registration with a soft-deleted email reactivates the existing `users` row.** No new row, no new column. The submitted `name` and `password` overwrite the prior values; `email_verified_at` is cleared so the standard `MustVerifyEmail` flow re-runs. A standard `Registered` event fires; the audit entry includes `reactivated: true` in its `context` JSON.
+1. **Self-registration never touches existing rows.** An email matching an active *or* soft-deleted user fails the unique rule with the identical 422 ("email already taken") — the two cases are indistinguishable to the requester, and a soft-deleted row is never restored, overwritten, or role-stripped by an anonymous `POST /register`.
 
-2. **Reactivation does NOT auto-restore role assignments.** All `role_user` rows for that user are detached. The user re-enters as roleless, becomes `Applicant` via the normal apply flow. This is the safety boundary: email verification proves "I control this inbox today," not "I am the same human as before." Email recycling is a real risk in the .edu and Cameroonian contexts.
+2. **Reactivation happens through the password-reset flow.** The "email already taken" message naturally routes the returning user to *Forgot password*. The password broker uses a dedicated provider (`App\Services\PasswordBrokerUserProvider`, `users-with-trashed` in `config/auth.php`) that includes trashed users, so the reset link reaches the mailbox; redeeming the token is the proof of mailbox ownership that register-time reactivation lacked. `ResetUserPassword::reactivate()` then, in one transaction: restores the row, sets the new password, clears `remember_token`, and detaches all roles. `name` and `email_verified_at` keep their historical values — same mailbox, same identity.
 
-3. **Prior `StudentProfile` / `LecturerProfile` / `applications` / `audit_logs` stay intact** (still soft-deleted where applicable). Data is preserved; trust is not.
+3. **Reactivation does NOT auto-restore role assignments.** All `role_user` rows are detached; each detachment writes a `RoleRevoked` audit row and the restore writes a `Restored` row, all with `reactivated: true` context (AUD-028). The user re-enters roleless and becomes `Applicant` via the normal apply flow. Mailbox proof says "I control this inbox today," not "I am the same human as before" — email recycling is a real risk in the .edu and Cameroonian contexts.
 
-4. **SAO performs identity verification + one-click re-attachment** during application review (Phase 9). The review screen detects soft-deleted profile or prior decided application rows for that `user_id` and renders a banner with `[Restore prior enrollment]` and `[Admit as new student]` actions. `[Restore prior enrollment]` runs a single transaction: `StudentProfile->restore()`, re-attach `Student` role, mark current application as `Withdrawn` with merge note, three audit entries (`Restored`, `RoleAssigned`, `StatusChanged`). `[Admit as new student]` runs the normal admit flow and audits `acknowledged_prior_history: true`.
+4. **Trashed staff/admin accounts are excluded from self-service reactivation.** `PasswordBrokerUserProvider` filters trashed users holding any `RoleName::staff()` role (Lecturer, Accountant, SAO, Admin): no reset link is sent and a forged token resolves to no user. Their only path back is the admin user-management restore (`admin.users.restore`), which preserves their roles deliberately.
 
-5. **Phone-number matching is deferred.** Self-registration matches on email only. Phone-as-secondary-identifier is its own future design.
+5. **Prior `StudentProfile` / `LecturerProfile` / `applications` / `audit_logs` stay intact** (still soft-deleted where applicable). Data is preserved; trust is not.
 
-6. **Scope: self-registration only.** Staff accounts (Lecturer, Accountant, SAO, Admin) are admin-created (per §4.6); they don't hit `/register`. Staff restoration lives in the Phase 10 admin user-management page and reuses the same underlying `User->restore()` mechanism.
+6. **SAO performs identity verification + one-click re-attachment** during application review (Phase 9). The review screen detects soft-deleted profile or prior decided application rows for that `user_id` and renders a banner with `[Restore prior enrollment]` and `[Admit as new student]` actions. `[Restore prior enrollment]` runs a single transaction: `StudentProfile->restore()`, re-attach `Student` role, mark current application as `Withdrawn` with merge note, three audit entries (`Restored`, `RoleAssigned`, `StatusChanged`). `[Admit as new student]` runs the normal admit flow and audits `acknowledged_prior_history: true`.
+
+7. **Phone-number matching is deferred.** Reactivation matches on email only. Phone-as-secondary-identifier is its own future design.
 
 ### Implementation contract
 
-**Phase 3** — `app/Actions/Fortify/CreateNewUser.php`:
-- `User::withTrashed()->where('email', $email)->first()` to detect soft-deleted matches.
-- If trashed match: `DB::transaction` → restore row, overwrite `name`/`password`, clear `email_verified_at`, detach all `role_user` rows, fire `Registered` event.
-- If non-trashed match: standard "email already taken" 422 (no leakage).
-- Tests in `tests/Feature/Auth/RegistrationTest.php`: same `users.id` after reactivation; roles detached; `email_verified_at` cleared; prior soft-deleted profiles/applications untouched; non-trashed conflict still 422s.
+**Auth layer** (revised in `512a97c`):
+- `CreateNewUser`: plain validate-then-create; the unique rule counts trashed rows, so active and trashed conflicts 422 identically. A concurrent-insert unique violation re-throws as the same 422 (AUD-017).
+- `PasswordBrokerUserProvider` (broker-only; the session guard keeps the default provider, so trashed users still can't log in): `withTrashed()` lookups, trashed staff/admin filtered to null.
+- `ResetUserPassword`: trashed branch runs the reactivation transaction described in Policy 2–3.
+- Tests: `tests/Feature/Auth/RegistrationTest.php` (row untouched, identical 422s, race → 422) and `tests/Feature/Auth/PasswordResetTest.php` (reactivation restores row + detaches roles + audits; staff excluded at send and redeem; reactivated account can log in).
 
 **Phase 9** — `app/Actions/Sao/RestorePriorEnrollment.php` + SAO review controller + PrimeVue banner on the Inertia review page:
 - Review controller loads `priorHistory = ['profiles' => StudentProfile::withTrashed()->where('user_id', ...)->get(), 'applications' => Application::withTrashed()->where('user_id', ...)->whereNotIn('status', ['Draft'])->get()]`.
@@ -942,7 +946,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 |---|---|---|---|
 | 1 — Core flow correctness | AUD-001, 010, 003, 005, 006 | ✅ Done | `1956bf2` |
 | 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ✅ Done | `fa56b44` |
-| 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ⏳ Pending | — |
+| 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
 | 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ⏳ Pending | — |
 | 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ⏳ Pending | — |
 | 6 — Docs & throttles | AUD-033, 034, 029, 026, 032 | ⏳ Pending | — |
@@ -964,5 +968,14 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - `DocumentDownloadController` downloads from the default disk (`Storage::download()`), matching the upload path's `$file->store()` (AUD-030).
 - `DatabaseSeeder`'s known-credential accounts (`test@`/`admin@example.com`) now gated to local/testing — `LocalStaffSeeder` already was; new `DatabaseSeederTest` asserts production seeding creates zero users (AUD-012).
 - **391/391 green**, Pint clean, `npm run build` ✓, `migrate:fresh --seed` ✓.
+
+**Fix Phase 3 (`512a97c`) — what changed:**
+- **Reactivation policy rewritten (§13 above, AUD-004):** `/register` never touches trashed rows (identical 422 to active emails); reactivation moved to the password-reset flow — `PasswordBrokerUserProvider` (new, broker-only, `users-with-trashed` provider in config/auth.php) includes trashed non-staff users, and `ResetUserPassword::reactivate()` restores + detaches roles once the token proves mailbox ownership. Trashed staff/admin filtered out — admin restore only. The 4 old-policy RegistrationTest cases were replaced by new-policy cases (register-side) + 4 reset-side reactivation cases.
+- `RoleRevoked` audit rows (one per detached role, `reactivated: true` context) written during reactivation alongside the `Restored` row (AUD-028).
+- Concurrent duplicate registration: `UniqueConstraintViolationException` caught and re-thrown as the standard email-taken 422; tested via a `creating`-hook race simulation (AUD-017).
+- Rate limiters (AUD-011): `register` 5/min/IP, `forgot-password` 3/min per email+IP (also on reset-password), `verification` 3/min per user (wired via `fortify.limiters.verification`). Register/forgot/reset throttles attach in an `app()->booted()` callback in `FortifyServiceProvider` — `refreshNameLookups()` is required there because the route-name table predates Fortify's chained `->name()` calls.
+- Login resolver collapsed to one query (OR across email/employee_id + matricule EXISTS) with a dummy bcrypt check on the not-found path to flatten timing (AUD-025); query count asserted in test.
+- New `RoleName::staff()` helper (single source for the staff-role set — AUD-027 will migrate the two hand-written copies).
+- **399/399 green** (+8 net new tests), Pint clean, `migrate:fresh --seed` ✓.
 
 **Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.
