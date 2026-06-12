@@ -36,4 +36,9 @@ class ProgramOffering extends Model
     {
         return $this->hasMany(LevelCredentialRequirement::class);
     }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class);
+    }
 }

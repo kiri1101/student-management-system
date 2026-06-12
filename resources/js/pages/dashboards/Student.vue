@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { FileText, GraduationCap } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
+import {
+    degreeLabel,
+    enrollmentLabel,
+    enrollmentSeverity,
+    statusLabel,
+    statusSeverity,
+} from '@/lib/statusDisplay';
 import student from '@/routes/student';
 
 type Department = { name: string; code: string } | null;
@@ -44,67 +54,6 @@ defineOptions({
     },
 });
 
-const STATUS_LABELS: Record<string, string> = {
-    draft: 'Draft',
-    submitted: 'Submitted',
-    under_review: 'Under review',
-    documents_requested: 'Documents requested',
-    admitted: 'Admitted',
-    rejected: 'Rejected',
-    waitlisted: 'Waitlisted',
-    withdrawn: 'Withdrawn',
-};
-
-const STATUS_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    draft: 'secondary',
-    submitted: 'info',
-    under_review: 'warn',
-    documents_requested: 'warn',
-    admitted: 'success',
-    rejected: 'danger',
-    waitlisted: 'secondary',
-    withdrawn: 'secondary',
-};
-
-const ENROLLMENT_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    active: 'success',
-    suspended: 'warn',
-    graduated: 'info',
-    excluded: 'danger',
-};
-
-const DEGREE_LABELS: Record<string, string> = {
-    hnd: 'HND',
-    bachelors: 'Bachelors',
-    masters: 'Masters',
-};
-
-function statusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
-}
-
-function statusSeverity(
-    status: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return STATUS_SEVERITY[status] ?? 'secondary';
-}
-
-function enrollmentSeverity(
-    status: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return ENROLLMENT_SEVERITY[status] ?? 'secondary';
-}
-
-function degreeLabel(value: string | undefined): string {
-    return value ? (DEGREE_LABELS[value] ?? value) : '—';
-}
-
 function formatDate(value: string | null): string {
     if (!value) {
         return '—';
@@ -139,7 +88,7 @@ function programmeLine(offering: ProgramOffering): string {
                     </div>
                     <Tag
                         v-if="profile"
-                        :value="statusLabel(profile.status) || profile.status"
+                        :value="enrollmentLabel(profile.status)"
                         :severity="enrollmentSeverity(profile.status)"
                         class="capitalize"
                     />

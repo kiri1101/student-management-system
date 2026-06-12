@@ -8,11 +8,16 @@ import {
     UserCog,
     UserPen,
 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DatePicker from 'primevue/datepicker';
+import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import { roleLabel, roleSeverity } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import usersRoutes from '@/routes/admin/users';
 
@@ -63,37 +68,6 @@ defineOptions({
         ],
     },
 });
-
-const ROLE_LABELS: Record<string, string> = {
-    admin: 'Admin',
-    sao: 'SAO',
-    lecturer: 'Lecturer',
-    accountant: 'Accountant',
-    student: 'Student',
-    applicant: 'Applicant',
-};
-
-const ROLE_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    admin: 'danger',
-    sao: 'info',
-    lecturer: 'success',
-    accountant: 'warn',
-    student: 'secondary',
-    applicant: 'secondary',
-};
-
-function roleLabel(role: string): string {
-    return ROLE_LABELS[role] ?? role;
-}
-
-function roleSeverity(
-    role: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return ROLE_SEVERITY[role] ?? 'secondary';
-}
 
 const primaryRole = computed<string>(() => {
     for (const role of ['lecturer', 'accountant', 'sao', 'admin']) {

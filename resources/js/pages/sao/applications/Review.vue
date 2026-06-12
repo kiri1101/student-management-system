@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Download, History } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
 import Message from 'primevue/message';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { computed, ref } from 'vue';
 import ApplicationReviewController from '@/actions/App/Http/Controllers/Sao/ApplicationReviewController';
+import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
 import application_routes from '@/routes/application';
 import sao from '@/routes/sao';
 
@@ -85,37 +90,6 @@ defineOptions({
     },
 });
 
-const STATUS_LABELS: Record<string, string> = {
-    draft: 'Draft',
-    submitted: 'Submitted',
-    under_review: 'Under review',
-    documents_requested: 'Documents requested',
-    admitted: 'Admitted',
-    rejected: 'Rejected',
-    waitlisted: 'Waitlisted',
-    withdrawn: 'Withdrawn',
-};
-
-const STATUS_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    draft: 'secondary',
-    submitted: 'info',
-    under_review: 'warn',
-    documents_requested: 'warn',
-    admitted: 'success',
-    rejected: 'danger',
-    waitlisted: 'secondary',
-    withdrawn: 'secondary',
-};
-
-const DEGREE_LABELS: Record<string, string> = {
-    hnd: 'HND',
-    bachelors: 'Bachelors',
-    masters: 'Masters',
-};
-
 const TRIAGE_OPTIONS = [
     { value: 'submitted', label: 'Submitted' },
     { value: 'under_review', label: 'Under review' },
@@ -127,20 +101,6 @@ const DECIDE_OPTIONS = [
     { value: 'rejected', label: 'Reject' },
     { value: 'waitlisted', label: 'Waitlist' },
 ];
-
-function statusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
-}
-
-function statusSeverity(
-    status: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return STATUS_SEVERITY[status] ?? 'secondary';
-}
-
-function degreeLabel(value: string): string {
-    return DEGREE_LABELS[value] ?? value;
-}
 
 function formatDate(value: string | null): string {
     if (!value) {

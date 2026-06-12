@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { ClipboardList, Inbox, Users } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import { statusLabel } from '@/lib/statusDisplay';
 import sao from '@/routes/sao';
 
 defineProps<{ statusCounts: Record<string, number> }>();
@@ -11,17 +13,6 @@ defineOptions({
         breadcrumbs: [{ title: 'SAO Dashboard', href: sao.dashboard() }],
     },
 });
-
-const STATUS_LABELS: Record<string, string> = {
-    draft: 'Draft',
-    submitted: 'Submitted',
-    under_review: 'Under review',
-    documents_requested: 'Documents requested',
-    admitted: 'Admitted',
-    rejected: 'Rejected',
-    waitlisted: 'Waitlisted',
-    withdrawn: 'Withdrawn',
-};
 
 const ACTIONABLE = ['submitted', 'under_review', 'documents_requested'];
 const DECIDED = ['admitted', 'rejected', 'waitlisted', 'withdrawn'];
@@ -61,7 +52,7 @@ const DECIDED = ['admitted', 'rejected', 'waitlisted', 'withdrawn'];
                             :key="status"
                             class="flex justify-between"
                         >
-                            <span>{{ STATUS_LABELS[status] }}</span>
+                            <span>{{ statusLabel(status) }}</span>
                             <span class="font-mono">{{
                                 statusCounts[status] ?? 0
                             }}</span>
@@ -89,7 +80,7 @@ const DECIDED = ['admitted', 'rejected', 'waitlisted', 'withdrawn'];
                             :key="status"
                             class="flex justify-between"
                         >
-                            <span>{{ STATUS_LABELS[status] }}</span>
+                            <span>{{ statusLabel(status) }}</span>
                             <span class="font-mono">{{
                                 statusCounts[status] ?? 0
                             }}</span>

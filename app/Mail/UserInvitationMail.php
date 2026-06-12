@@ -53,14 +53,6 @@ class UserInvitationMail extends Mailable implements ShouldQueue
 
         $role = $value instanceof RoleName ? $value : RoleName::tryFrom((string) $value);
 
-        return match ($role) {
-            RoleName::Sao => 'SAO',
-            RoleName::Admin => 'Administrator',
-            RoleName::Lecturer => 'Lecturer',
-            RoleName::Accountant => 'Accountant',
-            RoleName::Student => 'Student',
-            RoleName::Applicant => 'Applicant',
-            null => ucfirst((string) $value),
-        };
+        return $role?->label() ?? ucfirst((string) $value);
     }
 }

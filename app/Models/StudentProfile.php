@@ -56,9 +56,13 @@ class StudentProfile extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Resolved withTrashed so enrollments keep rendering even if their
+     * offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     */
     public function programOffering(): BelongsTo
     {
-        return $this->belongsTo(ProgramOffering::class);
+        return $this->belongsTo(ProgramOffering::class)->withTrashed();
     }
 
     /**

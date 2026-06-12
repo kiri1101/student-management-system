@@ -32,9 +32,6 @@ export default defineConfig(({ command }) => ({
             formVariants: true,
         }),
     ],
-    build: {
-        chunkSizeWarningLimit: 1000,
-    },
     ...(command === 'serve'
         ? {
               server: {

@@ -69,7 +69,8 @@ class ProgramOfferingController extends Controller
     }
 
     /**
-     * Soft-delete the specified program offering. Refuses if it still has level requirements.
+     * Soft-delete the specified program offering. Refuses if it still has
+     * level requirements or applications referencing it (AUDIT.md AUD-013).
      */
     public function destroy(ProgramOffering $programOffering): RedirectResponse
     {
@@ -77,6 +78,15 @@ class ProgramOfferingController extends Controller
             Inertia::flash('toast', [
                 'type' => 'error',
                 'message' => __('Cannot delete: this offering still has level credential requirements.'),
+            ]);
+
+            return back();
+        }
+
+        if ($programOffering->applications()->exists()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('Cannot delete: applications reference this offering.'),
             ]);
 
             return back();

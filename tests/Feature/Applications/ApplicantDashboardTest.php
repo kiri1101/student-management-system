@@ -56,3 +56,20 @@ it('blocks guests from the applicant dashboard', function () {
 
     $response->assertRedirect(route('login'));
 });
+
+it('still renders applications whose offering was soft-deleted', function () {
+    $user = User::factory()->create();
+    Application::factory()->for($user, 'applicant')->for($this->offering, 'programOffering')->submitted()->create();
+
+    // Bypass the controller guard: simulate an offering trashed in the DB
+    // (drifted data) — historical applications must keep rendering (AUD-013).
+    $this->offering->delete();
+
+    $response = $this->actingAs($user)->get(route('applicant.dashboard'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('dashboards/Applicant')
+        ->has('applications', 1)
+        ->where('applications.0.program_offering.department.code', 'CS'));
+});

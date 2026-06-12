@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { CloudUpload, Send } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DatePicker from 'primevue/datepicker';
+import FileUpload from 'primevue/fileupload';
 import InputMask from 'primevue/inputmask';
 import InputNumber from 'primevue/inputnumber';
+import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
+import Select from 'primevue/select';
 import { computed, ref, watch } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
 import applicant from '@/routes/applicant';

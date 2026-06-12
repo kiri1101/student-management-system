@@ -2,8 +2,7 @@
 
 namespace App\Http\Requests\Admin\References;
 
-use App\Models\ProgramOffering;
-use Closure;
+use App\Rules\LevelWithinOfferingRange;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,7 +25,7 @@ class LevelCredentialRequirementUpdateRequest extends FormRequest
             ],
             'level' => [
                 'required', 'integer', 'min:1', 'max:10',
-                $this->levelWithinOfferingRange(),
+                new LevelWithinOfferingRange,
             ],
             'document_type_id' => [
                 'required', 'integer',
@@ -40,36 +39,5 @@ class LevelCredentialRequirementUpdateRequest extends FormRequest
             'required' => ['required', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
-    }
-
-    /**
-     * Closure rule: ensure `level` falls within the chosen offering's
-     * [min_level, max_level]. Bails silently when `program_offering_id`
-     * is missing or invalid so the upstream `exists` rule surfaces its
-     * own error first.
-     */
-    protected function levelWithinOfferingRange(): Closure
-    {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $offeringId = $this->input('program_offering_id');
-
-            if (! is_numeric($offeringId)) {
-                return;
-            }
-
-            $offering = ProgramOffering::find($offeringId);
-
-            if ($offering === null) {
-                return;
-            }
-
-            if ($value < $offering->min_level || $value > $offering->max_level) {
-                $fail(__('The :attribute must be between :min and :max for the selected program offering.', [
-                    'attribute' => $attribute,
-                    'min' => $offering->min_level,
-                    'max' => $offering->max_level,
-                ]));
-            }
-        };
     }
 }

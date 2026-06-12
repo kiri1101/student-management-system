@@ -56,10 +56,21 @@ class DocumentTypeController extends Controller
     }
 
     /**
-     * Soft-delete the specified document type. Refuses if it is still referenced by level requirements.
+     * Soft-delete the specified document type. Refuses for always-required
+     * codes (NID/BIRTH — AUDIT.md AUD-014) and when still referenced by
+     * level requirements.
      */
     public function destroy(DocumentType $documentType): RedirectResponse
     {
+        if ($documentType->isProtected()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => __('Cannot delete: :code is required on every application.', ['code' => $documentType->code]),
+            ]);
+
+            return back();
+        }
+
         if ($documentType->levelCredentialRequirements()->exists()) {
             Inertia::flash('toast', [
                 'type' => 'error',

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, UserPlus } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DatePicker from 'primevue/datepicker';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
 import { computed } from 'vue';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
 import admin from '@/routes/admin';

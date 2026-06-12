@@ -77,7 +77,7 @@ class ApplicationController extends Controller
                 ->orderBy('name')
                 ->get(['id', 'name', 'code']),
             'alwaysRequiredDocumentTypes' => DocumentType::query()
-                ->whereIn('code', ['NID', 'BIRTH'])
+                ->whereIn('code', DocumentType::PROTECTED_CODES)
                 ->orderBy('code')
                 ->get(['id', 'name', 'code']),
         ]);

@@ -22,19 +22,6 @@ use Inertia\Response;
 class ApplicationReviewController extends Controller
 {
     /**
-     * Statuses surfaced as "actionable" on the SAO dashboard. The dashboard's
-     * default filter is exactly this set; the index endpoint accepts any
-     * ApplicationStatus value so SAOs can also browse Decided rows.
-     *
-     * @var list<string>
-     */
-    private const DEFAULT_STATUS_FILTER = [
-        'submitted',
-        'under_review',
-        'documents_requested',
-    ];
-
-    /**
      * Whitelist for the index endpoint's `sort_field` query param. Anything
      * outside this list silently falls back to the default sort.
      *
@@ -71,7 +58,12 @@ class ApplicationReviewController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $statuses = $validated['status'] ?? self::DEFAULT_STATUS_FILTER;
+        // Default filter = the actionable interim trio; the endpoint accepts
+        // any ApplicationStatus value so SAOs can also browse decided rows.
+        $statuses = $validated['status'] ?? array_map(
+            fn (ApplicationStatus $status): string => $status->value,
+            Application::INTERIM_STATUSES,
+        );
         $sortField = $validated['sort_field'] ?? 'submitted_at';
         $sortOrder = $validated['sort_order'] ?? 'desc';
         $rows = $validated['rows'] ?? 15;

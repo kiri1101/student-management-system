@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Sao;
 
 use App\Enums\ApplicationStatus;
+use App\Models\Application;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -10,23 +11,17 @@ use Illuminate\Validation\Rule;
 class TriageApplicationRequest extends FormRequest
 {
     /**
-     * Reversible interim statuses owned by the SAO triage flow.
-     *
-     * @var list<string>
-     */
-    private const ALLOWED_STATUSES = [
-        'submitted',
-        'under_review',
-        'documents_requested',
-    ];
-
-    /**
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
     public function rules(): array
     {
+        $allowed = array_map(
+            fn (ApplicationStatus $status): string => $status->value,
+            Application::INTERIM_STATUSES,
+        );
+
         return [
-            'status' => ['required', 'string', Rule::in(self::ALLOWED_STATUSES)],
+            'status' => ['required', 'string', Rule::in($allowed)],
             'notes' => [
                 Rule::requiredIf(fn (): bool => $this->input('status') === ApplicationStatus::DocumentsRequested->value),
                 'nullable', 'string', 'max:5000',

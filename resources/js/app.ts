@@ -1,14 +1,6 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import Aura from '@primeuix/themes/aura';
-import Button from 'primevue/button';
-import Column from 'primevue/column';
 import PrimeVue from 'primevue/config';
-import DataTable from 'primevue/datatable';
-import Dialog from 'primevue/dialog';
-import FileUpload from 'primevue/fileupload';
-import InputText from 'primevue/inputtext';
-import Select from 'primevue/select';
-import Toast from 'primevue/toast';
 import ToastService from 'primevue/toastservice';
 import Tooltip from 'primevue/tooltip';
 import { createApp, h } from 'vue';
@@ -53,15 +45,10 @@ createInertiaApp({
                     },
                 },
             })
+            // PrimeVue components are imported per page for tree-shaking
+            // (AUDIT.md AUD-020); only the ToastService plugin and the
+            // tooltip directive are app-level.
             .use(ToastService)
-            .component('Button', Button)
-            .component('Column', Column)
-            .component('DataTable', DataTable)
-            .component('Dialog', Dialog)
-            .component('FileUpload', FileUpload)
-            .component('InputText', InputText)
-            .component('Select', Select)
-            .component('Toast', Toast)
             .directive('tooltip', Tooltip)
             .mount(el as Element);
     },

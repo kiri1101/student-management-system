@@ -37,11 +37,23 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        // Loaded here — before route middleware and controllers run — so
+        // every downstream hasRole()/gate check reuses the relation instead
+        // of issuing its own query (AUDIT.md AUD-018).
+        $user?->loadMissing('roles');
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user,
+                'user' => $user === null ? null : [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+                    'created_at' => $user->created_at?->toIso8601String(),
+                    'updated_at' => $user->updated_at?->toIso8601String(),
+                ],
                 'roles' => $user?->roles->pluck('name')->values()->all() ?? [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

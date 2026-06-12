@@ -24,6 +24,10 @@ final class RoleDashboardResolver
 
     public function pathFor(User $user): string
     {
+        // Login happens mid-request, after the Inertia share saw a guest —
+        // load once so the priority walk below stays query-free (AUD-018).
+        $user->loadMissing('roles');
+
         foreach (self::PRIORITY as [$role, $path]) {
             if ($user->hasRole($role)) {
                 return $path;

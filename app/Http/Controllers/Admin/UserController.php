@@ -219,7 +219,7 @@ class UserController extends Controller
         return collect(StoreUserRequest::CREATABLE_ROLES)
             ->map(fn (RoleName $role): array => [
                 'value' => $role->value,
-                'label' => $role->name,
+                'label' => $role->label(),
             ])
             ->all();
     }
@@ -259,9 +259,24 @@ class UserController extends Controller
             'deleted_at' => $user->deleted_at?->toIso8601String(),
             'roles' => $user->roles->pluck('name')->values()->all(),
             'profiles' => [
-                'lecturer' => $user->lecturerProfile,
-                'accountant' => $user->accountantProfile,
-                'sao' => $user->saoProfile,
+                'lecturer' => $user->lecturerProfile === null ? null : [
+                    'id' => $user->lecturerProfile->id,
+                    'user_id' => $user->lecturerProfile->user_id,
+                    'department_id' => $user->lecturerProfile->department_id,
+                    'specialization' => $user->lecturerProfile->specialization,
+                    'hired_at' => $user->lecturerProfile->hired_at?->toDateString(),
+                ],
+                'accountant' => $user->accountantProfile === null ? null : [
+                    'id' => $user->accountantProfile->id,
+                    'user_id' => $user->accountantProfile->user_id,
+                    'bank_desk' => $user->accountantProfile->bank_desk,
+                    'cashier_window' => $user->accountantProfile->cashier_window,
+                ],
+                'sao' => $user->saoProfile === null ? null : [
+                    'id' => $user->saoProfile->id,
+                    'user_id' => $user->saoProfile->user_id,
+                    'scope' => $user->saoProfile->scope,
+                ],
             ],
         ];
     }

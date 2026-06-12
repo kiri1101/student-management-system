@@ -2,15 +2,19 @@
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Inbox } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
 import type {
     DataTablePageEvent,
     DataTableSortEvent,
 } from 'primevue/datatable';
+import DataTable from 'primevue/datatable';
 import MultiSelect from 'primevue/multiselect';
 import Tag from 'primevue/tag';
 import { ref, watch } from 'vue';
 import ApplicationReviewController from '@/actions/App/Http/Controllers/Sao/ApplicationReviewController';
+import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
 import sao from '@/routes/sao';
 
 type Department = { id: number; name: string; code: string };
@@ -63,52 +67,7 @@ defineOptions({
     },
 });
 
-const STATUS_LABELS: Record<string, string> = {
-    draft: 'Draft',
-    submitted: 'Submitted',
-    under_review: 'Under review',
-    documents_requested: 'Documents requested',
-    admitted: 'Admitted',
-    rejected: 'Rejected',
-    waitlisted: 'Waitlisted',
-    withdrawn: 'Withdrawn',
-};
-
-const STATUS_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    draft: 'secondary',
-    submitted: 'info',
-    under_review: 'warn',
-    documents_requested: 'warn',
-    admitted: 'success',
-    rejected: 'danger',
-    waitlisted: 'secondary',
-    withdrawn: 'secondary',
-};
-
-const DEGREE_LABELS: Record<string, string> = {
-    hnd: 'HND',
-    bachelors: 'Bachelors',
-    masters: 'Masters',
-};
-
 const selectedStatuses = ref<string[]>([...props.filters.status]);
-
-function statusLabel(status: string): string {
-    return STATUS_LABELS[status] ?? status;
-}
-
-function statusSeverity(
-    status: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return STATUS_SEVERITY[status] ?? 'secondary';
-}
-
-function degreeLabel(value: string): string {
-    return DEGREE_LABELS[value] ?? value;
-}
 
 function formatDate(value: string | null): string {
     if (!value) {

@@ -52,9 +52,13 @@ class Application extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Resolved withTrashed so historical applications keep rendering even if
+     * their offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     */
     public function programOffering(): BelongsTo
     {
-        return $this->belongsTo(ProgramOffering::class);
+        return $this->belongsTo(ProgramOffering::class)->withTrashed();
     }
 
     public function decidedBy(): BelongsTo
@@ -72,7 +76,7 @@ class Application extends Model
      *
      * @var list<ApplicationStatus>
      */
-    private const TERMINAL_STATUSES = [
+    public const TERMINAL_STATUSES = [
         ApplicationStatus::Admitted,
         ApplicationStatus::Rejected,
         ApplicationStatus::Waitlisted,
@@ -84,7 +88,7 @@ class Application extends Model
      *
      * @var list<ApplicationStatus>
      */
-    private const INTERIM_STATUSES = [
+    public const INTERIM_STATUSES = [
         ApplicationStatus::Submitted,
         ApplicationStatus::UnderReview,
         ApplicationStatus::DocumentsRequested,

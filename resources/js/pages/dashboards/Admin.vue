@@ -9,9 +9,13 @@ import {
     Shield,
     Users,
 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
 import { ref } from 'vue';
 import AuditLogModal from '@/components/admin/AuditLogModal.vue';
+import { degreeLabel } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import adminUsers from '@/routes/admin/users';
 
@@ -45,17 +49,7 @@ defineOptions({
     },
 });
 
-const DEGREE_LABELS: Record<string, string> = {
-    hnd: 'HND',
-    bachelors: 'Bachelors',
-    masters: 'Masters',
-};
-
 const auditModalVisible = ref(false);
-
-function degreeLabel(value: string): string {
-    return DEGREE_LABELS[value] ?? value;
-}
 
 function formatDate(value: string | null): string {
     if (!value) {
