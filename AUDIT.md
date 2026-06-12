@@ -6,7 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
-- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 (docs & process) pending (see "Suggested fix order").
+- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 in progress: AUD-033 done; AUD-034, 029, 026, 032 pending (AUD-029/032 carry user decisions).
 
 ## Executive summary
 
@@ -489,7 +489,7 @@
 
 - **Severity:** Low · **Category:** Gap/Docs · **Source:** GAP-8, GAP-12
 - **Location:** `plan/context.md` (§14 status table says Phase 10 pending; route count 38 vs actual 47; admin user-management module absent), project `CLAUDE.md` (references nonexistent `routes/api.php` convention), memory index
-- **Status:** Open
+- **Status:** Fixed in `HEAD` after Phase 5 docs (§14 status table completed with Phase 10 + UM-A/B/C rows, supersession note pointing at §15, UM module summary, route count 54; CLAUDE.md Database section rewritten to the real route layout; memory index refreshed)
 
 **Problem** — The "source of truth" doc no longer reflects three shipped commits (`ac997ac`, `e99fc2e`, `f46c02c`) and misstates phase status; CLAUDE.md tells future sessions to follow a convention in a file that doesn't exist.
 

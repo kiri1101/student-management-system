@@ -10,10 +10,11 @@ Another issue is `Requests for tuition payment deferral`. During examination per
 `Course management` is another important aspect of student management and it has its own issues in the university i attended. It spans over course planning, lecturer absence notification, student course attendance, course assignment management and course CA & examination student results. All these as well as earlier issues should be discussed thoroughly before implementation.
 Some other issue faced by students is notification when a lecturer is absent from course lectures. Sometimes the information given by the lecturer about their presence on campus is manipulated by students to whom it is given such that they either deliver the information late or their classmates do not trust the information thy deliver. Thus bringing up a need to improve lecturer course management as well as other services such as `Notifications`, `School receipt verification`, `Access to CA and examination results with the ability to raise disputes`.
 
-## Database
+## Database & Routes
 
 - Driver: MySQL (`student_management` database, root/no password)
-- API versioning is used for routes (follow existing convention in `routes/api.php`)
+- There is no `routes/api.php`. All routes are session-authenticated web routes split across `routes/web.php` (public + applicant + per-role dashboards), `routes/settings.php`, `routes/admin.php` (single `admin/` + `role:admin` group), and `routes/sao.php`.
+- JSON lookup endpoints are session-authenticated, same-origin `fetch()` targets, not a token API: the cascading-dropdown lookups live under the versioned `api/v1` prefix group inside `routes/web.php`; the audit-log modal endpoint is `admin/audit-logs` inside the `routes/admin.php` admin group. Follow the `api/v1` convention for new applicant-facing JSON endpoints.
 
 ## UI Components
 

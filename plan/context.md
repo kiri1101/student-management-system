@@ -532,7 +532,9 @@ Whether the dropped current-application status should be `Withdrawn` or a new de
 
 ## 14. Implementation Progress
 
-**Last updated:** 2026-05-05 (Phase 9 shipped). Refresh this section at every phase-boundary commit. The authoritative roadmap stays §8; the authoritative diff for each phase is its commit. This section is the **bridge** between them — phase number → commit SHA → at-a-glance summary.
+**Last updated:** 2026-06-12 (AUD-033 doc refresh; route count and post-Phase-10 work recorded). Refresh this section at every phase-boundary commit. The authoritative roadmap stays §8; the authoritative diff for each phase is its commit. This section is the **bridge** between them — phase number → commit SHA → at-a-glance summary.
+
+> **Supersession note:** the per-phase records below are accurate as history of what each commit shipped, but audit Fix Phases 1–5 (§15) later changed several of those decisions in place — notably: PrimeVue global registration + `chunkSizeWarningLimit: 1000` (Phase 2 → reversed by AUD-020), inline reactivation in `CreateNewUser` (Phase 3 → rewritten by AUD-004, see §13), the count-based matricule generator (Phase 9 → replaced by AUD-006), and the duplicated status/label maps (Phases 8–10 → consolidated by AUD-027). When a §14 detail conflicts with §15, §15 wins.
 
 ### Status table
 
@@ -547,9 +549,12 @@ Whether the dropped current-application status should be `Withdrawn` or a new de
 | 7 | Application Domain Models | ✅ Done | `28e655f` |
 | 8 | Applicant Dashboard + Application Form | ✅ Done | `8c55067` |
 | 9 | SAO Decision Flow + Admit-to-Student Promotion | ✅ Done | `c4d9d38` |
-| 10 | Admin Dashboard + Audit Log Modal | ⏳ Pending | — |
+| 10 | Admin Dashboard + Audit Log Modal | ✅ Done | `359ed1f` (API) + `9a664da` (UI) + `1f8ae87` (seeder) |
+| UM-A | Admin User Management — backend + invite-link flow | ✅ Done | `ac997ac` |
+| UM-B | Admin User Management — UI with role-aware forms | ✅ Done | `e99fc2e` |
+| UM-C | Admin User Management — invitation polish + role transitions | ✅ Done | `f46c02c` (+ fix `fa93a77`) |
 
-Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline before Phase 1.
+Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline before Phase 1. Other interim commits: `fc2324b` (split-screen login layout + tooltip-driven username field), `d2a5738`/`a8d69d4`/`e044f81` (small seeder/UI chores). Everything after `e044f81` is audit remediation — see §15.
 
 ### Phase 1 — Roles & Authorization Foundation (`e61d59a`)
 
@@ -922,9 +927,13 @@ Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline
 
 Small DX retrofit landed alongside the Phase 10.2 browser-check session. `database/seeders/DatabaseSeeder.php` now provisions an `admin@example.com` / `password` user with the Admin role and `email_verified_at = now()`, idempotent via `firstOrCreate`. This makes `php artisan migrate:fresh --seed` yield a loginable admin out of the box for browser-checking the new dashboard. The pre-existing `Test User` factory call is retained. Tests are unaffected (they explicitly call `RolesSeeder` in `tests/Pest.php` `beforeEach`, never `DatabaseSeeder`); 359/359 still green.
 
+### Admin User Management module (`ac997ac` → `e99fc2e` → `f46c02c`, post-roadmap)
+
+Shipped after Phase 10 as a three-commit module (backend / UI / polish). Scope: admin-provisioned **staff + admin** accounts only (students arrive via admission, applicants via self-registration). Key contracts: invite-link credentials (no password set by the admin — a password-reset-style setup link is mailed via queued `UserInvitationMail`), `CreateUserAction` + `ChangeUserRoleAction` own all writes (incl. `WritesRoleProfile::writeProfile()` restore-or-create for per-role profiles), users DataTable with role/status/search filters, Edit page with role-aware profile forms + change-role dialog + deactivate/restore/resend-invite. Full design contracts live in the `project_admin_user_management.md` memory — **read it before touching `CreateUserAction`/`ChangeUserRoleAction`.** Audit fix phases later layered onto this module: `employee_id` capture (AUD-007), `User` auditing via `RecordsAudit` (AUD-022), shaped Edit props (AUD-031), `RoleName::label()` dropdown labels (AUD-027).
+
 ### Roadmap status
 
-Phases 1–10 are all shipped. The §8 design contract is fully satisfied. Remaining items are deferred follow-ups (listed under each phase's "Cross-phase contracts honored / deferred" section), not roadmap work. No Phase 11 is planned in this session — when one of the deferred items becomes urgent, design it in a fresh planning pass.
+Phases 1–10 plus the user-management module are all shipped; the §8 design contract is fully satisfied. `php artisan route:list --except-vendor` currently shows **54 routes** (38 at Phase 10; growth = 9 user-management routes, 4 reference-restore routes from AUD-021, and small interim additions). Most of the deferred follow-ups listed under the per-phase "Cross-phase contracts honored / deferred" sections were since closed by audit fix phases: reference restore UI (AUD-021), `User` `RecordsAudit` (AUD-022), `ApplicationDecided` notification listener (AUD-002), shared status/label helpers (AUD-027), staff user management (the UM module). Still genuinely deferred: per-role sidebar/navigation polish (B13) and the B1–B15 backlog in AUDIT.md. No Phase 11 is planned — when a deferred item becomes urgent, design it in a fresh planning pass.
 
 ### Process reminder
 
@@ -949,7 +958,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 | 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
 | 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ✅ Done | `a93f9ba` |
 | 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ✅ Done | `e1255e3` |
-| 6 — Docs & throttles | AUD-033, 034, 029, 026, 032 | ⏳ Pending | — |
+| 6 — Docs & throttles | AUD-033 ✅ (docs refresh, 2026-06-12) · AUD-034, 029, 026, 032 ⏳ | 🔄 In progress | — |
 
 **Fix Phase 1 (`1956bf2`) — what changed:**
 - All three SAO actions (`Decide`, `Triage`, `RestorePriorEnrollment`) re-fetch the application — and the prior profile, where relevant — under `lockForUpdate()` *inside* their transactions and re-run the status guards there, so concurrent decisions 422 instead of corrupting state (AUD-001).
@@ -997,4 +1006,4 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - Level-range narrowing guarded (AUD-023): `ProgramOfferingUpdateRequest::after()` rejects a narrowed `[min_level, max_level]` that would orphan credential-requirement levels or strand open (Draft/interim) applications, naming the blocking levels; decided applications don't block; widening is unrestricted.
 - **433/433 green** (+11 net new tests), Pint + Prettier + ESLint + vue-tsc clean, `npm run build` ✓.
 
-**Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.
+**Stale-doc note resolved (AUD-033, 2026-06-12):** §14 was refreshed — status table now covers Phase 10 + the UM-A/B/C user-management module, carries a supersession note pointing here, and records the current 54-route count; CLAUDE.md's Database section now describes the real route layout (no `routes/api.php`). `git log` + `AUDIT.md` remain authoritative for remediation state.
