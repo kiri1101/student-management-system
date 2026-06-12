@@ -947,7 +947,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 | 1 — Core flow correctness | AUD-001, 010, 003, 005, 006 | ✅ Done | `1956bf2` |
 | 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ✅ Done | `fa56b44` |
 | 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
-| 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ⏳ Pending | — |
+| 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ✅ Done | `a93f9ba` |
 | 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ⏳ Pending | — |
 | 6 — Docs & throttles | AUD-033, 034, 029, 026, 032 | ⏳ Pending | — |
 
@@ -977,5 +977,14 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - Login resolver collapsed to one query (OR across email/employee_id + matricule EXISTS) with a dummy bcrypt check on the not-found path to flatten timing (AUD-025); query count asserted in test.
 - New `RoleName::staff()` helper (single source for the staff-role set — AUD-027 will migrate the two hand-written copies).
 - **399/399 green** (+8 net new tests), Pint clean, `migrate:fresh --seed` ✓.
+
+**Fix Phase 4 (`a93f9ba`) — what changed:**
+- Applicants are finally notified: a queued `SendApplicationDecisionNotification` listener (auto-discovered) handles `ApplicationDecided` and sends `ApplicationDecisionMail` to `application->contact_email` with per-decision copy — admitted (incl. matricule), rejected/waitlisted (incl. decision notes), and a restore-prior merge variant (incl. the restored historical matricule). Exactly one mail per terminal decision; triage moves send nothing (AUD-002).
+- `employee_id` is now writable: optional field on the admin Create/Edit user forms, normalized lowercase in the Form Requests, unique, format-guarded (`no @`, no `stm-` prefix) so it can never shadow the email/matricule login namespaces; persisted via `forceFill` (stays out of `$fillable`), shown + searchable in the users DataTable. Employee-ID login works end-to-end from day one (AUD-007).
+- All four reference CRUDs (departments, offerings, document types, level requirements) gained a "Show deleted" toggle (`?trashed=1`) and a Restore action (`POST .../restore`, `withTrashed()` binding). Restore refuses while a parent row is trashed; key-conflict guards were deliberately **not** added because every reference unique index spans trashed rows — a re-take is impossible at the DB level (AUD-021).
+- `User` now uses `RecordsAudit`; the trait gained `auditRedact()` (password, 2FA secrets) — redacted keys appear in Updated diffs as `[redacted]` and are omitted from snapshots. `CreateUserAction` collapses to a single save (one auto Created row, manual row removed); `ResetUserPassword::reactivate()` uses `restoreQuietly()` so its contextual manual `Restored` row stays the only one. Admin restore/deactivate and registration are now audited for free (AUD-022).
+- Dashboards de-placeholdered: Student gets a real controller (enrollment summary — matricule, programme, level, year, status — plus application history with null-safe offering shaping); Lecturer/Accountant get profile cards + honest "module coming soon" states; starter-kit repo/docs links removed from sidebar + header and `AppLogo` rebranded (AUD-024).
+- New routes use invokable `App\Http\Controllers\Dashboards\*DashboardController` classes replacing the `Route::inertia` placeholders.
+- **422\422 green** (+23 net new tests across 5 new files), Pint + ESLint + vue-tsc clean, `npm run build` ✓.
 
 **Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.

@@ -6,7 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
-- **Remediation progress:** Fix Phase 1 (AUD-001, 003, 005, 006, 010) landed in `1956bf2` — 388/388 tests green. Fix Phases 2–6 pending (see "Suggested fix order").
+- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`) landed — 422/422 tests green. Fix Phases 5–6 pending (see "Suggested fix order").
 
 ## Executive summary
 
@@ -54,7 +54,7 @@
 
 - **Severity:** High · **Category:** Gap · **Source:** GAP-1
 - **Location:** `app/Actions/Sao/DecideApplicationAction.php:80`, `app/Events/ApplicationDecided.php`
-- **Status:** Open
+- **Status:** Fixed in `a93f9ba` (queued listener + `ApplicationDecisionMail` to `contact_email`; per-decision copy incl. matricule on admit; restore-prior merge sends its own variant)
 
 **Problem** — `ApplicationDecided` is dispatched after commit but has zero listeners (`app/Listeners/` does not exist; the only Mailable is the staff `UserInvitationMail`). Admitted/rejected/waitlisted applicants receive no email or in-app notification — the core CLAUDE.md requirement ("they are notified via mail if they have been admitted or not") is unmet despite the roadmap claiming the design contract fully satisfied.
 
@@ -130,7 +130,7 @@
 
 - **Severity:** High · **Category:** Gap · **Source:** GAP-3
 - **Location:** `app/Providers/FortifyServiceProvider.php:63` (only reader); no writer exists anywhere in `app/`
-- **Status:** Open
+- **Status:** Fixed in `a93f9ba` (optional employee_id on admin create/edit; lowercase-normalized, unique, format guard blocks `@` and `stm-` prefix; persisted via forceFill; end-to-end create+login test)
 
 **Problem** — The login screen advertises "Email, employee ID, or matricule" and the Fortify resolver queries `users.employee_id`, but no Form Request, Vue form, or fillable path ever assigns it — every user's `employee_id` is NULL. The §4.6 FINAL decision ("an employee_id is assigned at creation; both work as logins from day one") is silently void. Tests pass because `UserFactory::staff()` sets it directly.
 
@@ -330,7 +330,7 @@
 
 - **Severity:** Medium · **Category:** Gap · **Source:** GAP-4 (promised in Phase 4 decision record, silently dropped from Phase 10)
 - **Location:** `app/Http/Controllers/Admin/References/*`, `resources/js/pages/admin/references/*`
-- **Status:** Open
+- **Status:** Fixed in `a93f9ba` (show-deleted toggle + restore route/action on all four reference CRUDs; parent-trashed restores refused; key re-take impossible — unique indexes span trashed rows, so the conflict-422 criterion is satisfied at the DB layer)
 
 **Problem** — Soft-deleting a reference row blocks recreating the same key (422 by design since Phase 4) AND there is no restore UI — an admin who deletes a department/offering/doc-type can only recover via tinker. Operational dead-end.
 
@@ -344,7 +344,7 @@
 
 - **Severity:** Medium · **Category:** Security/Gap · **Source:** SEC-5, GAP-5
 - **Location:** `app/Models/User.php`
-- **Status:** Open
+- **Status:** Fixed in `a93f9ba` (User uses RecordsAudit; new `auditRedact()` masks password/2FA values in diffs; CreateUserAction's manual Created row removed — single save, single row; reactivation `restoreQuietly()` keeps one contextual Restored row)
 
 **Problem** — `User` is the only domain model without `RecordsAudit`. Email changes (which also null `email_verified_at` — a takeover precursor), name changes, password changes, and self-deletion leave no audit trail, in a system whose audit log is a headline feature.
 
@@ -372,7 +372,7 @@
 
 - **Severity:** Medium · **Category:** Gap · **Source:** GAP-7
 - **Location:** `resources/js/pages/dashboards/{Student,Lecturer,Accountant}.vue`, sidebar footer links
-- **Status:** Open
+- **Status:** Fixed in `a93f9ba` (Student: enrollment summary + application history via new controller; Lecturer/Accountant: profile cards + coming-soon states; starter-kit links and branding removed from sidebar/header/logo)
 
 **Problem** — Student/Lecturer/Accountant dashboards literally render placeholder text; a freshly admitted student logs in (the system's happy-path climax) to a dead end with no link to their application history. The sidebar footer still links to the `laravel/vue-starter-kit` GitHub/docs.
 
