@@ -489,7 +489,7 @@
 
 - **Severity:** Low · **Category:** Gap/Docs · **Source:** GAP-8, GAP-12
 - **Location:** `plan/context.md` (§14 status table says Phase 10 pending; route count 38 vs actual 47; admin user-management module absent), project `CLAUDE.md` (references nonexistent `routes/api.php` convention), memory index
-- **Status:** Fixed in `HEAD` after Phase 5 docs (§14 status table completed with Phase 10 + UM-A/B/C rows, supersession note pointing at §15, UM module summary, route count 54; CLAUDE.md Database section rewritten to the real route layout; memory index refreshed)
+- **Status:** Fixed in `ea3b426` (§14 status table completed with Phase 10 + UM-A/B/C rows, supersession note pointing at §15, UM module summary, route count 54; CLAUDE.md Database section rewritten to the real route layout; memory index refreshed)
 
 **Problem** — The "source of truth" doc no longer reflects three shipped commits (`ac997ac`, `e99fc2e`, `f46c02c`) and misstates phase status; CLAUDE.md tells future sessions to follow a convention in a file that doesn't exist.
 
