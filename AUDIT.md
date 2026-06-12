@@ -6,7 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
-- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`) landed — 422/422 tests green. Fix Phases 5–6 pending (see "Suggested fix order").
+- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 (docs & process) pending (see "Suggested fix order").
 
 ## Executive summary
 
@@ -220,7 +220,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-6
 - **Location:** `app/Http/Controllers/Applications/ApplicationController.php` (dashboard/show), `app/Http/Controllers/Sao/ApplicationReviewController.php` (index/show); `app/Http/Controllers/Admin/References/ProgramOfferingController.php` (destroy guard)
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (destroy refuses while applications reference the offering; `Application`/`StudentProfile::programOffering()` resolve withTrashed so drifted data still renders)
 
 **Problem** — `ProgramOfferingController::destroy()` only refuses deletion when `levelCredentialRequirements()->exist()` — it ignores live applications. Soft-deleting an offering referenced by applications makes the default `belongsTo` resolve null, and the serializers deref `programOffering->department` → 500 on the applicant dashboard, application show, SAO queue and review pages.
 
@@ -234,7 +234,7 @@
 
 - **Severity:** Medium · **Category:** Quality · **Source:** QUAL-7
 - **Location:** `app/Http/Controllers/Admin/References/DocumentTypeController.php` (destroy), `app/Http/Requests/Applications/StoreApplicationRequest.php` (`ALWAYS_REQUIRED_CODES`)
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (`DocumentType::PROTECTED_CODES` shared constant; destroy and code-rename refused for NID/BIRTH)
 
 **Problem** — NID/BIRTH are required by hardcoded code-string, not by `level_credential_requirements` rows, so the destroy guard (children-only) lets an admin soft-delete them. Result: the application form stops rendering the slot while server validation still demands it → every new application 422s with no visible slot (and an undefined-array-key 500 path if a file does arrive).
 
@@ -289,7 +289,7 @@
 
 - **Severity:** Medium · **Category:** Performance · **Source:** PERF-4 · **Scale assumption:** every authenticated request
 - **Location:** `app/Http/Middleware/HandleInertiaRequests.php:45`, `app/Models/Concerns/HasRoles.php`, `app/Services/RoleDashboardResolver.php`, `app/Http/Middleware/EnsureUserHasRole.php`
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (in-memory relation reuse + single eager load in the Inertia share and login resolver; one `role_user` query per request asserted by `RoleQueryEfficiencyTest`)
 
 **Problem** — A single authenticated navigation triggers 3–8 separate role queries: the Inertia share lazy-loads `roles`, `EnsureUserHasRole` runs an EXISTS, each Gate check queries again, and `RoleDashboardResolver` loops up to six `hasRole()` queries on login redirect — none reuse the loaded relation.
 
@@ -316,7 +316,7 @@
 
 - **Severity:** Medium · **Category:** Performance · **Source:** PERF-7
 - **Location:** `resources/js/app.ts` (global registrations), `vite.config.ts` (`chunkSizeWarningLimit: 1000`)
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (per-page imports everywhere; main chunk 936.29 kB → 451.06 kB, gzip 208.02 → 106.49 kB; default warning limit restored)
 
 **Problem** — DataTable, FileUpload, Dialog, Select etc. are registered globally, landing in the ~913KB main chunk that even the login/welcome pages download. The chunk-size warning was raised to mask it rather than fix it.
 
@@ -358,7 +358,7 @@
 
 - **Severity:** Medium · **Category:** Gap · **Source:** GAP-6 (stale "TODO (Phase 7)")
 - **Location:** `app/Http/Requests/Admin/References/ProgramOfferingUpdateRequest.php`
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (after-hook fails narrowing that orphans requirement levels or open-application levels, naming the blockers; widening unrestricted)
 
 **Problem** — Narrowing `min_level`/`max_level` is unvalidated against existing `level_credential_requirements` rows (they orphan silently, and the rules engine stops matching them) and against live applications at now-out-of-range levels. The TODO deferred to Phase 7 was never picked up; Phase 7's re-check only covers *new* submissions.
 
@@ -417,7 +417,7 @@
 
 - **Severity:** Low · **Category:** Quality · **Source:** QUAL-12/13/14, GAP-9, PERF-Low
 - **Location:** status/severity maps in `dashboards/Applicant.vue`, `sao/applications/Index.vue`, `Review.vue`, `AuditLogModal.vue`, admin users pages (6 files); status whitelists hand-written in `TriageApplicationRequest`/`DecideApplicationRequest` vs `Application` model constants (private); `levelWithinOfferingRange()` triplicated across `LevelCredentialRequirement{Store,Update}Request` and `StoreApplicationRequest`; `roleLabel()` in `UserInvitationMail` (memory note says lift to `RoleName`)
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (`resources/js/lib/statusDisplay.ts` single definition site for status/enrollment/degree/role labels+severities — also fixed Student.vue's stale `excluded` key vs the real `withdrawn`; `Application` status constants public and driving both Form Requests + SAO default filter; shared `LevelWithinOfferingRange` rule; `RoleName::label()`. AuditLogModal's action map intentionally stays: its labels come from server options, severity is heuristic on a different enum)
 
 **Problem** — Each copy has already begun to drift (the audit modal's action map vs page maps). Next enum case added = 6 frontend edits + 3 backend edits or silent inconsistency.
 
@@ -465,7 +465,7 @@
 
 - **Severity:** Low · **Category:** Quality/Security · **Source:** QUAL-Low
 - **Location:** SAO review / admin users pages passing raw `User`/profile models
-- **Status:** Open
+- **Status:** Fixed in `e1255e3` (shared `auth.user` prop and admin Edit staff profiles shaped to the fields the pages consume; SAO review was already shaped by an earlier phase)
 
 **Problem** — Full models are serialized where pages need a handful of fields. `#[Hidden]`/`$hidden` covers the secrets today, so no leak — but every future column added to these models ships to the browser by default.
 

@@ -948,7 +948,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 | 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ✅ Done | `fa56b44` |
 | 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
 | 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ✅ Done | `a93f9ba` |
-| 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ⏳ Pending | — |
+| 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ✅ Done | `e1255e3` |
 | 6 — Docs & throttles | AUD-033, 034, 029, 026, 032 | ⏳ Pending | — |
 
 **Fix Phase 1 (`1956bf2`) — what changed:**
@@ -986,5 +986,15 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - Dashboards de-placeholdered: Student gets a real controller (enrollment summary — matricule, programme, level, year, status — plus application history with null-safe offering shaping); Lecturer/Accountant get profile cards + honest "module coming soon" states; starter-kit repo/docs links removed from sidebar + header and `AppLogo` rebranded (AUD-024).
 - New routes use invokable `App\Http\Controllers\Dashboards\*DashboardController` classes replacing the `Route::inertia` placeholders.
 - **422\422 green** (+23 net new tests across 5 new files), Pint + ESLint + vue-tsc clean, `npm run build` ✓.
+
+**Fix Phase 5 (`e1255e3`) — what changed:**
+- Role checks de-duplicated (AUD-018): `hasRole`/`hasAnyRole` answer from the loaded `roles` relation when present (enum-safe `contains`), falling back to EXISTS; `assignRole`/`removeRole` unset the cached relation. `HandleInertiaRequests::share()` (which Inertia resolves *before* route middleware) and `RoleDashboardResolver::pathFor()` (login happens mid-request, after share saw a guest) each `loadMissing('roles')`. New `RoleQueryEfficiencyTest` asserts exactly one `role_user` query per authenticated page load.
+- PrimeVue globals removed (AUD-020): all 8 globally-registered components converted to per-page imports (17 files); only `ToastService` + `tooltip` directive stay app-level; `<Toast />` imported by the layout that mounts it. Main chunk **936.29 kB → 451.06 kB** (gzip 208.02 → 106.49 kB); `chunkSizeWarningLimit` override deleted so the default 500 kB warning is the regression guard. CLAUDE.md UI section updated to the new convention.
+- Duplication collapsed (AUD-027): new `resources/js/lib/statusDisplay.ts` is the single site for application-status/enrollment-status/degree/role labels + Tag severities (9 pages refactored; fixed Student.vue's stale `excluded` enrollment key — the real enum value is `withdrawn`). `Application::TERMINAL_STATUSES`/`INTERIM_STATUSES` made public and now drive `TriageApplicationRequest`, `DecideApplicationRequest` (terminal minus Withdrawn), and the SAO queue's default filter. The triplicated `levelWithinOfferingRange()` closure became the shared `App\Rules\LevelWithinOfferingRange` (`DataAwareRule`). `RoleName::label()` feeds both `UserInvitationMail` and the admin role dropdowns ('Administrator'/'SAO' style).
+- Props shaped (AUD-031): shared `auth.user` now exposes only id/name/email/timestamps (+`email_verified_at`); admin users Edit ships shaped lecturer/accountant/sao profile arrays (`hired_at` as date string) instead of raw models.
+- Trashed-offering hardening (AUD-013): `ProgramOffering::applications()` added; destroy refuses while applications reference the offering; `Application::programOffering()` and `StudentProfile::programOffering()` resolve `withTrashed()` so drifted historical data renders instead of 500ing (tested by trashing an offering under a submitted application).
+- NID/BIRTH protected (AUD-014): `DocumentType::PROTECTED_CODES` is the single source for the always-required pair (StoreApplicationRequest + the form's lookup reference it); destroy and code-rename of protected types are refused (name edits stay allowed).
+- Level-range narrowing guarded (AUD-023): `ProgramOfferingUpdateRequest::after()` rejects a narrowed `[min_level, max_level]` that would orphan credential-requirement levels or strand open (Draft/interim) applications, naming the blocking levels; decided applications don't block; widening is unrestricted.
+- **433/433 green** (+11 net new tests), Pint + Prettier + ESLint + vue-tsc clean, `npm run build` ✓.
 
 **Known stale-doc note:** §14 of this file still predates the admin user-management module (`ac997ac`/`e99fc2e`/`f46c02c`) and says Phase 10 is pending — that refresh is scheduled as AUD-033 in Fix Phase 6. Until then, treat `git log` + `AUDIT.md` as authoritative for current state.
