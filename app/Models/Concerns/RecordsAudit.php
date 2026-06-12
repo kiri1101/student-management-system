@@ -49,20 +49,34 @@ trait RecordsAudit
     }
 
     /**
-     * Attribute names to omit from audit snapshots and diffs.
+     * Attribute names to omit from audit snapshots and diffs entirely —
+     * housekeeping fields whose changes carry no audit value.
      *
      * @return array<int, string>
      */
     public function auditExclude(): array
     {
         return [
-            'password',
             'remember_token',
-            'two_factor_secret',
-            'two_factor_recovery_codes',
             'created_at',
             'updated_at',
             'deleted_at',
+        ];
+    }
+
+    /**
+     * Attribute names whose *changes* matter (a password change is an audit
+     * event) but whose values must never reach the log. Diffs record them as
+     * "[redacted]"; snapshots omit them.
+     *
+     * @return array<int, string>
+     */
+    public function auditRedact(): array
+    {
+        return [
+            'password',
+            'two_factor_secret',
+            'two_factor_recovery_codes',
         ];
     }
 
@@ -75,7 +89,7 @@ trait RecordsAudit
     public function auditAttributes(): array
     {
         return collect($this->getAttributes())
-            ->except($this->auditExclude())
+            ->except([...$this->auditExclude(), ...$this->auditRedact()])
             ->all();
     }
 
@@ -88,10 +102,18 @@ trait RecordsAudit
     public function auditDiff(): ?array
     {
         $excluded = $this->auditExclude();
+        $redacted = $this->auditRedact();
         $diff = ['before' => [], 'after' => []];
 
         foreach ($this->getChanges() as $key => $value) {
             if (in_array($key, $excluded, true)) {
+                continue;
+            }
+
+            if (in_array($key, $redacted, true)) {
+                $diff['before'][$key] = '[redacted]';
+                $diff['after'][$key] = '[redacted]';
+
                 continue;
             }
 

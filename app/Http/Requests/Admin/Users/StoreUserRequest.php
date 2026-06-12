@@ -24,6 +24,18 @@ class StoreUserRequest extends FormRequest
     ];
 
     /**
+     * Lowercase the employee ID before validation so the unique check and the
+     * stored value both match the canonicalized login identifier (Fortify's
+     * `lowercase_usernames`).
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('employee_id')) {
+            $this->merge(['employee_id' => mb_strtolower(trim((string) $this->input('employee_id')))]);
+        }
+    }
+
+    /**
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
     public function rules(): array
@@ -40,6 +52,15 @@ class StoreUserRequest extends FormRequest
                 // Includes soft-deleted rows on purpose: a trashed match means
                 // the admin should restore the prior user, not duplicate it.
                 Rule::unique(User::class, 'email'),
+            ],
+            // No `@` (so it can never shadow the email namespace in the login
+            // resolver) and no `stm-` prefix (reserved for matricules).
+            'employee_id' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^(?!stm-)[a-z0-9][a-z0-9._-]*$/',
+                Rule::unique(User::class, 'employee_id'),
             ],
             'role' => ['required', 'string', Rule::in($roleValues)],
 
@@ -71,7 +92,16 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'email.unique' => 'A user with this email already exists. If they have been deactivated, restore them from the Users list instead of creating a new account.',
+            'employee_id.unique' => 'This employee ID is already assigned to another user.',
+            'employee_id.regex' => 'Employee IDs may only contain letters, digits, dots, dashes and underscores, and may not start with "stm-".',
         ];
+    }
+
+    public function employeeId(): ?string
+    {
+        $value = $this->input('employee_id');
+
+        return $value === null || $value === '' ? null : (string) $value;
     }
 
     public function role(): RoleName

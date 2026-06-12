@@ -28,6 +28,7 @@ defineOptions({
 const form = useForm({
     name: '',
     email: '',
+    employee_id: '',
     role: '',
     profile: {
         // Lecturer
@@ -50,6 +51,7 @@ function submit(): void {
     form.transform((data) => ({
         name: data.name,
         email: data.email,
+        employee_id: data.employee_id || null,
         role: data.role,
         profile: {
             department_id: data.profile.department_id,
@@ -143,6 +145,35 @@ function formatHiredAt(value: Date): string {
                                 class="text-xs text-destructive"
                             >
                                 {{ form.errors.email }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label
+                                for="user-employee-id"
+                                class="text-sm font-medium"
+                            >
+                                Employee ID
+                                <span class="text-muted-foreground"
+                                    >(optional)</span
+                                >
+                            </label>
+                            <InputText
+                                id="user-employee-id"
+                                v-model="form.employee_id"
+                                placeholder="e.g. emp-0042"
+                                class="w-full"
+                                :invalid="!!form.errors.employee_id"
+                            />
+                            <p
+                                v-if="form.errors.employee_id"
+                                class="text-xs text-destructive"
+                            >
+                                {{ form.errors.employee_id }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Lets the user sign in with this ID instead of
+                                their email.
                             </p>
                         </div>
                     </div>

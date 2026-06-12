@@ -56,7 +56,10 @@ class ResetUserPassword implements ResetsUserPasswords
         DB::transaction(function () use ($user, $password): void {
             $roles = $user->roles()->get();
 
-            $user->restore();
+            // Quietly: RecordsAudit would write a bare Restored row, but the
+            // manual one below carries the `reactivated` context — one row,
+            // not two, for the same fact.
+            $user->restoreQuietly();
 
             $user->forceFill([
                 'password' => $password,

@@ -42,23 +42,35 @@ Route::middleware(['auth', 'verified', 'role:admin'])
                 Route::post('departments', [DepartmentController::class, 'store'])->name('departments.store');
                 Route::patch('departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
                 Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+                Route::post('departments/{department}/restore', [DepartmentController::class, 'restore'])
+                    ->withTrashed()
+                    ->name('departments.restore');
 
                 // Program offerings
                 Route::get('program-offerings', [ProgramOfferingController::class, 'index'])->name('program-offerings.index');
                 Route::post('program-offerings', [ProgramOfferingController::class, 'store'])->name('program-offerings.store');
                 Route::patch('program-offerings/{program_offering}', [ProgramOfferingController::class, 'update'])->name('program-offerings.update');
                 Route::delete('program-offerings/{program_offering}', [ProgramOfferingController::class, 'destroy'])->name('program-offerings.destroy');
+                Route::post('program-offerings/{program_offering}/restore', [ProgramOfferingController::class, 'restore'])
+                    ->withTrashed()
+                    ->name('program-offerings.restore');
 
                 // Document types
                 Route::get('document-types', [DocumentTypeController::class, 'index'])->name('document-types.index');
                 Route::post('document-types', [DocumentTypeController::class, 'store'])->name('document-types.store');
                 Route::patch('document-types/{document_type}', [DocumentTypeController::class, 'update'])->name('document-types.update');
                 Route::delete('document-types/{document_type}', [DocumentTypeController::class, 'destroy'])->name('document-types.destroy');
+                Route::post('document-types/{document_type}/restore', [DocumentTypeController::class, 'restore'])
+                    ->withTrashed()
+                    ->name('document-types.restore');
 
                 // Level credential requirements
                 Route::get('level-requirements', [LevelCredentialRequirementController::class, 'index'])->name('level-requirements.index');
                 Route::post('level-requirements', [LevelCredentialRequirementController::class, 'store'])->name('level-requirements.store');
                 Route::patch('level-requirements/{level_credential_requirement}', [LevelCredentialRequirementController::class, 'update'])->name('level-requirements.update');
                 Route::delete('level-requirements/{level_credential_requirement}', [LevelCredentialRequirementController::class, 'destroy'])->name('level-requirements.destroy');
+                Route::post('level-requirements/{level_credential_requirement}/restore', [LevelCredentialRequirementController::class, 'restore'])
+                    ->withTrashed()
+                    ->name('level-requirements.restore');
             });
     });

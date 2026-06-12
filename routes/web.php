@@ -3,6 +3,9 @@
 use App\Http\Controllers\Applications\ApplicationController;
 use App\Http\Controllers\Applications\DocumentDownloadController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dashboards\AccountantDashboardController;
+use App\Http\Controllers\Dashboards\LecturerDashboardController;
+use App\Http\Controllers\Dashboards\StudentDashboardController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -13,15 +16,15 @@ Route::inertia('/', 'Welcome', [
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-    Route::inertia('accountant/dashboard', 'dashboards/Accountant')
+    Route::get('accountant/dashboard', AccountantDashboardController::class)
         ->middleware('role:accountant')
         ->name('accountant.dashboard');
 
-    Route::inertia('lecturer/dashboard', 'dashboards/Lecturer')
+    Route::get('lecturer/dashboard', LecturerDashboardController::class)
         ->middleware('role:lecturer')
         ->name('lecturer.dashboard');
 
-    Route::inertia('student/dashboard', 'dashboards/Student')
+    Route::get('student/dashboard', StudentDashboardController::class)
         ->middleware('role:student')
         ->name('student.dashboard');
 

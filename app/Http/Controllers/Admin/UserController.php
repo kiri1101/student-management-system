@@ -38,7 +38,8 @@ class UserController extends Controller
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($q) use ($search): void {
                     $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('employee_id', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('id')
@@ -48,6 +49,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'employee_id' => $user->employee_id,
                 'email_verified_at' => $user->email_verified_at?->toIso8601String(),
                 'deleted_at' => $user->deleted_at?->toIso8601String(),
                 'roles' => $user->roles->pluck('name')->values()->all(),
@@ -87,6 +89,7 @@ class UserController extends Controller
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
             'role' => $request->role(),
+            'employee_id' => $request->employeeId(),
             'profile' => $request->profilePayload(),
         ]);
 
@@ -113,7 +116,11 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $user->update(['name' => $request->string('name')->toString()]);
+        // employee_id is deliberately outside $fillable; the admin module is
+        // its only writer (AUDIT.md AUD-007).
+        $user->fill(['name' => $request->string('name')->toString()])
+            ->forceFill(['employee_id' => $request->employeeId()])
+            ->save();
 
         $role = $this->primaryStaffRole($user);
 
@@ -247,6 +254,7 @@ class UserController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'employee_id' => $user->employee_id,
             'email_verified_at' => $user->email_verified_at?->toIso8601String(),
             'deleted_at' => $user->deleted_at?->toIso8601String(),
             'roles' => $user->roles->pluck('name')->values()->all(),

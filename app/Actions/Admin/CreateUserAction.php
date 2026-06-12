@@ -30,28 +30,28 @@ class CreateUserAction
      *     name: string,
      *     email: string,
      *     role: RoleName,
+     *     employee_id?: string|null,
      *     profile?: array<string, mixed>,
      * }  $input
      */
     public function execute(array $input): User
     {
         $user = DB::transaction(function () use ($input): User {
-            $user = User::create([
+            $user = new User([
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make(Str::random(64)),
             ]);
 
-            $user->forceFill(['email_verified_at' => now()])->save();
-
-            // User model intentionally does not use RecordsAudit, so admin
-            // provisioning records its own Created entry to keep the audit
-            // trail complete.
-            AuditLog::record(
-                AuditAction::Created,
-                $user,
-                ['attributes' => ['name' => $user->name, 'email' => $user->email]],
-            );
+            // Single save so RecordsAudit writes one Created row covering the
+            // whole provisioning state. Staff are pre-verified by design (the
+            // invite link is the proof of mailbox control); employee_id stays
+            // outside $fillable on purpose (AUDIT.md AUD-007) — admin
+            // provisioning is its only writer.
+            $user->forceFill([
+                'email_verified_at' => now(),
+                'employee_id' => $input['employee_id'] ?? null,
+            ])->save();
 
             $user->assignRole($input['role']);
 

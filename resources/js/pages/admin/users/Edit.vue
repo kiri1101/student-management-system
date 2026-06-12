@@ -38,6 +38,7 @@ type UserModel = {
     id: number;
     name: string;
     email: string;
+    employee_id: string | null;
     email_verified_at: string | null;
     deleted_at: string | null;
     roles: string[];
@@ -129,6 +130,7 @@ function formatHiredAt(value: Date): string {
 
 const form = useForm({
     name: props.user.name,
+    employee_id: props.user.employee_id ?? '',
     profile: {
         department_id: props.user.profiles.lecturer?.department_id ?? null,
         specialization: props.user.profiles.lecturer?.specialization ?? '',
@@ -142,6 +144,7 @@ const form = useForm({
 function submit(): void {
     form.transform((data) => ({
         name: data.name,
+        employee_id: data.employee_id || null,
         profile: {
             department_id: data.profile.department_id,
             specialization: data.profile.specialization || null,
@@ -320,6 +323,35 @@ function submitRole(): void {
                                 class="w-full"
                                 disabled
                             />
+                        </div>
+
+                        <div class="space-y-1">
+                            <label
+                                for="user-employee-id"
+                                class="text-sm font-medium"
+                            >
+                                Employee ID
+                                <span class="text-muted-foreground"
+                                    >(optional)</span
+                                >
+                            </label>
+                            <InputText
+                                id="user-employee-id"
+                                v-model="form.employee_id"
+                                placeholder="e.g. emp-0042"
+                                class="w-full"
+                                :invalid="!!form.errors.employee_id"
+                            />
+                            <p
+                                v-if="form.errors.employee_id"
+                                class="text-xs text-destructive"
+                            >
+                                {{ form.errors.employee_id }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Lets the user sign in with this ID instead of
+                                their email.
+                            </p>
                         </div>
                     </div>
 

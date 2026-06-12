@@ -29,6 +29,7 @@ type UserRow = {
     id: number;
     name: string;
     email: string;
+    employee_id: string | null;
     email_verified_at: string | null;
     deleted_at: string | null;
     roles: string[];
@@ -237,6 +238,19 @@ function resendInvite(row: UserRow): void {
                                     {{ data.email }}
                                 </span>
                             </div>
+                        </template>
+                    </Column>
+                    <Column header="Employee ID" style="width: 10rem">
+                        <template #body="{ data }">
+                            <span
+                                v-if="data.employee_id"
+                                class="font-mono text-sm"
+                            >
+                                {{ data.employee_id }}
+                            </span>
+                            <span v-else class="text-xs text-muted-foreground">
+                                —
+                            </span>
                         </template>
                     </Column>
                     <Column header="Roles" style="width: 16rem">
