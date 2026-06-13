@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { CloudUpload, Download, Wallet } from 'lucide-vue-next';
+import { CloudUpload, Download, FileCheck, Wallet } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -50,6 +50,7 @@ type Submission = {
     rejection_reason: string | null;
     reviewed_at: string | null;
     created_at: string | null;
+    receipt_number: string | null;
 };
 
 type BankOption = { value: string; label: string };
@@ -348,6 +349,24 @@ function submit(): void {
                             >
                                 <Download class="size-4" />
                             </a>
+                        </template>
+                    </Column>
+                    <Column header="Receipt" style="width: 7rem">
+                        <template #body="{ data }">
+                            <a
+                                v-if="data.receipt_number"
+                                :href="
+                                    StudentPaymentController.receipt(data.id).url
+                                "
+                                class="inline-flex items-center gap-1 text-primary hover:underline"
+                                :title="data.receipt_number"
+                            >
+                                <FileCheck class="size-4" />
+                                <span class="text-xs">View</span>
+                            </a>
+                            <span v-else class="text-xs text-muted-foreground">
+                                —
+                            </span>
                         </template>
                     </Column>
                     <Column header="Note">

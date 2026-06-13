@@ -6,12 +6,19 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboards\LecturerDashboardController;
 use App\Http\Controllers\Dashboards\StudentDashboardController;
 use App\Http\Controllers\Payments\PaymentSlipDownloadController;
+use App\Http\Controllers\Receipts\VerifyReceiptController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
+
+// Public, unauthenticated school-receipt verification (#16). Throttled to slow
+// enumeration; the page reveals only the identity a receipt is bound to.
+Route::get('receipts/verify/{receipt_number}', VerifyReceiptController::class)
+    ->middleware('throttle:lookups')
+    ->name('receipts.verify');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

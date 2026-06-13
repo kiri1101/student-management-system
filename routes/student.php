@@ -9,4 +9,5 @@ Route::middleware(['auth', 'verified', 'role:student,admin'])
     ->group(function (): void {
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
     });

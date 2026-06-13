@@ -23,8 +23,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import accountant from '@/routes/accountant';
 import { dashboard } from '@/routes';
+import accountant from '@/routes/accountant';
 import admin from '@/routes/admin';
 import application from '@/routes/application';
 import sao from '@/routes/sao';

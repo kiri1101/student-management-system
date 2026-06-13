@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Enums\Bank;
 use App\Enums\PaymentStatus;
+use App\Enums\RoleName;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StorePaymentRequest;
 use App\Models\FeeSchedule;
@@ -38,6 +39,7 @@ class PaymentController extends Controller
 
         $submissions = $profile === null ? collect() : PaymentSubmission::query()
             ->where('student_profile_id', $profile->id)
+            ->with('schoolReceipt:id,payment_submission_id,receipt_number')
             ->orderByDesc('created_at')
             ->limit(self::MAX_SUBMISSIONS)
             ->get()
@@ -113,7 +115,50 @@ class PaymentController extends Controller
     }
 
     /**
-     * @return array{id: int, status: string, bank: string, bank_label: string, amount_xaf: int, bank_reference: string, slip_original_filename: string, rejection_reason: string|null, reviewed_at: string|null, created_at: string|null}
+     * The printable, QR-bearing school receipt for a validated payment. Only
+     * the owning student (or an admin) may view it; an unvalidated payment has
+     * no receipt and 404s.
+     */
+    public function receipt(Request $request, PaymentSubmission $payment): Response
+    {
+        $user = $request->user();
+        $owns = $payment->studentProfile()->where('user_id', $user->id)->exists();
+
+        abort_unless($owns || $user->hasRole(RoleName::Admin), 403);
+
+        $payment->load([
+            'schoolReceipt',
+            'studentProfile.user:id,name',
+            'studentProfile.programOffering.department:id,name,code',
+        ]);
+
+        $receipt = $payment->schoolReceipt;
+
+        abort_if($receipt === null, 404);
+
+        $profile = $payment->studentProfile;
+
+        return Inertia::render('student/payments/Receipt', [
+            'receipt' => [
+                'receipt_number' => $receipt->receipt_number,
+                'amount_xaf' => $receipt->amount_xaf,
+                'issued_at' => $receipt->issued_at?->toIso8601String(),
+                'academic_year' => $payment->academic_year,
+                'bank_label' => $payment->bank->label(),
+                'bank_reference' => $payment->bank_reference,
+                'student' => [
+                    'matricule' => $profile?->matricule,
+                    'name' => $profile?->user?->name,
+                    'level' => $profile?->level,
+                    'programme' => $profile?->programOffering?->department?->name,
+                ],
+            ],
+            'verifyUrl' => route('receipts.verify', $receipt->receipt_number),
+        ]);
+    }
+
+    /**
+     * @return array{id: int, status: string, bank: string, bank_label: string, amount_xaf: int, bank_reference: string, slip_original_filename: string, rejection_reason: string|null, reviewed_at: string|null, created_at: string|null, receipt_number: string|null}
      */
     private function submissionShape(PaymentSubmission $submission): array
     {
@@ -128,6 +173,7 @@ class PaymentController extends Controller
             'rejection_reason' => $submission->rejection_reason,
             'reviewed_at' => $submission->reviewed_at?->toIso8601String(),
             'created_at' => $submission->created_at?->toIso8601String(),
+            'receipt_number' => $submission->schoolReceipt?->receipt_number,
         ];
     }
 
