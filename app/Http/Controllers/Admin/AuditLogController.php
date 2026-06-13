@@ -6,6 +6,7 @@ use App\Enums\AuditAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AuditLogIndexRequest;
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class AuditLogController extends Controller
@@ -23,6 +24,20 @@ class AuditLogController extends Controller
             ->when(
                 $request->filled('user_id'),
                 fn ($query) => $query->where('user_id', $request->integer('user_id')),
+            )
+            ->when(
+                $request->filled('involving_user_id'),
+                function ($query) use ($request): void {
+                    $userId = $request->integer('involving_user_id');
+
+                    $query->where(function ($scoped) use ($userId): void {
+                        $scoped->where('user_id', $userId)
+                            ->orWhere(function ($asSubject) use ($userId): void {
+                                $asSubject->where('subject_type', User::class)
+                                    ->where('subject_id', $userId);
+                            });
+                    });
+                },
             )
             ->when(
                 $request->filled('actions'),

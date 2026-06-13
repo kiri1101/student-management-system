@@ -29,6 +29,51 @@ test('new users can register', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
+test('new users can register with an optional phone number that is normalized', function () {
+    $this->post(route('register.store'), [
+        'name' => 'Phone User',
+        'email' => 'phone@example.com',
+        'phone' => '+237 6 12-34.56 78',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasNoErrors();
+
+    $this->assertAuthenticated();
+    expect(User::where('email', 'phone@example.com')->value('phone'))->toBe('+237612345678');
+});
+
+test('registration rejects a phone that looks like another identifier namespace', function (string $bad) {
+    $this->post(route('register.store'), [
+        'name' => 'Bad Phone',
+        'email' => 'badphone@example.com',
+        'phone' => $bad,
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('phone');
+
+    $this->assertGuest();
+    expect(User::where('email', 'badphone@example.com')->exists())->toBeFalse();
+})->with([
+    'email-like' => 'user@example.com',
+    'matricule-like' => 'stm-2026-0001',
+    'no leading plus' => '237612345678',
+    'employee-id-like' => 'emp-0042',
+]);
+
+test('registration rejects a duplicate phone number', function () {
+    User::factory()->withPhone('+237612345678')->create();
+
+    $this->post(route('register.store'), [
+        'name' => 'Copycat',
+        'email' => 'copy@example.com',
+        'phone' => '+237612345678',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('phone');
+
+    $this->assertGuest();
+});
+
 test('registering with a soft-deleted email is refused and leaves the row untouched', function () {
     $original = User::factory()->create([
         'email' => 'returning@example.com',

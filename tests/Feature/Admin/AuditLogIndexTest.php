@@ -61,6 +61,40 @@ it('filters by user_id', function () {
     expect($userIds)->toBe([$other->id]);
 });
 
+it('filters by involving_user_id (actor or affected user account)', function () {
+    $admin = userWithRole(RoleName::Admin);
+    $target = User::factory()->create();
+    $other = User::factory()->create();
+
+    // Target as actor.
+    AuditLog::record(AuditAction::LoggedIn, $target, userId: $target->id);
+    // Target as affected subject, acted on by the admin.
+    AuditLog::record(AuditAction::Updated, $target, userId: $admin->id);
+    // Unrelated: another user as both actor and subject.
+    AuditLog::record(AuditAction::LoggedIn, $other, userId: $other->id);
+
+    $response = $this->actingAs($admin)
+        ->getJson(route('admin.audit-logs.index', ['involving_user_id' => $target->id]));
+
+    $response->assertOk();
+
+    $rows = collect($response->json('data'));
+
+    // Every returned row must involve the target — as actor or as the affected
+    // User account. This also proves $other's rows are excluded.
+    foreach ($rows as $row) {
+        $involves = ($row['user'] !== null && $row['user']['id'] === $target->id)
+            || ($row['subject_type'] === 'User' && $row['subject_id'] === $target->id);
+
+        expect($involves)->toBeTrue();
+    }
+
+    // Both explicitly-recorded entries are present (actor-only and subject-only).
+    expect($rows->pluck('action')->all())
+        ->toContain(AuditAction::LoggedIn->value)
+        ->toContain(AuditAction::Updated->value);
+});
+
 it('filters by actions[]', function () {
     $admin = userWithRole(RoleName::Admin);
 

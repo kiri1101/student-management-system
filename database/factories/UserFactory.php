@@ -47,6 +47,17 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user has a phone number usable as a login identifier.
+     * Defaults to a canonical E.164-ish value (leading `+`, then digits).
+     */
+    public function withPhone(?string $phone = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'phone' => $phone ?? '+2376'.fake()->unique()->numerify('########'),
+        ]);
+    }
+
+    /**
      * Indicate that the model has two-factor authentication configured.
      */
     public function withTwoFactor(): static

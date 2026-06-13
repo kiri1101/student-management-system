@@ -44,13 +44,24 @@ type ResponseShape = {
     };
 };
 
-const props = defineProps<{ visible: boolean }>();
+const props = defineProps<{
+    visible: boolean;
+    scopedUser?: { id: number; name: string } | null;
+}>();
 const emit = defineEmits<{ (e: 'update:visible', value: boolean): void }>();
 
 const modalVisible = computed({
     get: () => props.visible,
     set: (value) => emit('update:visible', value),
 });
+
+const isScoped = computed(() => !!props.scopedUser);
+
+const dialogHeader = computed(() =>
+    props.scopedUser
+        ? `Audit log · ${props.scopedUser.name}`
+        : 'Audit log',
+);
 
 const ROWS_PER_PAGE = 25;
 
@@ -95,7 +106,9 @@ async function load(): Promise<void> {
     url.searchParams.set('rows', String(perPage.value));
     url.searchParams.set('sort_order', sortOrder.value);
 
-    if (userIdFilter.value !== null) {
+    if (props.scopedUser) {
+        url.searchParams.set('involving_user_id', String(props.scopedUser.id));
+    } else if (userIdFilter.value !== null) {
         url.searchParams.set('user_id', String(userIdFilter.value));
     }
 
@@ -255,12 +268,20 @@ watch([actionsFilter, subjectsFilter], () => {
     <Dialog
         v-model:visible="modalVisible"
         modal
-        header="Audit log"
+        :header="dialogHeader"
         :style="{ width: '85vw', maxWidth: '1200px' }"
         :pt="{ content: { class: 'space-y-4' } }"
     >
-        <div class="grid gap-3 md:grid-cols-5">
-            <div class="md:col-span-1">
+        <Message v-if="isScoped" severity="info" :closable="false">
+            Showing entries where this user is the actor or the affected
+            account.
+        </Message>
+
+        <div
+            class="grid gap-3"
+            :class="isScoped ? 'md:grid-cols-4' : 'md:grid-cols-5'"
+        >
+            <div v-if="!isScoped" class="md:col-span-1">
                 <label class="mb-1 block text-xs text-muted-foreground">
                     Actor user ID
                 </label>

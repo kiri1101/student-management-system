@@ -28,9 +28,16 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // Canonicalize the optional phone up front so the unique rule and the
+        // stored value both match the form the login resolver compares against.
+        $input['phone'] = self::normalizePhoneNumber(
+            isset($input['phone']) && is_string($input['phone']) ? $input['phone'] : null
+        );
+
         Validator::make($input, [
             'name' => $this->nameRules(),
             'email' => $this->emailRules(),
+            'phone' => $this->phoneRules(),
             'password' => $this->passwordRules(),
         ])->validate();
 
@@ -38,6 +45,7 @@ class CreateNewUser implements CreatesNewUsers
             return User::create([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'phone' => $input['phone'],
                 'password' => $input['password'],
             ]);
         } catch (UniqueConstraintViolationException) {
