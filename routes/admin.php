@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\Fees\FeeScheduleController;
 use App\Http\Controllers\Admin\References\DepartmentController;
 use App\Http\Controllers\Admin\References\DocumentTypeController;
 use App\Http\Controllers\Admin\References\LevelCredentialRequirementController;
@@ -32,6 +33,19 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             ->name('users.restore');
         Route::post('users/{user}/resend-invite', [UserController::class, 'resendInvite'])->name('users.resend-invite');
         Route::patch('users/{user}/role', [UserController::class, 'changeRole'])->name('users.role');
+
+        // Fee configuration (schedules + installments)
+        Route::prefix('fees')
+            ->name('fees.')
+            ->group(function (): void {
+                Route::get('/', [FeeScheduleController::class, 'index'])->name('index');
+                Route::post('/', [FeeScheduleController::class, 'store'])->name('store');
+                Route::patch('{fee_schedule}', [FeeScheduleController::class, 'update'])->name('update');
+                Route::delete('{fee_schedule}', [FeeScheduleController::class, 'destroy'])->name('destroy');
+                Route::post('{fee_schedule}/restore', [FeeScheduleController::class, 'restore'])
+                    ->withTrashed()
+                    ->name('restore');
+            });
 
         Route::prefix('references')
             ->name('references.')

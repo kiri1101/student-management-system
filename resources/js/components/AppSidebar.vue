@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    Banknote,
     Database,
     FilePlus2,
     Inbox,
@@ -60,6 +61,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 title: 'Reference data',
                 href: admin.references.index(),
                 icon: Database,
+            },
+            {
+                title: 'Fees',
+                href: admin.fees.index(),
+                icon: Banknote,
             },
             {
                 title: 'Audit logs',
