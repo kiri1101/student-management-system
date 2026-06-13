@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -8,13 +9,32 @@ import { toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
+import { edit as editStaffProfile } from '@/routes/staff-profile';
 import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
+// Mirrors StaffProfileUpdateRequest::EDITABLE_ROLES — only these staff roles
+// own a self-service profile, so the link is hidden for everyone else.
+const STAFF_PROFILE_ROLES = ['lecturer', 'accountant', 'sao'];
+
+const page = usePage();
+
+const canEditStaffProfile = computed(() =>
+    page.props.auth.roles.some((role) => STAFF_PROFILE_ROLES.includes(role)),
+);
+
+const sidebarNavItems = computed<NavItem[]>(() => [
     {
         title: 'Profile',
         href: editProfile(),
     },
+    ...(canEditStaffProfile.value
+        ? [
+              {
+                  title: 'Staff profile',
+                  href: editStaffProfile(),
+              },
+          ]
+        : []),
     {
         title: 'Security',
         href: editSecurity(),
@@ -23,7 +43,7 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: editAppearance(),
     },
-];
+]);
 
 const { isCurrentOrParentUrl } = useCurrentUrl();
 </script>

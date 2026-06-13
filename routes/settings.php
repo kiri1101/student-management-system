@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\StaffProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -9,6 +10,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Self-service role-profile edit. The controller/request abort 403 for any
+    // user without an editable staff profile (lecturer/accountant/sao); there
+    // is no user id in the path, so it is strictly self-only.
+    Route::get('settings/staff-profile', [StaffProfileController::class, 'edit'])->name('staff-profile.edit');
+    Route::patch('settings/staff-profile', [StaffProfileController::class, 'update'])->name('staff-profile.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
