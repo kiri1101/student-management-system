@@ -8,6 +8,7 @@ import {
     LayoutGrid,
     ScrollText,
     Users,
+    Wallet,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
@@ -22,10 +23,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import accountant from '@/routes/accountant';
 import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
 import application from '@/routes/application';
 import sao from '@/routes/sao';
+import student from '@/routes/student';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -82,6 +85,23 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Application review',
             href: sao.applications.index(),
             icon: Inbox,
+        });
+    }
+
+    // Payment review is reachable by accountants and admins (role:accountant,admin).
+    if (hasRole('accountant') || hasRole('admin')) {
+        items.push({
+            title: 'Payment review',
+            href: accountant.payments.index(),
+            icon: Wallet,
+        });
+    }
+
+    if (hasRole('student')) {
+        items.push({
+            title: 'My payments',
+            href: student.payments.index(),
+            icon: Wallet,
         });
     }
 

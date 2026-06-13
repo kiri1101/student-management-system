@@ -38,6 +38,16 @@ const ENROLLMENT_STATUS: Record<
     withdrawn: { label: 'Withdrawn', severity: 'danger' },
 };
 
+/** `App\Enums\PaymentStatus` */
+const PAYMENT_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    submitted: { label: 'Submitted', severity: 'info' },
+    validated: { label: 'Validated', severity: 'success' },
+    rejected: { label: 'Rejected', severity: 'danger' },
+};
+
 /** `App\Enums\DegreeProgram` */
 const DEGREE_LABELS: Record<string, string> = {
     hnd: 'HND',
@@ -69,6 +79,14 @@ export function enrollmentLabel(status: string): string {
 
 export function enrollmentSeverity(status: string): TagSeverity {
     return ENROLLMENT_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function paymentStatusLabel(status: string): string {
+    return PAYMENT_STATUS[status]?.label ?? status;
+}
+
+export function paymentStatusSeverity(status: string): TagSeverity {
+    return PAYMENT_STATUS[status]?.severity ?? 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {
