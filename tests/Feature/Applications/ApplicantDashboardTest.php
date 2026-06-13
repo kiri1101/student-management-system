@@ -51,6 +51,23 @@ it('only shows applications belonging to the authenticated user', function () {
         ->has('applications', 1));
 });
 
+it('caps the dashboard list at 50 applications', function () {
+    $user = User::factory()->create();
+    Application::factory()
+        ->count(51)
+        ->for($user, 'applicant')
+        ->for($this->offering, 'programOffering')
+        ->submitted()
+        ->create();
+
+    $response = $this->actingAs($user)->get(route('applicant.dashboard'));
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('dashboards/Applicant')
+        ->has('applications', 50));
+});
+
 it('blocks guests from the applicant dashboard', function () {
     $response = $this->get(route('applicant.dashboard'));
 

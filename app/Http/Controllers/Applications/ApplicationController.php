@@ -27,6 +27,13 @@ use Throwable;
 class ApplicationController extends Controller
 {
     /**
+     * Upper bound on the applicant dashboard list. A single applicant realistically
+     * holds a handful of applications; this caps the one otherwise-unbounded `get()`
+     * so the prop can never balloon. The table paginates client-side.
+     */
+    private const MAX_DASHBOARD_APPLICATIONS = 50;
+
+    /**
      * Applicant dashboard. Lists the authenticated user's applications and
      * surfaces the CTA to start a new one.
      */
@@ -37,6 +44,7 @@ class ApplicationController extends Controller
             ->with('programOffering.department:id,name,code')
             ->orderByDesc('submitted_at')
             ->orderByDesc('created_at')
+            ->limit(self::MAX_DASHBOARD_APPLICATIONS)
             ->get()
             ->map(fn (Application $application): array => [
                 'id' => $application->id,
