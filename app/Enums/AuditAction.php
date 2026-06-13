@@ -18,4 +18,6 @@ enum AuditAction: string
     case PaymentValidated = 'payment_validated';
     case PaymentRejected = 'payment_rejected';
     case ReceiptIssued = 'receipt_issued';
+    case DeferralApproved = 'deferral_approved';
+    case DeferralRejected = 'deferral_rejected';
 }
