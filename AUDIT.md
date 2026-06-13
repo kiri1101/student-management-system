@@ -6,7 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
-- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 in progress: AUD-033 done; AUD-034, 029, 026, 032 pending (AUD-029/032 carry user decisions).
+- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 in progress: AUD-033, AUD-032 (`62e86ff`), AUD-029 (`55778e6`) done — full suite 440/440 green (incl. 3 browser smoke tests); AUD-034, 026 pending.
 
 ## Executive summary
 
@@ -441,7 +441,7 @@
 
 - **Severity:** Low · **Category:** Gap · **Source:** GAP-10
 - **Location:** plan/context.md Phases 2, 8, 10 test sections; no `tests/Browser` exists
-- **Status:** Open
+- **Status:** Fixed in `55778e6` (minimal Pest 4 browser smoke suite under `tests/Browser`: login+sign-in, applicant form render, admin audit modal; separate CI `browser` job runs Chromium; context.md Phase 2/8/10 browser-test items reconciled)
 
 **Problem** — Browser tests are promised in three phases and were each time waved through ("satisfied by HTTP-level coverage"). Either commitment is real (set up Playwright + Pest 4 `visit()` smoke suite) or the doc should stop promising it.
 
@@ -477,7 +477,7 @@
 
 - **Severity:** Low · **Category:** Performance · **Source:** PERF-Low
 - **Location:** `ApplicationController::dashboard` (`->get()` unbounded); `app/Models/AuditLog.php` (mutation guard blocks Eloquent pruning)
-- **Status:** Open
+- **Status:** Fixed in `62e86ff` (dashboard capped at 50; 2-year retention via `AuditLog::RETENTION_DAYS` + scheduled `audit:prune` command deleting through the query builder, the sanctioned bypass of the immutability guard; policy recorded in context.md §15)
 
 **Problem** — A single applicant's list realistically stays small (low severity), but it's the only unbounded `->get()` on a growing table. Separately, the audit log has no retention strategy and the model's `deleting` guard means even an intentional archival job can't use Eloquent.
 
