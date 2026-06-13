@@ -55,6 +55,32 @@ function applicationPayload(array $overrides = []): array
     ], $overrides);
 }
 
+it('rejects a second application while one is still open', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    $response = $this->actingAs($user)->post(route('application.store'), applicationPayload());
+
+    $response->assertSessionHasErrors('program_offering_id');
+    expect(Application::count())->toBe(1);
+});
+
+it('allows a new application once the previous one is decided', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    Application::sole()->update(['status' => ApplicationStatus::Rejected, 'decided_at' => now()]);
+
+    $this->actingAs($user)->post(route('application.store'), applicationPayload())
+        ->assertSessionDoesntHaveErrors();
+
+    expect(Application::count())->toBe(2);
+});
+
 it('persists an application, its documents, and audit entries on submit', function () {
     $user = User::factory()->create();
 
@@ -66,6 +92,7 @@ it('persists an application, its documents, and audit entries on submit', functi
     expect($application->user_id)->toBe($user->id)
         ->and($application->status)->toBe(ApplicationStatus::Submitted)
         ->and($application->submitted_at)->not->toBeNull()
+        ->and($application->date_of_birth->toDateString())->toBe('2000-01-15')
         ->and($application->documents)->toHaveCount(3);
 
     $applicationCreated = AuditLog::query()
@@ -80,6 +107,22 @@ it('persists an application, its documents, and audit entries on submit', functi
         ->where('action', AuditAction::Created->value)
         ->count();
     expect($documentCreatedCount)->toBe(3);
+});
+
+it('deletes stored files when the submit transaction fails', function () {
+    $user = User::factory()->create();
+
+    // Force a rollback after the files have been written to disk: the
+    // `created` hook fires inside the store() transaction (AUD-009).
+    Application::created(function (): void {
+        throw new RuntimeException('forced transaction failure');
+    });
+
+    $response = $this->actingAs($user)->post(route('application.store'), applicationPayload());
+
+    $response->assertServerError();
+    expect(Application::count())->toBe(0)
+        ->and(Storage::allFiles('applications'))->toBeEmpty();
 });
 
 it('rejects a level outside the offering range', function () {

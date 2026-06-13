@@ -15,10 +15,16 @@ return new class extends Migration
             $table->nullableMorphs('subject');
             $table->json('changes')->nullable();
             $table->json('context')->nullable();
-            $table->timestamp('occurred_at')->index();
+            $table->timestamp('occurred_at');
 
-            $table->index('user_id');
-            $table->index('action');
+            // Composite indexes match the audit-log modal's filter +
+            // ORDER BY occurred_at, id patterns (AUDIT.md AUD-008); the
+            // (user_id, occurred_at) pair also serves the user_id FK and
+            // nullableMorphs() already indexes (subject_type, subject_id).
+            $table->index(['occurred_at', 'id']);
+            $table->index(['user_id', 'occurred_at']);
+            $table->index(['action', 'occurred_at']);
+            $table->index(['subject_type', 'occurred_at']);
         });
     }
 

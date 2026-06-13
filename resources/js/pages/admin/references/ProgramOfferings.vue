@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
+import Dialog from 'primevue/dialog';
 import InputNumber from 'primevue/inputnumber';
-import { ref } from 'vue';
+import Select from 'primevue/select';
+import Tag from 'primevue/tag';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { ref, watch } from 'vue';
 import ProgramOfferingController from '@/actions/App/Http/Controllers/Admin/References/ProgramOfferingController';
 import admin from '@/routes/admin';
 
@@ -14,19 +21,21 @@ type DegreeProgram = string;
 type Offering = {
     id: number;
     department_id: number;
-    department: DepartmentRef;
+    department: DepartmentRef | null;
     degree_program: DegreeProgram;
     min_level: number;
     max_level: number;
+    deleted_at: string | null;
     level_credential_requirements_count: number;
 };
 
 type DegreeProgramOption = { value: string; label: string };
 
-defineProps<{
+const props = defineProps<{
     offerings: Offering[];
     departments: DepartmentRef[];
     degreePrograms: DegreeProgramOption[];
+    filters: { trashed: boolean };
 }>();
 
 defineOptions({
@@ -44,6 +53,15 @@ defineOptions({
 
 const dialogVisible = ref(false);
 const editing = ref<Offering | null>(null);
+const showDeleted = ref(props.filters.trashed);
+
+watch(showDeleted, () => {
+    router.get(
+        ProgramOfferingController.index().url,
+        showDeleted.value ? { trashed: 1 } : {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+});
 
 const form = useForm({
     department_id: null as number | null,
@@ -99,7 +117,7 @@ function submit(): void {
 }
 
 function destroy(row: Offering): void {
-    const label = `${row.department.name} · ${row.degree_program}`;
+    const label = `${row.department?.name ?? '—'} · ${row.degree_program}`;
 
     if (!window.confirm(`Delete program offering "${label}"?`)) {
         return;
@@ -108,6 +126,14 @@ function destroy(row: Offering): void {
     router.delete(ProgramOfferingController.destroy(row.id).url, {
         preserveScroll: true,
     });
+}
+
+function restore(row: Offering): void {
+    router.post(
+        ProgramOfferingController.restore(row.id).url,
+        {},
+        { preserveScroll: true },
+    );
 }
 </script>
 
@@ -119,15 +145,23 @@ function destroy(row: Offering): void {
             <template #title>
                 <div class="flex items-center justify-between">
                     <span>Program offerings</span>
-                    <Button
-                        label="New offering"
-                        size="small"
-                        @click="openCreate"
-                    >
-                        <template #icon>
-                            <Plus class="size-4" />
-                        </template>
-                    </Button>
+                    <div class="flex items-center gap-4">
+                        <label
+                            class="flex items-center gap-2 text-sm font-normal"
+                        >
+                            <ToggleSwitch v-model="showDeleted" />
+                            <span>Show deleted</span>
+                        </label>
+                        <Button
+                            label="New offering"
+                            size="small"
+                            @click="openCreate"
+                        >
+                            <template #icon>
+                                <Plus class="size-4" />
+                            </template>
+                        </Button>
+                    </div>
                 </div>
             </template>
             <template #content>
@@ -146,11 +180,21 @@ function destroy(row: Offering): void {
                         sort-field="department.name"
                     >
                         <template #body="{ data }">
-                            <div class="flex flex-col">
-                                <span>{{ data.department.name }}</span>
-                                <span class="text-xs text-muted-foreground">{{
-                                    data.department.code
-                                }}</span>
+                            <div class="flex items-center gap-2">
+                                <div class="flex flex-col">
+                                    <span>{{
+                                        data.department?.name ?? '—'
+                                    }}</span>
+                                    <span
+                                        class="text-xs text-muted-foreground"
+                                        >{{ data.department?.code ?? '' }}</span
+                                    >
+                                </div>
+                                <Tag
+                                    v-if="data.deleted_at"
+                                    value="Deleted"
+                                    severity="danger"
+                                />
                             </div>
                         </template>
                     </Column>
@@ -177,6 +221,7 @@ function destroy(row: Offering): void {
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-2">
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="secondary"
                                     text
                                     rounded
@@ -188,6 +233,7 @@ function destroy(row: Offering): void {
                                     </template>
                                 </Button>
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="danger"
                                     text
                                     rounded
@@ -196,6 +242,19 @@ function destroy(row: Offering): void {
                                 >
                                     <template #icon>
                                         <Trash2 class="size-4" />
+                                    </template>
+                                </Button>
+                                <Button
+                                    v-if="data.deleted_at"
+                                    severity="success"
+                                    text
+                                    rounded
+                                    aria-label="Restore"
+                                    title="Restore"
+                                    @click="restore(data)"
+                                >
+                                    <template #icon>
+                                        <RotateCcw class="size-4" />
                                     </template>
                                 </Button>
                             </div>

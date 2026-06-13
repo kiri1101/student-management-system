@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
+import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
-import { ref } from 'vue';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { ref, watch } from 'vue';
 import DocumentTypeController from '@/actions/App/Http/Controllers/Admin/References/DocumentTypeController';
 import admin from '@/routes/admin';
 
@@ -12,10 +19,14 @@ type DocumentType = {
     name: string;
     code: string;
     description: string | null;
+    deleted_at: string | null;
     level_credential_requirements_count: number;
 };
 
-defineProps<{ documentTypes: DocumentType[] }>();
+const props = defineProps<{
+    documentTypes: DocumentType[];
+    filters: { trashed: boolean };
+}>();
 
 defineOptions({
     layout: {
@@ -32,6 +43,15 @@ defineOptions({
 
 const dialogVisible = ref(false);
 const editing = ref<DocumentType | null>(null);
+const showDeleted = ref(props.filters.trashed);
+
+watch(showDeleted, () => {
+    router.get(
+        DocumentTypeController.index().url,
+        showDeleted.value ? { trashed: 1 } : {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+});
 
 const form = useForm({
     name: '',
@@ -87,6 +107,14 @@ function destroy(row: DocumentType): void {
         preserveScroll: true,
     });
 }
+
+function restore(row: DocumentType): void {
+    router.post(
+        DocumentTypeController.restore(row.id).url,
+        {},
+        { preserveScroll: true },
+    );
+}
 </script>
 
 <template>
@@ -97,15 +125,23 @@ function destroy(row: DocumentType): void {
             <template #title>
                 <div class="flex items-center justify-between">
                     <span>Document types</span>
-                    <Button
-                        label="New document type"
-                        size="small"
-                        @click="openCreate"
-                    >
-                        <template #icon>
-                            <Plus class="size-4" />
-                        </template>
-                    </Button>
+                    <div class="flex items-center gap-4">
+                        <label
+                            class="flex items-center gap-2 text-sm font-normal"
+                        >
+                            <ToggleSwitch v-model="showDeleted" />
+                            <span>Show deleted</span>
+                        </label>
+                        <Button
+                            label="New document type"
+                            size="small"
+                            @click="openCreate"
+                        >
+                            <template #icon>
+                                <Plus class="size-4" />
+                            </template>
+                        </Button>
+                    </div>
                 </div>
             </template>
             <template #content>
@@ -118,7 +154,18 @@ function destroy(row: DocumentType): void {
                     :rows-per-page-options="[10, 25, 50]"
                     responsive-layout="scroll"
                 >
-                    <Column field="name" header="Name" sortable />
+                    <Column field="name" header="Name" sortable>
+                        <template #body="{ data }">
+                            <div class="flex items-center gap-2">
+                                <span>{{ data.name }}</span>
+                                <Tag
+                                    v-if="data.deleted_at"
+                                    value="Deleted"
+                                    severity="danger"
+                                />
+                            </div>
+                        </template>
+                    </Column>
                     <Column
                         field="code"
                         header="Code"
@@ -142,6 +189,7 @@ function destroy(row: DocumentType): void {
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-2">
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="secondary"
                                     text
                                     rounded
@@ -153,6 +201,7 @@ function destroy(row: DocumentType): void {
                                     </template>
                                 </Button>
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="danger"
                                     text
                                     rounded
@@ -161,6 +210,19 @@ function destroy(row: DocumentType): void {
                                 >
                                     <template #icon>
                                         <Trash2 class="size-4" />
+                                    </template>
+                                </Button>
+                                <Button
+                                    v-if="data.deleted_at"
+                                    severity="success"
+                                    text
+                                    rounded
+                                    aria-label="Restore"
+                                    title="Restore"
+                                    @click="restore(data)"
+                                >
+                                    <template #icon>
+                                        <RotateCcw class="size-4" />
                                     </template>
                                 </Button>
                             </div>

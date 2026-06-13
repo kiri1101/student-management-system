@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
+import Dialog from 'primevue/dialog';
 import InputNumber from 'primevue/inputnumber';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import LevelCredentialRequirementController from '@/actions/App/Http/Controllers/Admin/References/LevelCredentialRequirementController';
 import admin from '@/routes/admin';
 
@@ -25,18 +30,20 @@ type OfferingRef = {
 type Requirement = {
     id: number;
     program_offering_id: number;
-    program_offering: OfferingRef;
+    program_offering: OfferingRef | null;
     level: number;
     document_type_id: number;
-    document_type: DocumentTypeRef;
+    document_type: DocumentTypeRef | null;
     required: boolean;
     notes: string | null;
+    deleted_at: string | null;
 };
 
 const props = defineProps<{
     requirements: Requirement[];
     offerings: OfferingRef[];
     documentTypes: DocumentTypeRef[];
+    filters: { trashed: boolean };
 }>();
 
 defineOptions({
@@ -61,6 +68,15 @@ const offeringOptions = computed(() =>
 
 const dialogVisible = ref(false);
 const editing = ref<Requirement | null>(null);
+const showDeleted = ref(props.filters.trashed);
+
+watch(showDeleted, () => {
+    router.get(
+        LevelCredentialRequirementController.index().url,
+        showDeleted.value ? { trashed: 1 } : {},
+        { preserveState: true, preserveScroll: true, replace: true },
+    );
+});
 
 const form = useForm({
     program_offering_id: null as number | null,
@@ -146,7 +162,7 @@ function submit(): void {
 }
 
 function destroy(row: Requirement): void {
-    const label = `${row.program_offering.department.name} · ${row.program_offering.degree_program} L${row.level} → ${row.document_type.name}`;
+    const label = `${row.program_offering?.department.name ?? '—'} · ${row.program_offering?.degree_program ?? '—'} L${row.level} → ${row.document_type?.name ?? '—'}`;
 
     if (!window.confirm(`Delete level requirement "${label}"?`)) {
         return;
@@ -155,6 +171,14 @@ function destroy(row: Requirement): void {
     router.delete(LevelCredentialRequirementController.destroy(row.id).url, {
         preserveScroll: true,
     });
+}
+
+function restore(row: Requirement): void {
+    router.post(
+        LevelCredentialRequirementController.restore(row.id).url,
+        {},
+        { preserveScroll: true },
+    );
 }
 </script>
 
@@ -166,15 +190,23 @@ function destroy(row: Requirement): void {
             <template #title>
                 <div class="flex items-center justify-between">
                     <span>Level credential requirements</span>
-                    <Button
-                        label="New requirement"
-                        size="small"
-                        @click="openCreate"
-                    >
-                        <template #icon>
-                            <Plus class="size-4" />
-                        </template>
-                    </Button>
+                    <div class="flex items-center gap-4">
+                        <label
+                            class="flex items-center gap-2 text-sm font-normal"
+                        >
+                            <ToggleSwitch v-model="showDeleted" />
+                            <span>Show deleted</span>
+                        </label>
+                        <Button
+                            label="New requirement"
+                            size="small"
+                            @click="openCreate"
+                        >
+                            <template #icon>
+                                <Plus class="size-4" />
+                            </template>
+                        </Button>
+                    </div>
                 </div>
             </template>
             <template #content>
@@ -189,13 +221,24 @@ function destroy(row: Requirement): void {
                 >
                     <Column header="Offering">
                         <template #body="{ data }">
-                            <div class="flex flex-col">
-                                <span>{{
-                                    data.program_offering.department.name
-                                }}</span>
-                                <span class="text-xs text-muted-foreground">
-                                    {{ data.program_offering.degree_program }}
-                                </span>
+                            <div class="flex items-center gap-2">
+                                <div class="flex flex-col">
+                                    <span>{{
+                                        data.program_offering?.department
+                                            ?.name ?? '—'
+                                    }}</span>
+                                    <span class="text-xs text-muted-foreground">
+                                        {{
+                                            data.program_offering
+                                                ?.degree_program ?? ''
+                                        }}
+                                    </span>
+                                </div>
+                                <Tag
+                                    v-if="data.deleted_at"
+                                    value="Deleted"
+                                    severity="danger"
+                                />
                             </div>
                         </template>
                     </Column>
@@ -208,9 +251,11 @@ function destroy(row: Requirement): void {
                     <Column header="Document type">
                         <template #body="{ data }">
                             <div class="flex flex-col">
-                                <span>{{ data.document_type.name }}</span>
+                                <span>{{
+                                    data.document_type?.name ?? '—'
+                                }}</span>
                                 <span class="text-xs text-muted-foreground">{{
-                                    data.document_type.code
+                                    data.document_type?.code ?? ''
                                 }}</span>
                             </div>
                         </template>
@@ -236,6 +281,7 @@ function destroy(row: Requirement): void {
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-2">
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="secondary"
                                     text
                                     rounded
@@ -247,6 +293,7 @@ function destroy(row: Requirement): void {
                                     </template>
                                 </Button>
                                 <Button
+                                    v-if="!data.deleted_at"
                                     severity="danger"
                                     text
                                     rounded
@@ -255,6 +302,19 @@ function destroy(row: Requirement): void {
                                 >
                                     <template #icon>
                                         <Trash2 class="size-4" />
+                                    </template>
+                                </Button>
+                                <Button
+                                    v-if="data.deleted_at"
+                                    severity="success"
+                                    text
+                                    rounded
+                                    aria-label="Restore"
+                                    title="Restore"
+                                    @click="restore(data)"
+                                >
+                                    <template #icon>
+                                        <RotateCcw class="size-4" />
                                     </template>
                                 </Button>
                             </div>

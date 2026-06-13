@@ -11,14 +11,20 @@ import {
     Trash2,
     Users,
 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import Column from 'primevue/column';
 import type { DataTablePageEvent } from 'primevue/datatable';
+import DataTable from 'primevue/datatable';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
+import InputText from 'primevue/inputtext';
 import MultiSelect from 'primevue/multiselect';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { ref, watch } from 'vue';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import { roleLabel, roleSeverity } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import usersRoutes from '@/routes/admin/users';
 
@@ -29,6 +35,7 @@ type UserRow = {
     id: number;
     name: string;
     email: string;
+    employee_id: string | null;
     email_verified_at: string | null;
     deleted_at: string | null;
     roles: string[];
@@ -63,42 +70,11 @@ defineOptions({
     },
 });
 
-const ROLE_LABELS: Record<string, string> = {
-    admin: 'Admin',
-    sao: 'SAO',
-    lecturer: 'Lecturer',
-    accountant: 'Accountant',
-    student: 'Student',
-    applicant: 'Applicant',
-};
-
-const ROLE_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    admin: 'danger',
-    sao: 'info',
-    lecturer: 'success',
-    accountant: 'warn',
-    student: 'secondary',
-    applicant: 'secondary',
-};
-
 const selectedRoles = ref<string[]>([...props.filters.roles]);
 const selectedStatus = ref<string>(props.filters.status);
 const searchTerm = ref<string>(props.filters.search);
 
 let searchDebounce: ReturnType<typeof setTimeout> | null = null;
-
-function roleLabel(role: string): string {
-    return ROLE_LABELS[role] ?? role;
-}
-
-function roleSeverity(
-    role: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return ROLE_SEVERITY[role] ?? 'secondary';
-}
 
 function reload(overrides: Record<string, FormDataConvertible> = {}): void {
     const data: Record<string, FormDataConvertible> = {
@@ -237,6 +213,19 @@ function resendInvite(row: UserRow): void {
                                     {{ data.email }}
                                 </span>
                             </div>
+                        </template>
+                    </Column>
+                    <Column header="Employee ID" style="width: 10rem">
+                        <template #body="{ data }">
+                            <span
+                                v-if="data.employee_id"
+                                class="font-mono text-sm"
+                            >
+                                {{ data.employee_id }}
+                            </span>
+                            <span v-else class="text-xs text-muted-foreground">
+                                —
+                            </span>
                         </template>
                     </Column>
                     <Column header="Roles" style="width: 16rem">

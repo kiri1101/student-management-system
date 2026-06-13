@@ -52,9 +52,13 @@ class Application extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    /**
+     * Resolved withTrashed so historical applications keep rendering even if
+     * their offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     */
     public function programOffering(): BelongsTo
     {
-        return $this->belongsTo(ProgramOffering::class);
+        return $this->belongsTo(ProgramOffering::class)->withTrashed();
     }
 
     public function decidedBy(): BelongsTo
@@ -72,7 +76,7 @@ class Application extends Model
      *
      * @var list<ApplicationStatus>
      */
-    private const TERMINAL_STATUSES = [
+    public const TERMINAL_STATUSES = [
         ApplicationStatus::Admitted,
         ApplicationStatus::Rejected,
         ApplicationStatus::Waitlisted,
@@ -84,10 +88,21 @@ class Application extends Model
      *
      * @var list<ApplicationStatus>
      */
-    private const INTERIM_STATUSES = [
+    public const INTERIM_STATUSES = [
         ApplicationStatus::Submitted,
         ApplicationStatus::UnderReview,
         ApplicationStatus::DocumentsRequested,
+    ];
+
+    /**
+     * Statuses that count as "in progress" for the one-open-application-per-
+     * applicant rule: Draft plus the interim trio.
+     *
+     * @var list<ApplicationStatus>
+     */
+    public const OPEN_STATUSES = [
+        ApplicationStatus::Draft,
+        ...self::INTERIM_STATUSES,
     ];
 
     public function isTerminal(): bool
@@ -95,17 +110,20 @@ class Application extends Model
         return in_array($this->status, self::TERMINAL_STATUSES, strict: true);
     }
 
+    /**
+     * Transition matrix: Draft → Submitted only (the applicant-side submit);
+     * interim → any other interim or terminal; terminal → nothing.
+     */
     public function canTransitionTo(ApplicationStatus $next): bool
     {
-        if ($this->isTerminal()) {
-            return false;
+        if ($this->status === ApplicationStatus::Draft) {
+            return $next === ApplicationStatus::Submitted;
         }
 
         if (! in_array($this->status, self::INTERIM_STATUSES, strict: true)) {
             return false;
         }
 
-        return in_array($next, self::INTERIM_STATUSES, strict: true)
-            || in_array($next, self::TERMINAL_STATUSES, strict: true);
+        return $next !== ApplicationStatus::Draft;
     }
 }

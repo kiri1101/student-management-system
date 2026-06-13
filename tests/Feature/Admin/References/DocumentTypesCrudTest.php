@@ -56,12 +56,46 @@ it('admin can update a document type', function () {
 });
 
 it('admin can soft-delete an unreferenced document type', function () {
-    $doc = DocumentType::create(['name' => 'NID', 'code' => 'NID']);
+    $doc = DocumentType::create(['name' => 'GCE A/L', 'code' => 'GCE_AL']);
 
     $response = $this->actingAs($this->admin)->delete("/admin/references/document-types/{$doc->id}");
 
     $response->assertRedirect();
     expect($doc->fresh()->trashed())->toBeTrue();
+});
+
+it('refuses to delete an always-required document type', function (string $code) {
+    $doc = DocumentType::create(['name' => $code, 'code' => $code]);
+
+    $response = $this->actingAs($this->admin)->delete("/admin/references/document-types/{$doc->id}");
+
+    $response->assertRedirect();
+    expect($doc->fresh()->trashed())->toBeFalse();
+})->with(DocumentType::PROTECTED_CODES);
+
+it('refuses to rename the code of an always-required document type', function () {
+    $doc = DocumentType::create(['name' => 'National Identity', 'code' => 'NID']);
+
+    $response = $this->actingAs($this->admin)->patch("/admin/references/document-types/{$doc->id}", [
+        'name' => 'National Identity',
+        'code' => 'NID_RENAMED',
+    ]);
+
+    $response->assertSessionHasErrors('code');
+    expect($doc->fresh()->code)->toBe('NID');
+});
+
+it('allows renaming the name (not code) of an always-required document type', function () {
+    $doc = DocumentType::create(['name' => 'NID', 'code' => 'NID']);
+
+    $response = $this->actingAs($this->admin)->patch("/admin/references/document-types/{$doc->id}", [
+        'name' => 'National Identity Card',
+        'code' => 'NID',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionDoesntHaveErrors();
+    expect($doc->fresh()->name)->toBe('National Identity Card');
 });
 
 it('refuses to delete a document type still referenced by a level requirement', function () {

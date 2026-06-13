@@ -8,11 +8,16 @@ import {
     UserCog,
     UserPen,
 } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DatePicker from 'primevue/datepicker';
+import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import { roleLabel, roleSeverity } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import usersRoutes from '@/routes/admin/users';
 
@@ -38,6 +43,7 @@ type UserModel = {
     id: number;
     name: string;
     email: string;
+    employee_id: string | null;
     email_verified_at: string | null;
     deleted_at: string | null;
     roles: string[];
@@ -62,37 +68,6 @@ defineOptions({
         ],
     },
 });
-
-const ROLE_LABELS: Record<string, string> = {
-    admin: 'Admin',
-    sao: 'SAO',
-    lecturer: 'Lecturer',
-    accountant: 'Accountant',
-    student: 'Student',
-    applicant: 'Applicant',
-};
-
-const ROLE_SEVERITY: Record<
-    string,
-    'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'
-> = {
-    admin: 'danger',
-    sao: 'info',
-    lecturer: 'success',
-    accountant: 'warn',
-    student: 'secondary',
-    applicant: 'secondary',
-};
-
-function roleLabel(role: string): string {
-    return ROLE_LABELS[role] ?? role;
-}
-
-function roleSeverity(
-    role: string,
-): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    return ROLE_SEVERITY[role] ?? 'secondary';
-}
 
 const primaryRole = computed<string>(() => {
     for (const role of ['lecturer', 'accountant', 'sao', 'admin']) {
@@ -129,6 +104,7 @@ function formatHiredAt(value: Date): string {
 
 const form = useForm({
     name: props.user.name,
+    employee_id: props.user.employee_id ?? '',
     profile: {
         department_id: props.user.profiles.lecturer?.department_id ?? null,
         specialization: props.user.profiles.lecturer?.specialization ?? '',
@@ -142,6 +118,7 @@ const form = useForm({
 function submit(): void {
     form.transform((data) => ({
         name: data.name,
+        employee_id: data.employee_id || null,
         profile: {
             department_id: data.profile.department_id,
             specialization: data.profile.specialization || null,
@@ -320,6 +297,35 @@ function submitRole(): void {
                                 class="w-full"
                                 disabled
                             />
+                        </div>
+
+                        <div class="space-y-1">
+                            <label
+                                for="user-employee-id"
+                                class="text-sm font-medium"
+                            >
+                                Employee ID
+                                <span class="text-muted-foreground"
+                                    >(optional)</span
+                                >
+                            </label>
+                            <InputText
+                                id="user-employee-id"
+                                v-model="form.employee_id"
+                                placeholder="e.g. emp-0042"
+                                class="w-full"
+                                :invalid="!!form.errors.employee_id"
+                            />
+                            <p
+                                v-if="form.errors.employee_id"
+                                class="text-xs text-destructive"
+                            >
+                                {{ form.errors.employee_id }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Lets the user sign in with this ID instead of
+                                their email.
+                            </p>
                         </div>
                     </div>
 

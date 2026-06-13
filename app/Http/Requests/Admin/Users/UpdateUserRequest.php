@@ -3,11 +3,24 @@
 namespace App\Http\Requests\Admin\Users;
 
 use App\Enums\RoleName;
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
+    /**
+     * Mirror StoreUserRequest: employee IDs are stored lowercase to match the
+     * canonicalized login identifier.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('employee_id')) {
+            $this->merge(['employee_id' => mb_strtolower(trim((string) $this->input('employee_id')))]);
+        }
+    }
+
     /**
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>
      */
@@ -15,6 +28,13 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'employee_id' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^(?!stm-)[a-z0-9][a-z0-9._-]*$/',
+                Rule::unique(User::class, 'employee_id')->ignore($this->route('user')),
+            ],
 
             'profile' => ['array'],
 
@@ -30,6 +50,24 @@ class UpdateUserRequest extends FormRequest
             // SAO
             'profile.scope' => ['nullable', 'string', 'max:255'],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'employee_id.unique' => 'This employee ID is already assigned to another user.',
+            'employee_id.regex' => 'Employee IDs may only contain letters, digits, dots, dashes and underscores, and may not start with "stm-".',
+        ];
+    }
+
+    public function employeeId(): ?string
+    {
+        $value = $this->input('employee_id');
+
+        return $value === null || $value === '' ? null : (string) $value;
     }
 
     /**

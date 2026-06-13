@@ -10,17 +10,18 @@ Another issue is `Requests for tuition payment deferral`. During examination per
 `Course management` is another important aspect of student management and it has its own issues in the university i attended. It spans over course planning, lecturer absence notification, student course attendance, course assignment management and course CA & examination student results. All these as well as earlier issues should be discussed thoroughly before implementation.
 Some other issue faced by students is notification when a lecturer is absent from course lectures. Sometimes the information given by the lecturer about their presence on campus is manipulated by students to whom it is given such that they either deliver the information late or their classmates do not trust the information thy deliver. Thus bringing up a need to improve lecturer course management as well as other services such as `Notifications`, `School receipt verification`, `Access to CA and examination results with the ability to raise disputes`.
 
-## Database
+## Database & Routes
 
 - Driver: MySQL (`student_management` database, root/no password)
-- API versioning is used for routes (follow existing convention in `routes/api.php`)
+- There is no `routes/api.php`. All routes are session-authenticated web routes split across `routes/web.php` (public + applicant + per-role dashboards), `routes/settings.php`, `routes/admin.php` (single `admin/` + `role:admin` group), and `routes/sao.php`.
+- JSON lookup endpoints are session-authenticated, same-origin `fetch()` targets, not a token API: the cascading-dropdown lookups live under the versioned `api/v1` prefix group inside `routes/web.php`; the audit-log modal endpoint is `admin/audit-logs` inside the `routes/admin.php` admin group. Follow the `api/v1` convention for new applicant-facing JSON endpoints.
 
 ## UI Components
 
 - **Library:** PrimeVue with the **Aura** theme preset is the default for all new UI work (forms, modals, tables, file uploads, dropdowns, buttons, toasts).
 - **Coexistence:** the starter kit's shadcn-vue primitives (`reka-ui`, `class-variance-authority`, etc.) and `vue-sonner` flash toaster remain in place. Existing pages keep them; only migrate when a page is being substantially modified anyway.
 - **Wiring:** PrimeVue is registered in `resources/js/app.ts` via `setup({ el, App, props, plugin })` with `darkModeSelector: '.dark'` and `cssLayer.order: 'theme, base, primevue, utilities'`. `tailwindcss-primeui` is imported in `resources/css/app.css` immediately after `tailwindcss`.
-- **Globally registered components** (no per-page import needed): `Button`, `Column`, `DataTable`, `Dialog`, `FileUpload`, `InputText`, `Select`, `Toast`. Other PrimeVue components are imported per page for tree-shaking — e.g. `import Card from 'primevue/card'`.
+- **No globally registered components** (AUDIT.md AUD-020): every PrimeVue component is imported per page for tree-shaking — e.g. `import Button from 'primevue/button'`. Only the `ToastService` plugin and the `tooltip` directive are registered app-wide in `app.ts`. Keep `vite.config.ts` at the default `chunkSizeWarningLimit` — a warning there means a bundle regression, not a limit to raise.
 - **Icons inside PrimeVue components:** use the `#icon` slot with `lucide-vue-next` (e.g. `<template #icon><Check class="size-4" /></template>`). PrimeIcons is intentionally not installed — `lucide-vue-next` is the single icon library across the app.
 - **Toasts:** PrimeVue `<Toast />` is mounted once in `resources/js/layouts/app/AppSidebarLayout.vue` next to the existing vue-sonner `<Toaster />`. Use `useToast()` from `primevue/usetoast` in components for app-side toasts; server flash toasts continue to flow through `initializeFlashToast()` → vue-sonner.
 - **Reference docs:**

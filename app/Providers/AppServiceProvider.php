@@ -6,10 +6,12 @@ use App\Enums\AuditAction;
 use App\Enums\RoleName;
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\PasswordBrokerUserProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -49,8 +51,21 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureAuthProviders();
         $this->configureGates();
         $this->configureAuditListeners();
+    }
+
+    /**
+     * Register the password-broker-only user provider that lets soft-deleted
+     * non-staff users reactivate through the reset flow (AUDIT.md AUD-004).
+     */
+    protected function configureAuthProviders(): void
+    {
+        Auth::provider(
+            'eloquent-with-trashed',
+            fn ($app, array $config): PasswordBrokerUserProvider => new PasswordBrokerUserProvider($app['hash'], $config['model']),
+        );
     }
 
     /**

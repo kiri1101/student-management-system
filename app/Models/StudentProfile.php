@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 #[Fillable([
@@ -55,22 +56,56 @@ class StudentProfile extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Resolved withTrashed so enrollments keep rendering even if their
+     * offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     */
     public function programOffering(): BelongsTo
     {
-        return $this->belongsTo(ProgramOffering::class);
+        return $this->belongsTo(ProgramOffering::class)->withTrashed();
     }
 
     /**
-     * Compute the next available matricule for the given year. Caller is
-     * responsible for the surrounding `DB::transaction` + `lockForUpdate()` on
-     * the year's existing rows so concurrent admits do not collide.
+     * Issue the next matricule for the given year from the one-row-per-year
+     * `matricule_sequences` counter. Caller is responsible for the surrounding
+     * `DB::transaction`; the `lockForUpdate()` on the sequence row serializes
+     * concurrent admits without locking any profile rows, and the counter is
+     * immune to force-deleted profiles (a count-based generator was not).
      */
     public static function nextMatriculeForYear(int $year): string
     {
-        $count = static::withTrashed()
-            ->where('matricule', 'like', "stm-{$year}-%")
-            ->count();
+        if (! DB::table('matricule_sequences')->where('year', $year)->exists()) {
+            // First admit of the year (or first since this table shipped):
+            // seed from the highest number already issued so pre-sequence
+            // rows — including trashed ones — are never collided with.
+            // insertOrIgnore keeps a concurrent seeder from erroring; both
+            // then serialize on the locking read below.
+            DB::table('matricule_sequences')->insertOrIgnore([
+                'year' => $year,
+                'last_number' => static::highestIssuedNumberForYear($year),
+            ]);
+        }
 
-        return sprintf('stm-%d-%04d', $year, $count + 1);
+        $current = (int) DB::table('matricule_sequences')
+            ->where('year', $year)
+            ->lockForUpdate()
+            ->value('last_number');
+
+        $next = $current + 1;
+
+        DB::table('matricule_sequences')
+            ->where('year', $year)
+            ->update(['last_number' => $next]);
+
+        return sprintf('stm-%d-%04d', $year, $next);
+    }
+
+    private static function highestIssuedNumberForYear(int $year): int
+    {
+        return (int) static::withTrashed()
+            ->where('matricule', 'like', "stm-{$year}-%")
+            ->pluck('matricule')
+            ->map(fn (string $matricule): int => (int) substr($matricule, strrpos($matricule, '-') + 1))
+            ->max();
     }
 }

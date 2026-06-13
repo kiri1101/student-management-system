@@ -32,21 +32,9 @@ class RestorePriorEnrollment
         User $sao,
         ?string $notes = null,
     ): Application {
-        if (! $prior->trashed()) {
-            throw ValidationException::withMessages([
-                'prior_profile_id' => __('The selected prior enrollment is not archived.'),
-            ]);
-        }
-
         if ($prior->user_id !== $applicant->id || $current->user_id !== $applicant->id) {
             throw ValidationException::withMessages([
                 'prior_profile_id' => __('The selected prior enrollment does not belong to this applicant.'),
-            ]);
-        }
-
-        if ($current->isTerminal()) {
-            throw ValidationException::withMessages([
-                'status' => __('This application has already been finalized.'),
             ]);
         }
 
@@ -57,6 +45,36 @@ class RestorePriorEnrollment
         ));
 
         return DB::transaction(function () use ($applicant, $prior, $current, $sao, $mergeNote): Application {
+            // Re-fetch both rows under lock so a concurrent decision or
+            // restore can't slip past stale checks (AUDIT.md AUD-001).
+            $current = Application::query()
+                ->whereKey($current->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $prior = StudentProfile::withTrashed()
+                ->whereKey($prior->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! $prior->trashed()) {
+                throw ValidationException::withMessages([
+                    'prior_profile_id' => __('The selected prior enrollment is not archived.'),
+                ]);
+            }
+
+            if ($current->isTerminal()) {
+                throw ValidationException::withMessages([
+                    'status' => __('This application has already been finalized.'),
+                ]);
+            }
+
+            if (! $current->canTransitionTo(ApplicationStatus::Withdrawn)) {
+                throw ValidationException::withMessages([
+                    'status' => __('This application cannot transition to the requested status.'),
+                ]);
+            }
+
             $prior->restore();
 
             $applicant->assignRole(RoleName::Student);

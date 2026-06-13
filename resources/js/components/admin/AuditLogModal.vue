@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import Button from 'primevue/button';
+import Column from 'primevue/column';
 import type {
     DataTablePageEvent,
     DataTableSortEvent,
 } from 'primevue/datatable';
+import DataTable from 'primevue/datatable';
 import DatePicker from 'primevue/datepicker';
+import Dialog from 'primevue/dialog';
 import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import MultiSelect from 'primevue/multiselect';

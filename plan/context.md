@@ -487,33 +487,37 @@ These were mentioned in the original `CLAUDE.md` but were not designed in this s
 
 ---
 
-## 13. Re-registration & Account Reactivation Flow (decided 2026-05-01)
+## 13. Re-registration & Account Reactivation Flow (decided 2026-05-01, revised 2026-06-11)
 
 ### Why this section exists
 
-Phase 1 (commit `e61d59a`) added `softDeletes()` to `users`. `users.email` is `unique`, so a soft-deleted row blocks re-registration with the same email. This section locks the policy. Implementation is split between **Phase 3** (registration) and **Phase 9** (SAO review) — they ship together as a coherent slice.
+Phase 1 (commit `e61d59a`) added `softDeletes()` to `users`. `users.email` is `unique`, so a soft-deleted row blocks re-registration with the same email. This section locks the policy. Implementation is split between **the auth layer** (registration + password reset) and **Phase 9** (SAO review).
+
+> **Revision (2026-06-11, AUDIT.md AUD-004, commit `512a97c`):** the original policy reactivated the row inline at `/register`, before any proof of mailbox ownership — meaning any anonymous party who knew the email could reverse an admin's deactivation, claim the row's identity/audit history out from under the legitimate returning student, and read account state from the response shape. Reactivation is now **verify-first** through the password-reset flow. The original register-time policy below is superseded where it conflicts.
 
 ### Policy
 
-1. **Self-registration with a soft-deleted email reactivates the existing `users` row.** No new row, no new column. The submitted `name` and `password` overwrite the prior values; `email_verified_at` is cleared so the standard `MustVerifyEmail` flow re-runs. A standard `Registered` event fires; the audit entry includes `reactivated: true` in its `context` JSON.
+1. **Self-registration never touches existing rows.** An email matching an active *or* soft-deleted user fails the unique rule with the identical 422 ("email already taken") — the two cases are indistinguishable to the requester, and a soft-deleted row is never restored, overwritten, or role-stripped by an anonymous `POST /register`.
 
-2. **Reactivation does NOT auto-restore role assignments.** All `role_user` rows for that user are detached. The user re-enters as roleless, becomes `Applicant` via the normal apply flow. This is the safety boundary: email verification proves "I control this inbox today," not "I am the same human as before." Email recycling is a real risk in the .edu and Cameroonian contexts.
+2. **Reactivation happens through the password-reset flow.** The "email already taken" message naturally routes the returning user to *Forgot password*. The password broker uses a dedicated provider (`App\Services\PasswordBrokerUserProvider`, `users-with-trashed` in `config/auth.php`) that includes trashed users, so the reset link reaches the mailbox; redeeming the token is the proof of mailbox ownership that register-time reactivation lacked. `ResetUserPassword::reactivate()` then, in one transaction: restores the row, sets the new password, clears `remember_token`, and detaches all roles. `name` and `email_verified_at` keep their historical values — same mailbox, same identity.
 
-3. **Prior `StudentProfile` / `LecturerProfile` / `applications` / `audit_logs` stay intact** (still soft-deleted where applicable). Data is preserved; trust is not.
+3. **Reactivation does NOT auto-restore role assignments.** All `role_user` rows are detached; each detachment writes a `RoleRevoked` audit row and the restore writes a `Restored` row, all with `reactivated: true` context (AUD-028). The user re-enters roleless and becomes `Applicant` via the normal apply flow. Mailbox proof says "I control this inbox today," not "I am the same human as before" — email recycling is a real risk in the .edu and Cameroonian contexts.
 
-4. **SAO performs identity verification + one-click re-attachment** during application review (Phase 9). The review screen detects soft-deleted profile or prior decided application rows for that `user_id` and renders a banner with `[Restore prior enrollment]` and `[Admit as new student]` actions. `[Restore prior enrollment]` runs a single transaction: `StudentProfile->restore()`, re-attach `Student` role, mark current application as `Withdrawn` with merge note, three audit entries (`Restored`, `RoleAssigned`, `StatusChanged`). `[Admit as new student]` runs the normal admit flow and audits `acknowledged_prior_history: true`.
+4. **Trashed staff/admin accounts are excluded from self-service reactivation.** `PasswordBrokerUserProvider` filters trashed users holding any `RoleName::staff()` role (Lecturer, Accountant, SAO, Admin): no reset link is sent and a forged token resolves to no user. Their only path back is the admin user-management restore (`admin.users.restore`), which preserves their roles deliberately.
 
-5. **Phone-number matching is deferred.** Self-registration matches on email only. Phone-as-secondary-identifier is its own future design.
+5. **Prior `StudentProfile` / `LecturerProfile` / `applications` / `audit_logs` stay intact** (still soft-deleted where applicable). Data is preserved; trust is not.
 
-6. **Scope: self-registration only.** Staff accounts (Lecturer, Accountant, SAO, Admin) are admin-created (per §4.6); they don't hit `/register`. Staff restoration lives in the Phase 10 admin user-management page and reuses the same underlying `User->restore()` mechanism.
+6. **SAO performs identity verification + one-click re-attachment** during application review (Phase 9). The review screen detects soft-deleted profile or prior decided application rows for that `user_id` and renders a banner with `[Restore prior enrollment]` and `[Admit as new student]` actions. `[Restore prior enrollment]` runs a single transaction: `StudentProfile->restore()`, re-attach `Student` role, mark current application as `Withdrawn` with merge note, three audit entries (`Restored`, `RoleAssigned`, `StatusChanged`). `[Admit as new student]` runs the normal admit flow and audits `acknowledged_prior_history: true`.
+
+7. **Phone-number matching is deferred.** Reactivation matches on email only. Phone-as-secondary-identifier is its own future design.
 
 ### Implementation contract
 
-**Phase 3** — `app/Actions/Fortify/CreateNewUser.php`:
-- `User::withTrashed()->where('email', $email)->first()` to detect soft-deleted matches.
-- If trashed match: `DB::transaction` → restore row, overwrite `name`/`password`, clear `email_verified_at`, detach all `role_user` rows, fire `Registered` event.
-- If non-trashed match: standard "email already taken" 422 (no leakage).
-- Tests in `tests/Feature/Auth/RegistrationTest.php`: same `users.id` after reactivation; roles detached; `email_verified_at` cleared; prior soft-deleted profiles/applications untouched; non-trashed conflict still 422s.
+**Auth layer** (revised in `512a97c`):
+- `CreateNewUser`: plain validate-then-create; the unique rule counts trashed rows, so active and trashed conflicts 422 identically. A concurrent-insert unique violation re-throws as the same 422 (AUD-017).
+- `PasswordBrokerUserProvider` (broker-only; the session guard keeps the default provider, so trashed users still can't log in): `withTrashed()` lookups, trashed staff/admin filtered to null.
+- `ResetUserPassword`: trashed branch runs the reactivation transaction described in Policy 2–3.
+- Tests: `tests/Feature/Auth/RegistrationTest.php` (row untouched, identical 422s, race → 422) and `tests/Feature/Auth/PasswordResetTest.php` (reactivation restores row + detaches roles + audits; staff excluded at send and redeem; reactivated account can log in).
 
 **Phase 9** — `app/Actions/Sao/RestorePriorEnrollment.php` + SAO review controller + PrimeVue banner on the Inertia review page:
 - Review controller loads `priorHistory = ['profiles' => StudentProfile::withTrashed()->where('user_id', ...)->get(), 'applications' => Application::withTrashed()->where('user_id', ...)->whereNotIn('status', ['Draft'])->get()]`.
@@ -528,7 +532,9 @@ Whether the dropped current-application status should be `Withdrawn` or a new de
 
 ## 14. Implementation Progress
 
-**Last updated:** 2026-05-05 (Phase 9 shipped). Refresh this section at every phase-boundary commit. The authoritative roadmap stays §8; the authoritative diff for each phase is its commit. This section is the **bridge** between them — phase number → commit SHA → at-a-glance summary.
+**Last updated:** 2026-06-12 (AUD-033 doc refresh; route count and post-Phase-10 work recorded). Refresh this section at every phase-boundary commit. The authoritative roadmap stays §8; the authoritative diff for each phase is its commit. This section is the **bridge** between them — phase number → commit SHA → at-a-glance summary.
+
+> **Supersession note:** the per-phase records below are accurate as history of what each commit shipped, but audit Fix Phases 1–5 (§15) later changed several of those decisions in place — notably: PrimeVue global registration + `chunkSizeWarningLimit: 1000` (Phase 2 → reversed by AUD-020), inline reactivation in `CreateNewUser` (Phase 3 → rewritten by AUD-004, see §13), the count-based matricule generator (Phase 9 → replaced by AUD-006), and the duplicated status/label maps (Phases 8–10 → consolidated by AUD-027). When a §14 detail conflicts with §15, §15 wins.
 
 ### Status table
 
@@ -543,9 +549,12 @@ Whether the dropped current-application status should be `Withdrawn` or a new de
 | 7 | Application Domain Models | ✅ Done | `28e655f` |
 | 8 | Applicant Dashboard + Application Form | ✅ Done | `8c55067` |
 | 9 | SAO Decision Flow + Admit-to-Student Promotion | ✅ Done | `c4d9d38` |
-| 10 | Admin Dashboard + Audit Log Modal | ⏳ Pending | — |
+| 10 | Admin Dashboard + Audit Log Modal | ✅ Done | `359ed1f` (API) + `9a664da` (UI) + `1f8ae87` (seeder) |
+| UM-A | Admin User Management — backend + invite-link flow | ✅ Done | `ac997ac` |
+| UM-B | Admin User Management — UI with role-aware forms | ✅ Done | `e99fc2e` |
+| UM-C | Admin User Management — invitation polish + role transitions | ✅ Done | `f46c02c` (+ fix `fa93a77`) |
 
-Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline before Phase 1.
+Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline before Phase 1. Other interim commits: `fc2324b` (split-screen login layout + tooltip-driven username field), `d2a5738`/`a8d69d4`/`e044f81` (small seeder/UI chores). Everything after `e044f81` is audit remediation — see §15.
 
 ### Phase 1 — Roles & Authorization Foundation (`e61d59a`)
 
@@ -900,7 +909,7 @@ Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline
 
 **Per-page imports:** `Card`, `MultiSelect`, `Tag`, `DatePicker`, `Message`, `InputNumber` are imported per-page (not in the globally registered list in `resources/js/app.ts`). `DataTable`, `Column`, `Dialog`, `Button` come from the global registration.
 
-**No backend changes:** Phase 10.2 is purely the frontend on top of Phase 10.1's controllers. No new routes, no new tests (the JSON endpoint and dashboard render are already covered by `AuditLogIndexTest` (9) + `AdminDashboardTest` (5)). True Pest 4 browser tests (`visit()`) require Playwright and a `tests/Browser` setup that this project doesn't have; the Phase 10 plan's "browser test" item is satisfied by the existing HTTP-level coverage.
+**No backend changes:** Phase 10.2 is purely the frontend on top of Phase 10.1's controllers. No new routes, no new tests (the JSON endpoint and dashboard render are already covered by `AuditLogIndexTest` (9) + `AdminDashboardTest` (5)). At the time, true Pest 4 browser tests (`visit()`) required a Playwright + `tests/Browser` setup the project lacked, so the Phase 10 plan's "browser test" item was satisfied by HTTP-level coverage. **Superseded by AUD-029 (§15, Fix Phase 6):** a minimal Pest 4 browser smoke suite now exists under `tests/Browser` — the same applies to the Phase 2 (line ~255) and Phase 8 (line ~388) "browser test" items.
 
 **Audit:** `vendor/bin/pint --dirty --format agent` ✓, 359/359 Pest green, `npm run build` ✓ (added per-page chunks for `multiselect`, `datepicker`), `npm run lint:check` ✓, `npm run format:check` ✓ (one autofix pass on the two new Vue files), `npm run types:check` shows no new errors in the two added files (the pre-existing `.form` property errors on starter-kit auth/settings pages are unchanged from `master`), `php artisan route:list --except-vendor` still 38 routes.
 
@@ -918,10 +927,132 @@ Initial commit `96022ae feat: initiate first commit` is the starter-kit baseline
 
 Small DX retrofit landed alongside the Phase 10.2 browser-check session. `database/seeders/DatabaseSeeder.php` now provisions an `admin@example.com` / `password` user with the Admin role and `email_verified_at = now()`, idempotent via `firstOrCreate`. This makes `php artisan migrate:fresh --seed` yield a loginable admin out of the box for browser-checking the new dashboard. The pre-existing `Test User` factory call is retained. Tests are unaffected (they explicitly call `RolesSeeder` in `tests/Pest.php` `beforeEach`, never `DatabaseSeeder`); 359/359 still green.
 
+### Admin User Management module (`ac997ac` → `e99fc2e` → `f46c02c`, post-roadmap)
+
+Shipped after Phase 10 as a three-commit module (backend / UI / polish). Scope: admin-provisioned **staff + admin** accounts only (students arrive via admission, applicants via self-registration). Key contracts: invite-link credentials (no password set by the admin — a password-reset-style setup link is mailed via queued `UserInvitationMail`), `CreateUserAction` + `ChangeUserRoleAction` own all writes (incl. `WritesRoleProfile::writeProfile()` restore-or-create for per-role profiles), users DataTable with role/status/search filters, Edit page with role-aware profile forms + change-role dialog + deactivate/restore/resend-invite. Full design contracts live in the `project_admin_user_management.md` memory — **read it before touching `CreateUserAction`/`ChangeUserRoleAction`.** Audit fix phases later layered onto this module: `employee_id` capture (AUD-007), `User` auditing via `RecordsAudit` (AUD-022), shaped Edit props (AUD-031), `RoleName::label()` dropdown labels (AUD-027).
+
 ### Roadmap status
 
-Phases 1–10 are all shipped. The §8 design contract is fully satisfied. Remaining items are deferred follow-ups (listed under each phase's "Cross-phase contracts honored / deferred" section), not roadmap work. No Phase 11 is planned in this session — when one of the deferred items becomes urgent, design it in a fresh planning pass.
+Phases 1–10 plus the user-management module are all shipped; the §8 design contract is fully satisfied. `php artisan route:list --except-vendor` currently shows **54 routes** (38 at Phase 10; growth = 9 user-management routes, 4 reference-restore routes from AUD-021, and small interim additions). Most of the deferred follow-ups listed under the per-phase "Cross-phase contracts honored / deferred" sections were since closed by audit fix phases: reference restore UI (AUD-021), `User` `RecordsAudit` (AUD-022), `ApplicationDecided` notification listener (AUD-002), shared status/label helpers (AUD-027), staff user management (the UM module). Still genuinely deferred: per-role sidebar/navigation polish (B13) and the B1–B15 backlog in AUDIT.md. No Phase 11 is planned — when a deferred item becomes urgent, design it in a fresh planning pass.
 
 ### Process reminder
 
 Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's audit checklist is green and the commit exists. Update this section + the `project_implementation_progress.md` memory together at every phase-boundary commit.
+
+---
+
+## 15. Global Audit & Remediation (started 2026-06-11)
+
+**Session date:** 2026-06-11. A full security/performance/gap/quality audit of the codebase at `e044f81` was run via four parallel domain agents (methodology captured in the global `codebase-audit` skill at `~/.claude/skills/codebase-audit/`; reusable `security-auditor` + `performance-auditor` agent definitions at `~/.claude/agents/`).
+
+**Artifacts (committed in `f460901`):**
+- **`AUDIT.md` (repo root) — the single source of truth for remediation.** 34 findings (1 Critical, 8 High, 16 Medium, 9 Low), each formatted as a ready-to-open GitHub issue with severity, location, problem, proposed solution, and acceptance criteria. Per-finding `Status:` lines are updated to `Fixed in <sha>` as fixes land. Ends with a 15-item deferred-work backlog table (B1–B15) and a 6-phase suggested fix order.
+- `plan/audit/{security,performance,gap,quality}-findings.md` — the raw domain reports (SEC-n / PERF-n / GAP-n / QUAL-n IDs cross-referenced from AUDIT.md).
+
+**Remediation status (update at every fix-phase commit):**
+
+| Fix phase | Findings | Status | Commit |
+|---|---|---|---|
+| 1 — Core flow correctness | AUD-001, 010, 003, 005, 006 | ✅ Done | `1956bf2` |
+| 2 — Quick wins | AUD-009, 015, 016, 019, 008, 030, 012 | ✅ Done | `fa56b44` |
+| 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
+| 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ✅ Done | `a93f9ba` |
+| 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ✅ Done | `e1255e3` |
+| 6 — Docs & throttles | AUD-033, 032, 029, 026, 034 | ✅ Done | `ea3b426`, `62e86ff`, `55778e6` |
+
+**Fix Phase 1 (`1956bf2`) — what changed:**
+- All three SAO actions (`Decide`, `Triage`, `RestorePriorEnrollment`) re-fetch the application — and the prior profile, where relevant — under `lockForUpdate()` *inside* their transactions and re-run the status guards there, so concurrent decisions 422 instead of corrupting state (AUD-001).
+- `Application::canTransitionTo()` now encodes the full matrix: **Draft → Submitted only**; interim → interim/terminal; terminal → nothing. Decide + restore-prior route through it (AUD-010). New public `Application::OPEN_STATUSES` (Draft + interim trio).
+- `promoteToStudent()` restore-or-creates the `StudentProfile` (unique `user_id` includes trashed rows): trashed → restore + **fresh matricule** ("admit as new"); active → enrollment fields update but **matricule never changes** (it's a login identifier). `RoleAssigned` audit guarded for already-Students (AUD-003).
+- One open application per applicant: `StoreApplicationRequest::after()` + an in-transaction re-check under a per-user `lockForUpdate` on the `users` row (a per-user mutex with no gap-lock risk). Re-applying after any terminal decision remains allowed (AUD-005).
+- Matricule generation now uses a `matricule_sequences (year PK, last_number)` counter table (new migration `2026_06_11_120000`), lazy-seeded from the highest already-issued number per year; query-builder only, no Eloquent model, no timestamps. Constant lock scope, immune to force-deleted profiles (AUD-006).
+- 8 new Pest cases (returning-applicant admit, active-profile admit, Draft refusals on decide+triage, concurrent-finalize 422, force-delete sequence survival, duplicate-submit 422, re-apply-after-decision). **388/388 green**, Pint clean, `migrate:fresh --seed` ✓.
+
+**Fix Phase 2 (`fa56b44`) — what changed:**
+- `ApplicationController::store()` writes uploads to disk *before* opening the transaction (collecting metadata rows), then deletes the stored files in a `catch` if the transaction rolls back — no filesystem I/O inside the transaction, no orphans on failure; covered by a forced-rollback test via an `Application::created` hook (AUD-009).
+- `Create.vue` formats `date_of_birth` from local date components (`toLocalDateString()`) instead of `toISOString()`, fixing the one-day-early shift for UTC+ applicants; the submission test asserts the literal stored date (AUD-015).
+- `Create.vue` cascading lookups extracted into `loadOfferings()`/`loadLevelRequirements()` with `catch` + inline error `Message` + Retry button, mirroring the AuditLogModal pattern (AUD-016).
+- `applications` migration (edited in place): composite `(status, submitted_at)` + `(user_id, status)` replace the single-column status/submitted_at indexes (AUD-019). Caveat: a multi-status `IN` still filesorts the index-filtered subset (MySQL limitation); single-status queries are sort-free.
+- `audit_logs` migration: composite `(occurred_at, id)`, `(user_id, occurred_at)`, `(action, occurred_at)`, `(subject_type, occurred_at)`; single-column indexes dropped; `paginate()` kept since the modal consumes `total`/`last_page` (AUD-008).
+- `DocumentDownloadController` downloads from the default disk (`Storage::download()`), matching the upload path's `$file->store()` (AUD-030).
+- `DatabaseSeeder`'s known-credential accounts (`test@`/`admin@example.com`) now gated to local/testing — `LocalStaffSeeder` already was; new `DatabaseSeederTest` asserts production seeding creates zero users (AUD-012).
+- **391/391 green**, Pint clean, `npm run build` ✓, `migrate:fresh --seed` ✓.
+
+**Fix Phase 3 (`512a97c`) — what changed:**
+- **Reactivation policy rewritten (§13 above, AUD-004):** `/register` never touches trashed rows (identical 422 to active emails); reactivation moved to the password-reset flow — `PasswordBrokerUserProvider` (new, broker-only, `users-with-trashed` provider in config/auth.php) includes trashed non-staff users, and `ResetUserPassword::reactivate()` restores + detaches roles once the token proves mailbox ownership. Trashed staff/admin filtered out — admin restore only. The 4 old-policy RegistrationTest cases were replaced by new-policy cases (register-side) + 4 reset-side reactivation cases.
+- `RoleRevoked` audit rows (one per detached role, `reactivated: true` context) written during reactivation alongside the `Restored` row (AUD-028).
+- Concurrent duplicate registration: `UniqueConstraintViolationException` caught and re-thrown as the standard email-taken 422; tested via a `creating`-hook race simulation (AUD-017).
+- Rate limiters (AUD-011): `register` 5/min/IP, `forgot-password` 3/min per email+IP (also on reset-password), `verification` 3/min per user (wired via `fortify.limiters.verification`). Register/forgot/reset throttles attach in an `app()->booted()` callback in `FortifyServiceProvider` — `refreshNameLookups()` is required there because the route-name table predates Fortify's chained `->name()` calls.
+- Login resolver collapsed to one query (OR across email/employee_id + matricule EXISTS) with a dummy bcrypt check on the not-found path to flatten timing (AUD-025); query count asserted in test.
+- New `RoleName::staff()` helper (single source for the staff-role set — AUD-027 will migrate the two hand-written copies).
+- **399/399 green** (+8 net new tests), Pint clean, `migrate:fresh --seed` ✓.
+
+**Fix Phase 4 (`a93f9ba`) — what changed:**
+- Applicants are finally notified: a queued `SendApplicationDecisionNotification` listener (auto-discovered) handles `ApplicationDecided` and sends `ApplicationDecisionMail` to `application->contact_email` with per-decision copy — admitted (incl. matricule), rejected/waitlisted (incl. decision notes), and a restore-prior merge variant (incl. the restored historical matricule). Exactly one mail per terminal decision; triage moves send nothing (AUD-002).
+- `employee_id` is now writable: optional field on the admin Create/Edit user forms, normalized lowercase in the Form Requests, unique, format-guarded (`no @`, no `stm-` prefix) so it can never shadow the email/matricule login namespaces; persisted via `forceFill` (stays out of `$fillable`), shown + searchable in the users DataTable. Employee-ID login works end-to-end from day one (AUD-007).
+- All four reference CRUDs (departments, offerings, document types, level requirements) gained a "Show deleted" toggle (`?trashed=1`) and a Restore action (`POST .../restore`, `withTrashed()` binding). Restore refuses while a parent row is trashed; key-conflict guards were deliberately **not** added because every reference unique index spans trashed rows — a re-take is impossible at the DB level (AUD-021).
+- `User` now uses `RecordsAudit`; the trait gained `auditRedact()` (password, 2FA secrets) — redacted keys appear in Updated diffs as `[redacted]` and are omitted from snapshots. `CreateUserAction` collapses to a single save (one auto Created row, manual row removed); `ResetUserPassword::reactivate()` uses `restoreQuietly()` so its contextual manual `Restored` row stays the only one. Admin restore/deactivate and registration are now audited for free (AUD-022).
+- Dashboards de-placeholdered: Student gets a real controller (enrollment summary — matricule, programme, level, year, status — plus application history with null-safe offering shaping); Lecturer/Accountant get profile cards + honest "module coming soon" states; starter-kit repo/docs links removed from sidebar + header and `AppLogo` rebranded (AUD-024).
+- New routes use invokable `App\Http\Controllers\Dashboards\*DashboardController` classes replacing the `Route::inertia` placeholders.
+- **422\422 green** (+23 net new tests across 5 new files), Pint + ESLint + vue-tsc clean, `npm run build` ✓.
+
+**Fix Phase 5 (`e1255e3`) — what changed:**
+- Role checks de-duplicated (AUD-018): `hasRole`/`hasAnyRole` answer from the loaded `roles` relation when present (enum-safe `contains`), falling back to EXISTS; `assignRole`/`removeRole` unset the cached relation. `HandleInertiaRequests::share()` (which Inertia resolves *before* route middleware) and `RoleDashboardResolver::pathFor()` (login happens mid-request, after share saw a guest) each `loadMissing('roles')`. New `RoleQueryEfficiencyTest` asserts exactly one `role_user` query per authenticated page load.
+- PrimeVue globals removed (AUD-020): all 8 globally-registered components converted to per-page imports (17 files); only `ToastService` + `tooltip` directive stay app-level; `<Toast />` imported by the layout that mounts it. Main chunk **936.29 kB → 451.06 kB** (gzip 208.02 → 106.49 kB); `chunkSizeWarningLimit` override deleted so the default 500 kB warning is the regression guard. CLAUDE.md UI section updated to the new convention.
+- Duplication collapsed (AUD-027): new `resources/js/lib/statusDisplay.ts` is the single site for application-status/enrollment-status/degree/role labels + Tag severities (9 pages refactored; fixed Student.vue's stale `excluded` enrollment key — the real enum value is `withdrawn`). `Application::TERMINAL_STATUSES`/`INTERIM_STATUSES` made public and now drive `TriageApplicationRequest`, `DecideApplicationRequest` (terminal minus Withdrawn), and the SAO queue's default filter. The triplicated `levelWithinOfferingRange()` closure became the shared `App\Rules\LevelWithinOfferingRange` (`DataAwareRule`). `RoleName::label()` feeds both `UserInvitationMail` and the admin role dropdowns ('Administrator'/'SAO' style).
+- Props shaped (AUD-031): shared `auth.user` now exposes only id/name/email/timestamps (+`email_verified_at`); admin users Edit ships shaped lecturer/accountant/sao profile arrays (`hired_at` as date string) instead of raw models.
+- Trashed-offering hardening (AUD-013): `ProgramOffering::applications()` added; destroy refuses while applications reference the offering; `Application::programOffering()` and `StudentProfile::programOffering()` resolve `withTrashed()` so drifted historical data renders instead of 500ing (tested by trashing an offering under a submitted application).
+- NID/BIRTH protected (AUD-014): `DocumentType::PROTECTED_CODES` is the single source for the always-required pair (StoreApplicationRequest + the form's lookup reference it); destroy and code-rename of protected types are refused (name edits stay allowed).
+- Level-range narrowing guarded (AUD-023): `ProgramOfferingUpdateRequest::after()` rejects a narrowed `[min_level, max_level]` that would orphan credential-requirement levels or strand open (Draft/interim) applications, naming the blocking levels; decided applications don't block; widening is unrestricted.
+- **433/433 green** (+11 net new tests), Pint + Prettier + ESLint + vue-tsc clean, `npm run build` ✓.
+
+**Stale-doc note resolved (AUD-033, 2026-06-12):** §14 was refreshed — status table now covers Phase 10 + the UM-A/B/C user-management module, carries a supersession note pointing here, and records the current 54-route count; CLAUDE.md's Database section now describes the real route layout (no `routes/api.php`). `git log` + `AUDIT.md` remain authoritative for remediation state.
+
+**Fix Phase 6 (in progress, 2026-06-13) — what changed:**
+- Applicant dashboard bounded (AUD-032): `ApplicationController::dashboard` now caps the query at `MAX_DASHBOARD_APPLICATIONS = 50` (the one previously-unbounded `->get()` on a growing table). The prop stays a flat array — the PrimeVue DataTable already paginates client-side — so no frontend change. A realistic applicant holds a handful of applications; 50 is a safety ceiling, not a UX limit.
+- **Audit-log retention policy decided (AUD-032):** audit records are retained **2 years** (`AuditLog::RETENTION_DAYS = 730`), then removed by the new `audit:prune` artisan command. The command deletes via the query builder (`DB::table(...)->where('occurred_at', '<', $cutoff)->delete()`) **by design** — the `AuditLog` model's `deleting` guard blocks Eloquent deletes to keep records immutable, and the prune is the one sanctioned bypass. `--days` overrides the horizon (must be ≥ 1). Registered on the scheduler in `routes/console.php` as a daily `withoutOverlapping()` job; it only does work where a scheduler runs (production), and is a no-op locally. Retention can be revisited at deployment scale (cross-ref AUD-034 hardening baseline).
+- **Pest 4 browser smoke suite added (AUD-029):** the browser-test promises in Phases 2/8/10 (previously waved through as "HTTP coverage suffices") are now real. `pestphp/pest-plugin-browser` (composer dev, needs `ext-sockets`) + `playwright` (npm dev) back a `tests/Browser/SmokeTest.php` with 3 `visit()` tests: login renders + signs a user in, the applicant application form renders without JS errors (the cascading-dropdown surface that AUD-015/016 slipped through), and the admin audit-log modal opens. `tests/Pest.php` binds `RefreshDatabase`/`TestCase` + role seeding to the `Browser` group; `phpunit.xml` gains a `Browser` testsuite; `tests/Browser/Screenshots` is gitignored. CI: the `tests.yml` matrix job now runs `--testsuite=Unit,Feature` (fast, no Playwright), and a **separate `browser` job** installs Chromium (`npx playwright install --with-deps chromium`) and runs `--testsuite=Browser`, isolating browser flakiness from the feature matrix. Local fast loop: `php artisan test --testsuite=Feature`; browser run needs `npx playwright install chromium` once.
+- **Endpoint throttling added (AUD-026):** the three authenticated-but-unthrottled JSON/download surfaces now carry per-user rate limiters defined in `FortifyServiceProvider::configureRateLimiting()`. `throttle:lookups` (60/min, keyed by user id) guards the `api/v1` cascading-dropdown group and the document-download route; `throttle:audit-logs` (30/min — tighter, it reads the growing audit table) guards the admin audit-log modal endpoint. Ceilings are generous enough that normal UI flows never trip them; past threshold the endpoints 429. `tests/Feature/EndpointThrottleTest.php` asserts each limiter via the `RateLimiter::increment(md5(...))` pattern used by `AuthThrottleTest`.
+- **Production hardening baseline documented (AUD-034):** see §16. `.env.example` gained a header pointer to the checklist and a commented `SESSION_SECURE_COOKIE=false` knob (local default; true in prod).
+
+## 16. Production deployment hardening baseline (AUD-034)
+
+The project's `.env.example` carries local-development defaults (`APP_DEBUG=true`, plaintext cookies, `MAIL_MAILER=log`, `FILESYSTEM_DISK=local`). None of those are safe in production. Work through this checklist before exposing the app publicly; each item cross-references the audit finding that motivates it.
+
+### Environment
+
+- [ ] `APP_ENV=production`, `APP_DEBUG=false` — with debug on, an unhandled exception (e.g. the `QueryException` behind **AUD-003**) renders a stack trace that leaks schema, file paths, and env values to the visitor.
+- [ ] `APP_KEY` set (a real generated key — `php artisan key:generate`), never the example blank.
+- [ ] `APP_URL` set to the canonical `https://` origin.
+
+### Transport & session security
+
+- [ ] Serve over HTTPS only; redirect plaintext to TLS at the edge.
+- [ ] `SESSION_SECURE_COOKIE=true` so the session cookie is never transmitted over http.
+- [ ] Consider `SESSION_ENCRYPT=true` and a locked-down `SESSION_DOMAIN`.
+
+### Queue worker (required, not optional)
+
+- [ ] Run a durable queue worker (`php artisan queue:work` under a supervisor). Decision mail (**AUD-002**) and the user-invitation mail are **queued** — without a running worker, applicants and invited staff are never actually notified. `QUEUE_CONNECTION=database` is fine; just ensure the worker process exists.
+
+### Scheduler
+
+- [ ] Wire the Laravel scheduler (`* * * * * php artisan schedule:run`). The audit-log retention job `audit:prune` (**AUD-032**, 2-year horizon) only does work where a scheduler runs; it is a no-op locally.
+
+### Storage / filesystem
+
+- [ ] Decide `FILESYSTEM_DISK` deliberately. Uploads and downloads both resolve the **default** disk (**AUD-030**), so switching to `s3` is a single-knob change — but it must be set *before* any documents are stored, or historical downloads 404. If using `s3`, set the `AWS_*` credentials and bucket.
+
+### Database seeding
+
+- [ ] Never seed the known-credential demo accounts in production. The `DatabaseSeeder` already gates `test@`/`admin@example.com` and `LocalStaffSeeder` to local/testing (**AUD-012**); production `db:seed` creates zero users. Provision the first admin out-of-band.
+
+### Mail
+
+- [ ] Configure a real transactional mailer (`MAIL_MAILER`/`MAIL_HOST`/credentials); `log` swallows every outbound message.
+
+### Rate limiting
+
+- [ ] Already in code (**AUD-011**, **AUD-026**): auth flows and the `api/v1`/download/audit-log endpoints are throttled. No env action needed, but if running multiple app instances behind a load balancer, point the limiter at a shared store (`CACHE_STORE=redis`) so the buckets are global rather than per-instance.
+
+**Acceptance:** this checklist exists and each item names the finding it closes — AUD-003, AUD-002, AUD-032, AUD-030, AUD-012, AUD-011, AUD-026.

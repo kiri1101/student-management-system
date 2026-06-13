@@ -25,7 +25,10 @@ class DocumentDownloadController extends Controller
 
         abort_unless($canDownload, 403);
 
-        return Storage::disk('local')->download(
+        // Same default disk the upload path (`$file->store()`) writes to —
+        // pinning a different disk here 404s every historical download the
+        // day `FILESYSTEM_DISK` changes (AUDIT.md AUD-030).
+        return Storage::download(
             $document->file_path,
             $document->original_filename,
         );

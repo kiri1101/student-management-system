@@ -196,7 +196,7 @@ withDefaults(
 
                     <!-- 13 -->
                     <svg
-                        class="-ml-8 w-109.5 relative mt-[-6.6rem] max-w-none [--stroke-color:#1B1B18] lg:ml-0 dark:[--stroke-color:#FF750F]"
+                        class="relative mt-[-6.6rem] -ml-8 w-109.5 max-w-none [--stroke-color:#1B1B18] lg:ml-0 dark:[--stroke-color:#FF750F]"
                         viewBox="0 0 440 392"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"

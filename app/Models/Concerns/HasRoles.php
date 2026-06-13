@@ -15,16 +15,26 @@ trait HasRoles
 
     public function hasRole(RoleName $role): bool
     {
-        return $this->roles()->where('name', $role->value)->exists();
+        return $this->hasAnyRole([$role]);
     }
 
     /**
+     * Answered from the already-loaded relation when available so the many
+     * per-request gate/middleware checks share a single roles query
+     * (AUDIT.md AUD-018); falls back to an EXISTS query otherwise.
+     *
      * @param  array<int, RoleName>  $roles
      */
     public function hasAnyRole(array $roles): bool
     {
         if ($roles === []) {
             return false;
+        }
+
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->contains(
+                fn (Role $assigned): bool => in_array($assigned->name, $roles, strict: true),
+            );
         }
 
         $values = array_map(fn (RoleName $role): string => $role->value, $roles);
@@ -41,6 +51,7 @@ trait HasRoles
         }
 
         $this->roles()->syncWithoutDetaching([$roleId]);
+        $this->unsetRelation('roles');
     }
 
     public function removeRole(RoleName $role): void
@@ -52,5 +63,6 @@ trait HasRoles
         }
 
         $this->roles()->detach($roleId);
+        $this->unsetRelation('roles');
     }
 }

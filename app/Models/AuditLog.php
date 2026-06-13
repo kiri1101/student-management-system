@@ -14,6 +14,13 @@ use RuntimeException;
 #[Fillable(['user_id', 'action', 'subject_type', 'subject_id', 'changes', 'context', 'occurred_at'])]
 class AuditLog extends Model
 {
+    /**
+     * Default retention horizon for audit records (2 years). Rows older than
+     * this are removed by the scheduled `audit:prune` command, which deletes
+     * via the query builder because this model blocks Eloquent deletes.
+     */
+    public const RETENTION_DAYS = 730;
+
     public $timestamps = false;
 
     /**

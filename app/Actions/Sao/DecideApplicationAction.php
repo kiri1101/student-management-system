@@ -44,12 +44,6 @@ class DecideApplicationAction
         User $sao,
         array $extraContext = [],
     ): Application {
-        if ($application->isTerminal()) {
-            throw ValidationException::withMessages([
-                'status' => __('This application has already been finalized.'),
-            ]);
-        }
-
         if (! in_array($decision, self::ALLOWED_DECISIONS, strict: true)) {
             throw ValidationException::withMessages([
                 'status' => __('The selected decision is not allowed.'),
@@ -57,6 +51,25 @@ class DecideApplicationAction
         }
 
         return DB::transaction(function () use ($application, $decision, $notes, $sao, $extraContext): Application {
+            // Re-fetch under lock so a concurrent decision can't slip past a
+            // stale status check (AUDIT.md AUD-001).
+            $application = Application::query()
+                ->whereKey($application->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($application->isTerminal()) {
+                throw ValidationException::withMessages([
+                    'status' => __('This application has already been finalized.'),
+                ]);
+            }
+
+            if (! $application->canTransitionTo($decision)) {
+                throw ValidationException::withMessages([
+                    'status' => __('This application cannot transition to the requested status.'),
+                ]);
+            }
+
             $application->fill([
                 'status' => $decision,
                 'decision_notes' => $notes,
@@ -88,31 +101,51 @@ class DecideApplicationAction
     {
         $year = (int) now()->year;
 
-        StudentProfile::withTrashed()
-            ->where('matricule', 'like', "stm-{$year}-%")
-            ->lockForUpdate()
-            ->get(['id']);
-
-        $matricule = StudentProfile::nextMatriculeForYear($year);
-
-        StudentProfile::create([
-            'user_id' => $application->user_id,
-            'matricule' => $matricule,
+        $enrollment = [
             'program_offering_id' => $application->program_offering_id,
             'level' => $application->level,
             'academic_year' => (string) $year,
             'enrolled_at' => now()->toDateString(),
             'status' => StudentStatus::Active->value,
-        ]);
+        ];
+
+        // `student_profiles.user_id` is UNIQUE including trashed rows, so a
+        // returning applicant must reuse their slot (AUDIT.md AUD-003). A
+        // trashed profile is "admit as new student": restore the row but issue
+        // a fresh matricule — keeping the old one is RestorePriorEnrollment's
+        // job. An active profile keeps its matricule (a student's login
+        // identifier never changes silently); only the enrollment moves.
+        $profile = StudentProfile::withTrashed()
+            ->where('user_id', $application->user_id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($profile === null) {
+            StudentProfile::create([
+                'user_id' => $application->user_id,
+                'matricule' => StudentProfile::nextMatriculeForYear($year),
+                ...$enrollment,
+            ]);
+        } else {
+            if ($profile->trashed()) {
+                $profile->restore();
+                $enrollment['matricule'] = StudentProfile::nextMatriculeForYear($year);
+            }
+
+            $profile->fill($enrollment)->save();
+        }
 
         $applicant = $application->applicant;
-        $applicant->assignRole(RoleName::Student);
 
-        AuditLog::record(
-            AuditAction::RoleAssigned,
-            $applicant,
-            ['role' => RoleName::Student->value],
-            userId: $sao->id,
-        );
+        if (! $applicant->hasRole(RoleName::Student)) {
+            $applicant->assignRole(RoleName::Student);
+
+            AuditLog::record(
+                AuditAction::RoleAssigned,
+                $applicant,
+                ['role' => RoleName::Student->value],
+                userId: $sao->id,
+            );
+        }
     }
 }
