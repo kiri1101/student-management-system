@@ -19,11 +19,11 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Browser');
 
 pest()->beforeEach(function () {
     $this->seed(RolesSeeder::class);
-})->in('Feature/Auth', 'Feature/Dashboards', 'Feature/Admin', 'Feature/Applications', 'Feature/Sao');
+})->in('Feature/Auth', 'Feature/Dashboards', 'Feature/Admin', 'Feature/Applications', 'Feature/Sao', 'Browser');
 
 /*
 |--------------------------------------------------------------------------
