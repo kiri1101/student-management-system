@@ -2,6 +2,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    History,
     Mail,
     ShieldCheck,
     Trash2,
@@ -17,6 +18,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { computed, ref } from 'vue';
 import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import AuditLogModal from '@/components/admin/AuditLogModal.vue';
 import { roleLabel, roleSeverity } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import usersRoutes from '@/routes/admin/users';
@@ -159,6 +161,9 @@ function deactivate(): void {
 
     router.delete(UserController.destroy(props.user.id).url);
 }
+
+// Per-user audit-log drill-down
+const auditModalVisible = ref(false);
 
 // Change-role dialog
 const roleDialogVisible = ref(false);
@@ -545,6 +550,16 @@ function submitRole(): void {
                         </template>
                     </Button>
                     <Button
+                        label="View audit log"
+                        severity="secondary"
+                        size="small"
+                        @click="auditModalVisible = true"
+                    >
+                        <template #icon>
+                            <History class="size-4" />
+                        </template>
+                    </Button>
+                    <Button
                         label="Deactivate"
                         severity="danger"
                         size="small"
@@ -562,6 +577,11 @@ function submitRole(): void {
                 </p>
             </template>
         </Card>
+
+        <AuditLogModal
+            v-model:visible="auditModalVisible"
+            :scoped-user="{ id: user.id, name: user.name }"
+        />
 
         <Dialog
             v-model:visible="roleDialogVisible"

@@ -46,6 +46,7 @@ class AuditLogIndexRequest extends FormRequest
     {
         return [
             'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'involving_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'actions' => ['nullable', 'array'],
             'actions.*' => ['string', Rule::in(array_column(AuditAction::cases(), 'value'))],
             'subject_types' => ['nullable', 'array'],
