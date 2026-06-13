@@ -958,7 +958,7 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 | 3 — Auth hardening | AUD-004, 017, 028, 011, 025 | ✅ Done | `512a97c` |
 | 4 — Feature gaps | AUD-002, 007, 021, 024, 022 | ✅ Done | `a93f9ba` |
 | 5 — Structural cleanups | AUD-018, 020, 027, 031, 013, 014, 023 | ✅ Done | `e1255e3` |
-| 6 — Docs & throttles | AUD-033 ✅ (docs refresh, 2026-06-12) · AUD-034, 029, 026, 032 ⏳ | 🔄 In progress | — |
+| 6 — Docs & throttles | AUD-033, 032, 029, 026, 034 | ✅ Done | `ea3b426`, `62e86ff`, `55778e6` |
 
 **Fix Phase 1 (`1956bf2`) — what changed:**
 - All three SAO actions (`Decide`, `Triage`, `RestorePriorEnrollment`) re-fetch the application — and the prior profile, where relevant — under `lockForUpdate()` *inside* their transactions and re-run the status guards there, so concurrent decisions 422 instead of corrupting state (AUD-001).
@@ -1012,3 +1012,47 @@ Per `feedback_phased_implementation.md`: never start phase N+1 until phase N's a
 - Applicant dashboard bounded (AUD-032): `ApplicationController::dashboard` now caps the query at `MAX_DASHBOARD_APPLICATIONS = 50` (the one previously-unbounded `->get()` on a growing table). The prop stays a flat array — the PrimeVue DataTable already paginates client-side — so no frontend change. A realistic applicant holds a handful of applications; 50 is a safety ceiling, not a UX limit.
 - **Audit-log retention policy decided (AUD-032):** audit records are retained **2 years** (`AuditLog::RETENTION_DAYS = 730`), then removed by the new `audit:prune` artisan command. The command deletes via the query builder (`DB::table(...)->where('occurred_at', '<', $cutoff)->delete()`) **by design** — the `AuditLog` model's `deleting` guard blocks Eloquent deletes to keep records immutable, and the prune is the one sanctioned bypass. `--days` overrides the horizon (must be ≥ 1). Registered on the scheduler in `routes/console.php` as a daily `withoutOverlapping()` job; it only does work where a scheduler runs (production), and is a no-op locally. Retention can be revisited at deployment scale (cross-ref AUD-034 hardening baseline).
 - **Pest 4 browser smoke suite added (AUD-029):** the browser-test promises in Phases 2/8/10 (previously waved through as "HTTP coverage suffices") are now real. `pestphp/pest-plugin-browser` (composer dev, needs `ext-sockets`) + `playwright` (npm dev) back a `tests/Browser/SmokeTest.php` with 3 `visit()` tests: login renders + signs a user in, the applicant application form renders without JS errors (the cascading-dropdown surface that AUD-015/016 slipped through), and the admin audit-log modal opens. `tests/Pest.php` binds `RefreshDatabase`/`TestCase` + role seeding to the `Browser` group; `phpunit.xml` gains a `Browser` testsuite; `tests/Browser/Screenshots` is gitignored. CI: the `tests.yml` matrix job now runs `--testsuite=Unit,Feature` (fast, no Playwright), and a **separate `browser` job** installs Chromium (`npx playwright install --with-deps chromium`) and runs `--testsuite=Browser`, isolating browser flakiness from the feature matrix. Local fast loop: `php artisan test --testsuite=Feature`; browser run needs `npx playwright install chromium` once.
+- **Endpoint throttling added (AUD-026):** the three authenticated-but-unthrottled JSON/download surfaces now carry per-user rate limiters defined in `FortifyServiceProvider::configureRateLimiting()`. `throttle:lookups` (60/min, keyed by user id) guards the `api/v1` cascading-dropdown group and the document-download route; `throttle:audit-logs` (30/min — tighter, it reads the growing audit table) guards the admin audit-log modal endpoint. Ceilings are generous enough that normal UI flows never trip them; past threshold the endpoints 429. `tests/Feature/EndpointThrottleTest.php` asserts each limiter via the `RateLimiter::increment(md5(...))` pattern used by `AuthThrottleTest`.
+- **Production hardening baseline documented (AUD-034):** see §16. `.env.example` gained a header pointer to the checklist and a commented `SESSION_SECURE_COOKIE=false` knob (local default; true in prod).
+
+## 16. Production deployment hardening baseline (AUD-034)
+
+The project's `.env.example` carries local-development defaults (`APP_DEBUG=true`, plaintext cookies, `MAIL_MAILER=log`, `FILESYSTEM_DISK=local`). None of those are safe in production. Work through this checklist before exposing the app publicly; each item cross-references the audit finding that motivates it.
+
+### Environment
+
+- [ ] `APP_ENV=production`, `APP_DEBUG=false` — with debug on, an unhandled exception (e.g. the `QueryException` behind **AUD-003**) renders a stack trace that leaks schema, file paths, and env values to the visitor.
+- [ ] `APP_KEY` set (a real generated key — `php artisan key:generate`), never the example blank.
+- [ ] `APP_URL` set to the canonical `https://` origin.
+
+### Transport & session security
+
+- [ ] Serve over HTTPS only; redirect plaintext to TLS at the edge.
+- [ ] `SESSION_SECURE_COOKIE=true` so the session cookie is never transmitted over http.
+- [ ] Consider `SESSION_ENCRYPT=true` and a locked-down `SESSION_DOMAIN`.
+
+### Queue worker (required, not optional)
+
+- [ ] Run a durable queue worker (`php artisan queue:work` under a supervisor). Decision mail (**AUD-002**) and the user-invitation mail are **queued** — without a running worker, applicants and invited staff are never actually notified. `QUEUE_CONNECTION=database` is fine; just ensure the worker process exists.
+
+### Scheduler
+
+- [ ] Wire the Laravel scheduler (`* * * * * php artisan schedule:run`). The audit-log retention job `audit:prune` (**AUD-032**, 2-year horizon) only does work where a scheduler runs; it is a no-op locally.
+
+### Storage / filesystem
+
+- [ ] Decide `FILESYSTEM_DISK` deliberately. Uploads and downloads both resolve the **default** disk (**AUD-030**), so switching to `s3` is a single-knob change — but it must be set *before* any documents are stored, or historical downloads 404. If using `s3`, set the `AWS_*` credentials and bucket.
+
+### Database seeding
+
+- [ ] Never seed the known-credential demo accounts in production. The `DatabaseSeeder` already gates `test@`/`admin@example.com` and `LocalStaffSeeder` to local/testing (**AUD-012**); production `db:seed` creates zero users. Provision the first admin out-of-band.
+
+### Mail
+
+- [ ] Configure a real transactional mailer (`MAIL_MAILER`/`MAIL_HOST`/credentials); `log` swallows every outbound message.
+
+### Rate limiting
+
+- [ ] Already in code (**AUD-011**, **AUD-026**): auth flows and the `api/v1`/download/audit-log endpoints are throttled. No env action needed, but if running multiple app instances behind a load balancer, point the limiter at a shared store (`CACHE_STORE=redis`) so the buckets are global rather than per-instance.
+
+**Acceptance:** this checklist exists and each item names the finding it closes — AUD-003, AUD-002, AUD-032, AUD-030, AUD-012, AUD-011, AUD-026.

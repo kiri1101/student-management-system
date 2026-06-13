@@ -6,7 +6,7 @@
 - **Method:** four parallel domain audits (security, performance, plan-vs-implementation gap, code quality & logic) per the `codebase-audit` skill; Critical/High findings spot-verified against source before publication.
 - **Detailed source reports:** `plan/audit/security-findings.md`, `plan/audit/performance-findings.md`, `plan/audit/gap-findings.md`, `plan/audit/quality-findings.md` (cross-referenced below as SEC-n / PERF-n / GAP-n / QUAL-n).
 - **Status convention:** every finding starts `Open`. Update to `Fixed in <sha>` as fixes land. Each `## [AUD-nnn]` section is written to be pasted directly into a GitHub issue.
-- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 in progress: AUD-033, AUD-032 (`62e86ff`), AUD-029 (`55778e6`) done — full suite 440/440 green (incl. 3 browser smoke tests); AUD-034, 026 pending.
+- **Remediation progress:** Fix Phase 1 (`1956bf2`), Phase 2 (`fa56b44`), Phase 3 (`512a97c`), Phase 4 (`a93f9ba`), Phase 5 (`e1255e3`) landed — 433/433 tests green. Fix Phase 6 complete: AUD-033 (`ea3b426`), AUD-032 (`62e86ff`), AUD-029 (`55778e6`), AUD-026 + AUD-034 (`<pending>`) done. **All 34 findings now Fixed.**
 
 ## Executive summary
 
@@ -404,8 +404,8 @@
 ## [AUD-026] Add throttling to api/v1 lookups, document download, and audit-log endpoints
 
 - **Severity:** Low · **Category:** Security · **Source:** SEC-4
-- **Location:** `routes/web.php` (api/v1 group), `routes/sao.php`/document download route, `routes/admin.php` (audit-logs)
-- **Status:** Open
+- **Location:** `routes/web.php` (api/v1 group + document download route), `routes/admin.php` (audit-logs)
+- **Status:** Fixed in `<pending>` (two named limiters in `FortifyServiceProvider::configureRateLimiting()` keyed by user id: `lookups` 60/min on the `api/v1` group + download route, `audit-logs` 30/min on the admin audit-log endpoint; `tests/Feature/EndpointThrottleTest.php` asserts each 429 via the `md5()`-increment pattern)
 
 **Problem** — Authenticated-but-unthrottled endpoints allow load amplification (the audit-log endpoint especially, given AUD-008). Authorization is correct on all of them.
 
@@ -501,7 +501,7 @@
 
 - **Severity:** Low · **Category:** Security · **Source:** SEC-8
 - **Location:** `.env.example` (`APP_DEBUG=true`, no `SESSION_SECURE_COOKIE`), deployment docs (none)
-- **Status:** Open
+- **Status:** Fixed in `<pending>` (production hardening checklist added as `plan/context.md` §16, cross-referencing AUD-003/002/032/030/012/011/026; `.env.example` gained a header pointer to it and a commented `SESSION_SECURE_COOKIE=false` knob)
 
 **Problem** — No production checklist exists; the example env defaults are dev-oriented. With debug on in prod, exceptions (e.g. AUD-003's QueryException) leak schema/paths.
 

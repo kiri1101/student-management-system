@@ -151,6 +151,19 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('verification', function (Request $request) {
             return Limit::perMinute(3)->by($request->user()?->getAuthIdentifier() ?? $request->ip());
         });
+
+        // AUD-026: authenticated-but-unthrottled JSON lookups and the document
+        // download. Generous per-user ceilings that stop load amplification
+        // without touching normal UI flows (cascading dropdowns, file fetches).
+        RateLimiter::for('lookups', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->getAuthIdentifier() ?? $request->ip());
+        });
+
+        // AUD-026: tighter limiter for the admin audit-log modal endpoint —
+        // it reads a growing table (AUD-008), so it gets a smaller budget.
+        RateLimiter::for('audit-logs', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->getAuthIdentifier() ?? $request->ip());
+        });
     }
 
     /**

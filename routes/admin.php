@@ -16,7 +16,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
 
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs', [AuditLogController::class, 'index'])
+            ->middleware('throttle:audit-logs')
+            ->name('audit-logs.index');
 
         // User management
         Route::get('users', [UserController::class, 'index'])->name('users.index');

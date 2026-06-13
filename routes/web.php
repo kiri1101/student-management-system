@@ -38,9 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 
     Route::get('applications/{application}/documents/{document}/download', DocumentDownloadController::class)
         ->scopeBindings()
+        ->middleware('throttle:lookups')
         ->name('application.documents.download');
 
-    Route::prefix('api/v1')->name('api.v1.')->group(function (): void {
+    Route::prefix('api/v1')->name('api.v1.')->middleware('throttle:lookups')->group(function (): void {
         Route::get('program-offerings', [ApplicationController::class, 'offerings'])->name('program-offerings.index');
         Route::get('level-requirements', [ApplicationController::class, 'levelRequirements'])->name('level-requirements.index');
     });
