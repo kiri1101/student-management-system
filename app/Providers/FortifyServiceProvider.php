@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Concerns\NormalizesPhoneNumbers;
 use App\Http\Responses\LoginResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -21,6 +22,8 @@ use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
+    use NormalizesPhoneNumbers;
+
     /**
      * A valid bcrypt hash of a random throwaway string. Checked on the
      * identifier-not-found path so a login attempt costs one hash check
@@ -62,7 +65,7 @@ class FortifyServiceProvider extends ServiceProvider
      * Configure the identifier-flexible login resolver.
      *
      * Accepts the configured username field as `email`, `users.employee_id`,
-     * or `student_profiles.matricule`.
+     * `users.phone`, or `student_profiles.matricule`.
      */
     private function configureAuthentication(): void
     {
@@ -70,12 +73,20 @@ class FortifyServiceProvider extends ServiceProvider
             $identifier = (string) $request->input(Fortify::username());
             $password = (string) $request->input('password');
 
-            // One query across the three identifier namespaces (AUD-025);
-            // they can't collide — emails carry an `@`, the other two don't.
+            // Match the submitted identifier against the stored phone in its
+            // canonical form so spaced/punctuated input still resolves (B9).
+            $phone = self::normalizePhoneNumber($identifier);
+
+            // One query across the four identifier namespaces (AUD-025); they
+            // can't collide — emails carry an `@`, matricules are `stm-…`,
+            // phones start with `+`, and employee IDs start with `[a-z0-9]`.
             $user = User::query()
-                ->where(function (Builder $query) use ($identifier): void {
+                ->where(function (Builder $query) use ($identifier, $phone): void {
                     $query->where('email', $identifier)
                         ->orWhere('employee_id', $identifier)
+                        // Skip a null phone so the clause never degrades into
+                        // `phone IS NULL` and matches phoneless accounts.
+                        ->when($phone !== null, fn (Builder $q) => $q->orWhere('phone', $phone))
                         ->orWhereHas('studentProfile', fn (Builder $profile) => $profile->where('matricule', $identifier));
                 })
                 ->first();
