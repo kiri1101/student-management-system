@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import { Banknote, Construction } from 'lucide-vue-next';
+import { Head, Link } from '@inertiajs/vue3';
+import { Banknote, Wallet } from 'lucide-vue-next';
+import Button from 'primevue/button';
 import Card from 'primevue/card';
+import { paymentStatusLabel } from '@/lib/statusDisplay';
 import accountant from '@/routes/accountant';
 
 type Profile = {
@@ -9,7 +11,10 @@ type Profile = {
     cashier_window: string | null;
 } | null;
 
-defineProps<{ profile: Profile }>();
+defineProps<{
+    profile: Profile;
+    statusCounts: Record<string, number>;
+}>();
 
 defineOptions({
     layout: {
@@ -21,6 +26,8 @@ defineOptions({
         ],
     },
 });
+
+const STATUSES = ['submitted', 'validated', 'rejected'];
 </script>
 
 <template>
@@ -57,18 +64,30 @@ defineOptions({
         </Card>
 
         <Card>
-            <template #content>
-                <div class="flex flex-col items-center gap-2 py-8 text-center">
-                    <Construction class="size-8 text-muted-foreground/40" />
-                    <p class="text-sm font-medium">
-                        Payment validation is coming soon
-                    </p>
-                    <p class="max-w-md text-sm text-muted-foreground">
-                        School-receipt issuance, payment verification and
-                        tuition-deferral handling will appear here once the
-                        payments module ships.
-                    </p>
+            <template #title>
+                <div class="flex items-center gap-2">
+                    <Wallet class="size-5" />
+                    <span>Payment review queue</span>
                 </div>
+            </template>
+            <template #content>
+                <ul class="space-y-1">
+                    <li
+                        v-for="status in STATUSES"
+                        :key="status"
+                        class="flex justify-between"
+                    >
+                        <span>{{ paymentStatusLabel(status) }}</span>
+                        <span class="font-mono">{{
+                            statusCounts[status] ?? 0
+                        }}</span>
+                    </li>
+                </ul>
+            </template>
+            <template #footer>
+                <Link :href="accountant.payments.index().url">
+                    <Button label="Review payments" size="small" />
+                </Link>
             </template>
         </Card>
     </div>

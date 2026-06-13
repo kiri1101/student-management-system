@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Enums\DegreeProgram;
 use App\Models\Department;
 use App\Models\DocumentType;
+use App\Models\FeeInstallment;
+use App\Models\FeeSchedule;
 use App\Models\LevelCredentialRequirement;
 use App\Models\ProgramOffering;
 use Illuminate\Database\Seeder;
@@ -58,6 +60,36 @@ class DemoReferencesSeeder extends Seeder
                     'document_type_id' => $documentTypes[$documentCode],
                 ],
                 ['required' => true, 'notes' => $notes],
+            );
+        }
+
+        $this->seedFeeSchedule($offeringIds[DegreeProgram::Bachelors->value]);
+    }
+
+    /**
+     * A demo Bachelors level-1 fee schedule split into two installments,
+     * so the accountant/student payment flow has something to validate against.
+     */
+    private function seedFeeSchedule(int $programOfferingId): void
+    {
+        $schedule = FeeSchedule::query()->firstOrCreate(
+            [
+                'program_offering_id' => $programOfferingId,
+                'level' => 1,
+                'academic_year' => (string) now()->year,
+            ],
+            ['total_xaf' => 500_000],
+        );
+
+        $installments = [
+            [1, 'First installment', 300_000, now()->startOfYear()->addMonths(2)->toDateString()],
+            [2, 'Second installment', 200_000, now()->startOfYear()->addMonths(6)->toDateString()],
+        ];
+
+        foreach ($installments as [$sequence, $label, $amount, $dueDate]) {
+            FeeInstallment::query()->firstOrCreate(
+                ['fee_schedule_id' => $schedule->id, 'sequence' => $sequence],
+                ['label' => $label, 'amount_xaf' => $amount, 'due_date' => $dueDate],
             );
         }
     }
