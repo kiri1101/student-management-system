@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
+    CalendarClock,
     Database,
     FilePlus2,
     Inbox,
@@ -90,11 +91,18 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     // Payment review is reachable by accountants and admins (role:accountant,admin).
     if (hasRole('accountant') || hasRole('admin')) {
-        items.push({
-            title: 'Payment review',
-            href: accountant.payments.index(),
-            icon: Wallet,
-        });
+        items.push(
+            {
+                title: 'Payment review',
+                href: accountant.payments.index(),
+                icon: Wallet,
+            },
+            {
+                title: 'Deferrals',
+                href: accountant.deferrals.index(),
+                icon: CalendarClock,
+            },
+        );
     }
 
     if (hasRole('student')) {

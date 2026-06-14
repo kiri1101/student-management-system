@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { Banknote, Wallet } from 'lucide-vue-next';
+import { Banknote, CalendarClock, Wallet } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
-import { paymentStatusLabel } from '@/lib/statusDisplay';
+import { deferralStatusLabel, paymentStatusLabel } from '@/lib/statusDisplay';
 import accountant from '@/routes/accountant';
 
 type Profile = {
@@ -14,6 +14,7 @@ type Profile = {
 defineProps<{
     profile: Profile;
     statusCounts: Record<string, number>;
+    deferralCounts: Record<string, number>;
 }>();
 
 defineOptions({
@@ -28,6 +29,7 @@ defineOptions({
 });
 
 const STATUSES = ['submitted', 'validated', 'rejected'];
+const DEFERRAL_STATUSES = ['requested', 'approved', 'rejected'];
 </script>
 
 <template>
@@ -87,6 +89,34 @@ const STATUSES = ['submitted', 'validated', 'rejected'];
             <template #footer>
                 <Link :href="accountant.payments.index().url">
                     <Button label="Review payments" size="small" />
+                </Link>
+            </template>
+        </Card>
+
+        <Card>
+            <template #title>
+                <div class="flex items-center gap-2">
+                    <CalendarClock class="size-5" />
+                    <span>Deferral requests</span>
+                </div>
+            </template>
+            <template #content>
+                <ul class="space-y-1">
+                    <li
+                        v-for="status in DEFERRAL_STATUSES"
+                        :key="status"
+                        class="flex justify-between"
+                    >
+                        <span>{{ deferralStatusLabel(status) }}</span>
+                        <span class="font-mono">{{
+                            deferralCounts[status] ?? 0
+                        }}</span>
+                    </li>
+                </ul>
+            </template>
+            <template #footer>
+                <Link :href="accountant.deferrals.index().url">
+                    <Button label="Review deferrals" size="small" />
                 </Link>
             </template>
         </Card>
