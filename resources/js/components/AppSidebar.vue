@@ -8,6 +8,7 @@ import {
     Inbox,
     LayoutGrid,
     ScrollText,
+    ShieldQuestion,
     Users,
     Wallet,
 } from 'lucide-vue-next';
@@ -29,6 +30,7 @@ import accountant from '@/routes/accountant';
 import admin from '@/routes/admin';
 import application from '@/routes/application';
 import sao from '@/routes/sao';
+import standing from '@/routes/standing';
 import student from '@/routes/student';
 import type { NavItem } from '@/types';
 
@@ -103,6 +105,15 @@ const mainNavItems = computed<NavItem[]>(() => {
                 icon: CalendarClock,
             },
         );
+    }
+
+    // Staff payment-standing lookup (role:sao,accountant,admin).
+    if (hasRole('sao') || hasRole('accountant') || hasRole('admin')) {
+        items.push({
+            title: 'Standing check',
+            href: standing.check(),
+            icon: ShieldQuestion,
+        });
     }
 
     if (hasRole('student')) {

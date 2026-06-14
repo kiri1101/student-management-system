@@ -10,6 +10,8 @@ use App\Http\Requests\Student\StorePaymentRequest;
 use App\Models\FeeSchedule;
 use App\Models\PaymentSubmission;
 use App\Models\StudentProfile;
+use App\Models\TuitionDeferral;
+use App\Services\PaymentStandingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +33,7 @@ class PaymentController extends Controller
      * The student's own payment record: enrollment + fee schedule, running
      * validated total, and the list of reported deposits with their status.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, PaymentStandingService $standing): Response
     {
         $profile = $request->user()->studentProfile()
             ->with('programOffering.department:id,name,code')
@@ -65,11 +67,39 @@ class PaymentController extends Controller
             ],
             'schedule' => $profile === null ? null : $this->scheduleSummary($profile),
             'validatedTotal' => $validatedTotal,
+            'standing' => $profile === null ? null : $standing->for($profile)->toArray(),
+            'deferrals' => $profile === null ? [] : $this->deferralList($profile),
             'submissions' => $submissions->values(),
             'banks' => collect(Bank::cases())
                 ->map(fn (Bank $bank): array => ['value' => $bank->value, 'label' => $bank->label()])
                 ->values(),
         ]);
+    }
+
+    /**
+     * The student's own deferral requests for the current year, newest first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function deferralList(StudentProfile $profile): array
+    {
+        return TuitionDeferral::query()
+            ->where('student_profile_id', $profile->id)
+            ->orderByDesc('created_at')
+            ->limit(self::MAX_SUBMISSIONS)
+            ->get()
+            ->map(fn (TuitionDeferral $deferral): array => [
+                'id' => $deferral->id,
+                'status' => $deferral->status->value,
+                'academic_year' => $deferral->academic_year,
+                'reason' => $deferral->reason,
+                'requested_new_deadline' => $deferral->requested_new_deadline?->toDateString(),
+                'new_deadline' => $deferral->new_deadline?->toDateString(),
+                'decision_notes' => $deferral->decision_notes,
+                'created_at' => $deferral->created_at?->toIso8601String(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
