@@ -212,3 +212,60 @@ it('redirects guests to login from the document view route', function () {
         'document' => $document->id,
     ]))->assertRedirect(route('login'));
 });
+
+/*
+|--------------------------------------------------------------------------
+| Inline-serving hardening — stored XSS on the app origin (AUD)
+|--------------------------------------------------------------------------
+*/
+
+it('refuses to serve a slip whose stored MIME is not inline-safe', function () {
+    Storage::fake();
+    $payment = inlineViewPaymentWithSlip();
+    $payment->update(['slip_mime_type' => 'text/html']);
+
+    $this->actingAs($payment->studentProfile->user)
+        ->get(route('payments.slip.view', $payment))
+        ->assertStatus(415);
+});
+
+it('forces the validated MIME and sandboxing headers on an inline slip', function () {
+    Storage::fake();
+    $payment = inlineViewPaymentWithSlip();
+
+    $response = $this->actingAs($payment->studentProfile->user)
+        ->get(route('payments.slip.view', $payment));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/pdf')
+        ->assertHeader('x-content-type-options', 'nosniff');
+    expect($response->headers->get('content-security-policy'))->toContain('sandbox');
+});
+
+it('refuses to serve an application document whose stored MIME is not inline-safe', function () {
+    Storage::fake('local');
+    $applicant = User::factory()->create();
+    [$application, $document] = inlineViewApplicationDocument($applicant);
+    $document->update(['mime_type' => 'image/svg+xml']);
+
+    $this->actingAs($applicant)->get(route('application.documents.view', [
+        'application' => $application->id,
+        'document' => $document->id,
+    ]))->assertStatus(415);
+});
+
+it('forces the validated MIME and sandboxing headers on an inline document', function () {
+    Storage::fake('local');
+    $applicant = User::factory()->create();
+    [$application, $document] = inlineViewApplicationDocument($applicant);
+
+    $response = $this->actingAs($applicant)->get(route('application.documents.view', [
+        'application' => $application->id,
+        'document' => $document->id,
+    ]));
+
+    $response->assertOk()
+        ->assertHeader('content-type', 'application/pdf')
+        ->assertHeader('x-content-type-options', 'nosniff');
+    expect($response->headers->get('content-security-policy'))->toContain('sandbox');
+});
