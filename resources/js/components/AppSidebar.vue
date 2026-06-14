@@ -2,11 +2,13 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
+    CalendarClock,
     Database,
     FilePlus2,
     Inbox,
     LayoutGrid,
     ScrollText,
+    ShieldQuestion,
     Users,
     Wallet,
 } from 'lucide-vue-next';
@@ -28,6 +30,7 @@ import accountant from '@/routes/accountant';
 import admin from '@/routes/admin';
 import application from '@/routes/application';
 import sao from '@/routes/sao';
+import standing from '@/routes/standing';
 import student from '@/routes/student';
 import type { NavItem } from '@/types';
 
@@ -90,10 +93,26 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     // Payment review is reachable by accountants and admins (role:accountant,admin).
     if (hasRole('accountant') || hasRole('admin')) {
+        items.push(
+            {
+                title: 'Payment review',
+                href: accountant.payments.index(),
+                icon: Wallet,
+            },
+            {
+                title: 'Deferrals',
+                href: accountant.deferrals.index(),
+                icon: CalendarClock,
+            },
+        );
+    }
+
+    // Staff payment-standing lookup (role:sao,accountant,admin).
+    if (hasRole('sao') || hasRole('accountant') || hasRole('admin')) {
         items.push({
-            title: 'Payment review',
-            href: accountant.payments.index(),
-            icon: Wallet,
+            title: 'Standing check',
+            href: standing.check(),
+            icon: ShieldQuestion,
         });
     }
 

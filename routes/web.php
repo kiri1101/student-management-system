@@ -7,6 +7,7 @@ use App\Http\Controllers\Dashboards\LecturerDashboardController;
 use App\Http\Controllers\Dashboards\StudentDashboardController;
 use App\Http\Controllers\Payments\PaymentSlipDownloadController;
 use App\Http\Controllers\Receipts\VerifyReceiptController;
+use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('payments/{payment}/slip', PaymentSlipDownloadController::class)
         ->middleware('throttle:lookups')
         ->name('payments.slip');
+
+    // Staff payment-standing lookup (#8): reachable by exam/gate-facing staff.
+    Route::get('standing', StandingController::class)
+        ->middleware('role:sao,accountant,admin')
+        ->name('standing.check');
 
     Route::prefix('api/v1')->name('api.v1.')->middleware('throttle:lookups')->group(function (): void {
         Route::get('program-offerings', [ApplicationController::class, 'offerings'])->name('program-offerings.index');

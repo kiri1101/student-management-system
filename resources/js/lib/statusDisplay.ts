@@ -48,6 +48,26 @@ const PAYMENT_STATUS: Record<
     rejected: { label: 'Rejected', severity: 'danger' },
 };
 
+/** `App\Enums\DeferralStatus` */
+const DEFERRAL_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    requested: { label: 'Requested', severity: 'info' },
+    approved: { label: 'Approved', severity: 'success' },
+    rejected: { label: 'Rejected', severity: 'danger' },
+};
+
+/** `App\Enums\PaymentStanding` — computed access-gating verdict */
+const PAYMENT_STANDING: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    cleared: { label: 'Cleared', severity: 'success' },
+    blocked: { label: 'Blocked', severity: 'danger' },
+    deferred: { label: 'Deferred', severity: 'warn' },
+};
+
 /** `App\Enums\DegreeProgram` */
 const DEGREE_LABELS: Record<string, string> = {
     hnd: 'HND',
@@ -87,6 +107,22 @@ export function paymentStatusLabel(status: string): string {
 
 export function paymentStatusSeverity(status: string): TagSeverity {
     return PAYMENT_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function deferralStatusLabel(status: string): string {
+    return DEFERRAL_STATUS[status]?.label ?? status;
+}
+
+export function deferralStatusSeverity(status: string): TagSeverity {
+    return DEFERRAL_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function standingLabel(status: string): string {
+    return PAYMENT_STANDING[status]?.label ?? status;
+}
+
+export function standingSeverity(status: string): TagSeverity {
+    return PAYMENT_STANDING[status]?.severity ?? 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {
