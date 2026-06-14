@@ -41,8 +41,8 @@ defineOptions({
 
 const canSubmit = computed(
     () =>
-        props.course.plan_status === 'Draft' ||
-        props.course.plan_status === 'Rejected',
+        props.course.plan_status === 'draft' ||
+        props.course.plan_status === 'rejected',
 );
 
 const form = useForm({ description: props.course.description ?? '' });
@@ -114,7 +114,7 @@ function submitForApproval(): void {
         </Card>
 
         <Message
-            v-if="course.plan_status === 'Rejected' && course.plan_review_notes"
+            v-if="course.plan_status === 'rejected' && course.plan_review_notes"
             severity="error"
             :closable="false"
         >

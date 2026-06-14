@@ -221,7 +221,7 @@ function goToEdit(course: CourseRow): void {
                                     </template>
                                 </Button>
                                 <template
-                                    v-if="data.plan_status === 'Submitted'"
+                                    v-if="data.plan_status === 'submitted'"
                                 >
                                     <Button
                                         label="Approve"

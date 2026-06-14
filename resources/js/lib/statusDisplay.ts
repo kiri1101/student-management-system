@@ -73,10 +73,31 @@ const COURSE_PLAN_STATUS: Record<
     string,
     { label: string; severity: TagSeverity }
 > = {
-    Draft: { label: 'Draft', severity: 'secondary' },
-    Submitted: { label: 'Submitted', severity: 'info' },
-    Approved: { label: 'Approved', severity: 'success' },
-    Rejected: { label: 'Rejected', severity: 'danger' },
+    draft: { label: 'Draft', severity: 'secondary' },
+    submitted: { label: 'Submitted', severity: 'info' },
+    approved: { label: 'Approved', severity: 'success' },
+    rejected: { label: 'Rejected', severity: 'danger' },
+};
+
+/** `App\Enums\SessionStatus` */
+const SESSION_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    scheduled: { label: 'Scheduled', severity: 'info' },
+    held: { label: 'Held', severity: 'success' },
+    cancelled: { label: 'Cancelled', severity: 'danger' },
+};
+
+/** `App\Enums\AttendanceStatus` */
+const ATTENDANCE_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    present: { label: 'Present', severity: 'success' },
+    absent: { label: 'Absent', severity: 'danger' },
+    late: { label: 'Late', severity: 'warn' },
+    excused: { label: 'Excused', severity: 'secondary' },
 };
 
 /** `App\Enums\DegreeProgram` */
@@ -142,6 +163,24 @@ export function coursePlanStatusLabel(status: string): string {
 
 export function coursePlanStatusSeverity(status: string): TagSeverity {
     return COURSE_PLAN_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function sessionStatusLabel(status: string): string {
+    return SESSION_STATUS[status]?.label ?? status;
+}
+
+export function sessionStatusSeverity(status: string): TagSeverity {
+    return SESSION_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function attendanceStatusLabel(status: string | null): string {
+    return status ? (ATTENDANCE_STATUS[status]?.label ?? status) : '—';
+}
+
+export function attendanceStatusSeverity(
+    status: string | null,
+): TagSeverity {
+    return status ? (ATTENDANCE_STATUS[status]?.severity ?? 'secondary') : 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {

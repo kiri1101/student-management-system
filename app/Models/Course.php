@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -66,6 +67,14 @@ class Course extends Model
     public function planReviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'plan_reviewed_by');
+    }
+
+    /**
+     * @return HasMany<CourseSession, $this>
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(CourseSession::class);
     }
 
     /**

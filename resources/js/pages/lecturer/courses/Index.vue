@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { BookOpen } from 'lucide-vue-next';
+import { BookOpen, CalendarClock } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -98,7 +98,7 @@ defineOptions({
                                 />
                                 <span
                                     v-if="
-                                        data.plan_status === 'Rejected' &&
+                                        data.plan_status === 'rejected' &&
                                         data.plan_review_notes
                                     "
                                     class="text-xs text-destructive"
@@ -108,9 +108,38 @@ defineOptions({
                             </div>
                         </template>
                     </Column>
-                    <Column header="" style="width: 8rem">
+                    <Column header="" style="width: 13rem">
                         <template #body="{ data }">
-                            <div class="flex items-center justify-end">
+                            <div class="flex items-center justify-end gap-1">
+                                <Link
+                                    v-if="data.plan_status === 'approved'"
+                                    :href="
+                                        lecturer.courses.sessions.index(data.id)
+                                            .url
+                                    "
+                                >
+                                    <Button
+                                        label="Sessions"
+                                        severity="secondary"
+                                        text
+                                        size="small"
+                                    >
+                                        <template #icon>
+                                            <CalendarClock class="size-4" />
+                                        </template>
+                                    </Button>
+                                </Link>
+                                <Button
+                                    v-else
+                                    v-tooltip.top="
+                                        'Approve the course plan to manage sessions'
+                                    "
+                                    label="Sessions"
+                                    severity="secondary"
+                                    text
+                                    size="small"
+                                    disabled
+                                />
                                 <Link :href="lecturer.courses.edit(data.id).url">
                                     <Button
                                         label="Edit plan"

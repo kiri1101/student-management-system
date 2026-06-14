@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
     BookOpen,
+    CalendarCheck,
     CalendarClock,
     Database,
     FilePlus2,
@@ -38,6 +39,7 @@ import { index as lecturerCoursesIndex } from '@/routes/lecturer/courses';
 import { index as saoApplicationsIndex } from '@/routes/sao/applications';
 import { index as saoCoursesIndex } from '@/routes/sao/courses';
 import { check as standingCheck } from '@/routes/standing';
+import { index as studentAttendanceIndex } from '@/routes/student/attendance';
 import { index as studentPaymentsIndex } from '@/routes/student/payments';
 import type { NavItem } from '@/types';
 
@@ -139,11 +141,18 @@ const mainNavItems = computed<NavItem[]>(() => {
     }
 
     if (hasRole('student')) {
-        items.push({
-            title: 'My payments',
-            href: studentPaymentsIndex(),
-            icon: Wallet,
-        });
+        items.push(
+            {
+                title: 'My payments',
+                href: studentPaymentsIndex(),
+                icon: Wallet,
+            },
+            {
+                title: 'My attendance',
+                href: studentAttendanceIndex(),
+                icon: CalendarCheck,
+            },
+        );
     }
 
     if (hasRole('applicant')) {
