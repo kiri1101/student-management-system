@@ -31,7 +31,7 @@ function c1CoursePayload(array $overrides = []): array
     return [
         'program_offering_id' => c1CourseOfferingId(),
         'level' => 100,
-        'academic_year' => '2025-2026',
+        'academic_year' => '2026',
         'code' => 'CS101',
         'title' => 'Introduction to Computer Science',
         'credits' => 6,
@@ -53,7 +53,7 @@ it('lets an SAO create a course, persisting the row and a CourseCreated audit', 
     $course = Course::query()->where('code', 'CS101')->sole();
     expect($course->program_offering_id)->toBe($payload['program_offering_id'])
         ->and($course->level)->toBe(100)
-        ->and($course->academic_year)->toBe('2025-2026')
+        ->and($course->academic_year)->toBe('2026')
         ->and($course->title)->toBe('Introduction to Computer Science')
         ->and($course->credits)->toBe(6)
         ->and($course->semester)->toBe(1)
@@ -74,14 +74,14 @@ it('rejects a duplicate course on (program_offering, level, academic_year, code)
     Course::factory()->draft()->create([
         'program_offering_id' => $offeringId,
         'level' => 100,
-        'academic_year' => '2025-2026',
+        'academic_year' => '2026',
         'code' => 'CS101',
     ]);
 
     $response = $this->actingAs($sao)->post(route('sao.courses.store'), c1CoursePayload([
         'program_offering_id' => $offeringId,
         'level' => 100,
-        'academic_year' => '2025-2026',
+        'academic_year' => '2026',
         'code' => 'CS101',
     ]));
 
@@ -96,14 +96,14 @@ it('allows the same code for a different level/year/offering', function () {
     Course::factory()->draft()->create([
         'program_offering_id' => $offeringId,
         'level' => 100,
-        'academic_year' => '2025-2026',
+        'academic_year' => '2026',
         'code' => 'CS101',
     ]);
 
     $this->actingAs($sao)->post(route('sao.courses.store'), c1CoursePayload([
         'program_offering_id' => $offeringId,
         'level' => 200,
-        'academic_year' => '2025-2026',
+        'academic_year' => '2026',
         'code' => 'CS101',
     ]))->assertSessionHasNoErrors();
 
