@@ -20,4 +20,9 @@ enum AuditAction: string
     case ReceiptIssued = 'receipt_issued';
     case DeferralApproved = 'deferral_approved';
     case DeferralRejected = 'deferral_rejected';
+    case CourseCreated = 'course_created';
+    case LecturerAssigned = 'lecturer_assigned';
+    case CoursePlanSubmitted = 'course_plan_submitted';
+    case CoursePlanApproved = 'course_plan_approved';
+    case CoursePlanRejected = 'course_plan_rejected';
 }

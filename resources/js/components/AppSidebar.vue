@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Banknote,
+    BookOpen,
     CalendarClock,
     Database,
     FilePlus2,
@@ -26,12 +27,18 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import accountant from '@/routes/accountant';
-import admin from '@/routes/admin';
-import application from '@/routes/application';
-import sao from '@/routes/sao';
-import standing from '@/routes/standing';
-import student from '@/routes/student';
+import { index as accountantDeferralsIndex } from '@/routes/accountant/deferrals';
+import { index as accountantPaymentsIndex } from '@/routes/accountant/payments';
+import { index as adminAuditLogsIndex } from '@/routes/admin/audit-logs';
+import { index as adminFeesIndex } from '@/routes/admin/fees';
+import { index as adminReferencesIndex } from '@/routes/admin/references';
+import { index as adminUsersIndex } from '@/routes/admin/users';
+import { create as applicationCreate } from '@/routes/application';
+import { index as lecturerCoursesIndex } from '@/routes/lecturer/courses';
+import { index as saoApplicationsIndex } from '@/routes/sao/applications';
+import { index as saoCoursesIndex } from '@/routes/sao/courses';
+import { check as standingCheck } from '@/routes/standing';
+import { index as studentPaymentsIndex } from '@/routes/student/payments';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -60,22 +67,22 @@ const mainNavItems = computed<NavItem[]>(() => {
         items.push(
             {
                 title: 'Users',
-                href: admin.users.index(),
+                href: adminUsersIndex(),
                 icon: Users,
             },
             {
                 title: 'Reference data',
-                href: admin.references.index(),
+                href: adminReferencesIndex(),
                 icon: Database,
             },
             {
                 title: 'Fees',
-                href: admin.fees.index(),
+                href: adminFeesIndex(),
                 icon: Banknote,
             },
             {
                 title: 'Audit logs',
-                href: admin.auditLogs.index(),
+                href: adminAuditLogsIndex(),
                 icon: ScrollText,
             },
         );
@@ -84,10 +91,25 @@ const mainNavItems = computed<NavItem[]>(() => {
     // SAO routes are also reachable by admins (role:sao,admin), so surface the
     // review queue for either role.
     if (hasRole('sao') || hasRole('admin')) {
+        items.push(
+            {
+                title: 'Application review',
+                href: saoApplicationsIndex(),
+                icon: Inbox,
+            },
+            {
+                title: 'Courses',
+                href: saoCoursesIndex(),
+                icon: BookOpen,
+            },
+        );
+    }
+
+    if (hasRole('lecturer')) {
         items.push({
-            title: 'Application review',
-            href: sao.applications.index(),
-            icon: Inbox,
+            title: 'My courses',
+            href: lecturerCoursesIndex(),
+            icon: BookOpen,
         });
     }
 
@@ -96,12 +118,12 @@ const mainNavItems = computed<NavItem[]>(() => {
         items.push(
             {
                 title: 'Payment review',
-                href: accountant.payments.index(),
+                href: accountantPaymentsIndex(),
                 icon: Wallet,
             },
             {
                 title: 'Deferrals',
-                href: accountant.deferrals.index(),
+                href: accountantDeferralsIndex(),
                 icon: CalendarClock,
             },
         );
@@ -111,7 +133,7 @@ const mainNavItems = computed<NavItem[]>(() => {
     if (hasRole('sao') || hasRole('accountant') || hasRole('admin')) {
         items.push({
             title: 'Standing check',
-            href: standing.check(),
+            href: standingCheck(),
             icon: ShieldQuestion,
         });
     }
@@ -119,7 +141,7 @@ const mainNavItems = computed<NavItem[]>(() => {
     if (hasRole('student')) {
         items.push({
             title: 'My payments',
-            href: student.payments.index(),
+            href: studentPaymentsIndex(),
             icon: Wallet,
         });
     }
@@ -127,7 +149,7 @@ const mainNavItems = computed<NavItem[]>(() => {
     if (hasRole('applicant')) {
         items.push({
             title: 'New application',
-            href: application.create(),
+            href: applicationCreate(),
             icon: FilePlus2,
         });
     }

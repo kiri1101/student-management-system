@@ -68,6 +68,17 @@ const PAYMENT_STANDING: Record<
     deferred: { label: 'Deferred', severity: 'warn' },
 };
 
+/** `App\Enums\CoursePlanStatus` */
+const COURSE_PLAN_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    Draft: { label: 'Draft', severity: 'secondary' },
+    Submitted: { label: 'Submitted', severity: 'info' },
+    Approved: { label: 'Approved', severity: 'success' },
+    Rejected: { label: 'Rejected', severity: 'danger' },
+};
+
 /** `App\Enums\DegreeProgram` */
 const DEGREE_LABELS: Record<string, string> = {
     hnd: 'HND',
@@ -123,6 +134,14 @@ export function standingLabel(status: string): string {
 
 export function standingSeverity(status: string): TagSeverity {
     return PAYMENT_STANDING[status]?.severity ?? 'secondary';
+}
+
+export function coursePlanStatusLabel(status: string): string {
+    return COURSE_PLAN_STATUS[status]?.label ?? status;
+}
+
+export function coursePlanStatusSeverity(status: string): TagSeverity {
+    return COURSE_PLAN_STATUS[status]?.severity ?? 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {

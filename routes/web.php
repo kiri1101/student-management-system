@@ -79,5 +79,6 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/sao.php';
+require __DIR__.'/lecturer.php';
 require __DIR__.'/student.php';
 require __DIR__.'/accountant.php';
