@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Applications\ApplicationController;
 use App\Http\Controllers\Applications\DocumentDownloadController;
+use App\Http\Controllers\Applications\DocumentViewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboards\LecturerDashboardController;
 use App\Http\Controllers\Dashboards\StudentDashboardController;
 use App\Http\Controllers\Payments\PaymentSlipDownloadController;
+use App\Http\Controllers\Payments\PaymentSlipViewController;
 use App\Http\Controllers\Receipts\VerifyReceiptController;
 use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
@@ -45,11 +47,23 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->middleware('throttle:lookups')
         ->name('application.documents.download');
 
+    // Inline sibling of the download route — same auth/binding, renders the file
+    // in the browser (Content-Disposition: inline) instead of forcing a download.
+    Route::get('applications/{application}/documents/{document}/view', DocumentViewController::class)
+        ->scopeBindings()
+        ->middleware('throttle:lookups')
+        ->name('application.documents.view');
+
     // Payment slips are reachable by the reporting student and by reviewing
     // accountants/admins; the controller enforces ownership/role itself.
     Route::get('payments/{payment}/slip', PaymentSlipDownloadController::class)
         ->middleware('throttle:lookups')
         ->name('payments.slip');
+
+    // Inline sibling of the slip download route — same auth, renders in-browser.
+    Route::get('payments/{payment}/slip/view', PaymentSlipViewController::class)
+        ->middleware('throttle:lookups')
+        ->name('payments.slip.view');
 
     // Staff payment-standing lookup (#8): reachable by exam/gate-facing staff.
     Route::get('standing', StandingController::class)

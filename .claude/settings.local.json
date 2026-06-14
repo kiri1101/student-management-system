@@ -10,7 +10,8 @@
       "Bash(vendor/bin/pest tests/Feature/Auth/AuthenticationTest.php)",
       "Bash(vendor/bin/pest tests/Feature/Applications/)",
       "Bash(php -d memory_limit=512M artisan test --compact tests/Feature/Sao/SaoDashboardTest.php)",
-      "Bash(php -r \"file_put_contents\\('storage/logs/laravel.log', ''\\);\")"
+      "Bash(php -r \"file_put_contents\\('storage/logs/laravel.log', ''\\);\")",
+      "PowerShell(git *)"
     ]
   },
   "enableAllProjectMcpServers": true,
