@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sao;
 
+use App\Actions\Sao\PublishCourseResults;
 use App\Actions\Sao\ReviewCoursePlanApproval;
 use App\Enums\AuditAction;
 use App\Http\Controllers\Controller;
@@ -140,6 +141,17 @@ class CourseController extends Controller
         $this->reviewCoursePlan->reject($course, $request->user(), $request->string('notes')->toString());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Course plan rejected.')]);
+
+        return back();
+    }
+
+    public function publishResults(Request $request, Course $course, PublishCourseResults $action): RedirectResponse
+    {
+        Gate::authorize('publish-results');
+
+        $count = $action->publish($course, $request->user());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Published :count result(s).', ['count' => $count])]);
 
         return back();
     }

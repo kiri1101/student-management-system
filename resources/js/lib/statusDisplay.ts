@@ -109,6 +109,26 @@ const ASSIGNMENT_SUBMISSION_STATUS: Record<
     graded: { label: 'Graded', severity: 'success' },
 };
 
+/** `App\Enums\ResultStatus` */
+const RESULT_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    draft: { label: 'Draft', severity: 'secondary' },
+    published: { label: 'Published', severity: 'success' },
+};
+
+/** `App\Enums\DisputeStatus` */
+const DISPUTE_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    open: { label: 'Open', severity: 'info' },
+    under_review: { label: 'Under review', severity: 'warn' },
+    resolved: { label: 'Resolved', severity: 'success' },
+    rejected: { label: 'Rejected', severity: 'danger' },
+};
+
 /** `App\Enums\DegreeProgram` */
 const DEGREE_LABELS: Record<string, string> = {
     hnd: 'HND',
@@ -200,6 +220,22 @@ export function assignmentSubmissionStatusSeverity(
     status: string,
 ): TagSeverity {
     return ASSIGNMENT_SUBMISSION_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function resultStatusLabel(status: string): string {
+    return RESULT_STATUS[status]?.label ?? status;
+}
+
+export function resultStatusSeverity(status: string): TagSeverity {
+    return RESULT_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function disputeStatusLabel(status: string): string {
+    return DISPUTE_STATUS[status]?.label ?? status;
+}
+
+export function disputeStatusSeverity(status: string): TagSeverity {
+    return DISPUTE_STATUS[status]?.severity ?? 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {

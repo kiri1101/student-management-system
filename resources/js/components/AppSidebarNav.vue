@@ -8,6 +8,8 @@ import {
     Database,
     FilePlus2,
     FileText,
+    Gavel,
+    GraduationCap,
     Inbox,
     LayoutGrid,
     ScrollText,
@@ -28,10 +30,12 @@ import { create as applicationCreate } from '@/routes/application';
 import { index as lecturerCoursesIndex } from '@/routes/lecturer/courses';
 import { index as saoApplicationsIndex } from '@/routes/sao/applications';
 import { index as saoCoursesIndex } from '@/routes/sao/courses';
+import { index as saoDisputesIndex } from '@/routes/sao/disputes';
 import { check as standingCheck } from '@/routes/standing';
 import { index as studentAssignmentsIndex } from '@/routes/student/assignments';
 import { index as studentAttendanceIndex } from '@/routes/student/attendance';
 import { index as studentPaymentsIndex } from '@/routes/student/payments';
+import { index as studentResultsIndex } from '@/routes/student/results';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -101,6 +105,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 href: saoCoursesIndex(),
                 icon: BookOpen,
             },
+            {
+                title: 'Disputes',
+                href: saoDisputesIndex(),
+                icon: Gavel,
+            },
         );
     }
 
@@ -153,6 +162,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 title: 'My assignments',
                 href: studentAssignmentsIndex(),
                 icon: FileText,
+            },
+            {
+                title: 'My results',
+                href: studentResultsIndex(),
+                icon: GraduationCap,
             },
         );
     }

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { BookOpen, CalendarClock, FileText } from 'lucide-vue-next';
+import {
+    BookOpen,
+    CalendarClock,
+    FileText,
+    GraduationCap,
+} from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -108,7 +113,7 @@ defineOptions({
                             </div>
                         </template>
                     </Column>
-                    <Column header="" style="width: 20rem">
+                    <Column header="" style="width: 26rem">
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-1">
                                 <Link
@@ -165,6 +170,35 @@ defineOptions({
                                         'Approve the course plan to manage assignments'
                                     "
                                     label="Assignments"
+                                    severity="secondary"
+                                    text
+                                    size="small"
+                                    disabled
+                                />
+                                <Link
+                                    v-if="data.plan_status === 'approved'"
+                                    :href="
+                                        lecturer.courses.results.index(data.id)
+                                            .url
+                                    "
+                                >
+                                    <Button
+                                        label="Results"
+                                        severity="secondary"
+                                        text
+                                        size="small"
+                                    >
+                                        <template #icon>
+                                            <GraduationCap class="size-4" />
+                                        </template>
+                                    </Button>
+                                </Link>
+                                <Button
+                                    v-else
+                                    v-tooltip.top="
+                                        'Approve the course plan to manage results'
+                                    "
+                                    label="Results"
                                     severity="secondary"
                                     text
                                     size="small"

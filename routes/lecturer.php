@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Lecturer\AssignmentController;
 use App\Http\Controllers\Lecturer\CourseController;
+use App\Http\Controllers\Lecturer\CourseResultController;
 use App\Http\Controllers\Lecturer\CourseSessionController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,5 +34,9 @@ Route::middleware(['auth', 'verified', 'role:lecturer'])
             Route::delete('courses/{course}/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('courses.assignments.destroy');
             Route::get('courses/{course}/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])->name('courses.assignments.submissions');
             Route::post('courses/{course}/assignments/{assignment}/submissions/{submission}/grade', [AssignmentController::class, 'grade'])->name('courses.assignments.grade');
+
+            // Results (CA + exam marks) live under an approved course.
+            Route::get('courses/{course}/results', [CourseResultController::class, 'index'])->name('courses.results.index');
+            Route::post('courses/{course}/results', [CourseResultController::class, 'store'])->name('courses.results.store');
         });
     });

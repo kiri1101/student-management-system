@@ -31,4 +31,8 @@ enum AuditAction: string
     case AssignmentCreated = 'assignment_created';
     case AssignmentSubmitted = 'assignment_submitted';
     case AssignmentGraded = 'assignment_graded';
+    case ResultRecorded = 'result_recorded';
+    case ResultsPublished = 'results_published';
+    case DisputeRaised = 'dispute_raised';
+    case DisputeResolved = 'dispute_resolved';
 }

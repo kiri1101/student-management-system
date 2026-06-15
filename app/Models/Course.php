@@ -86,6 +86,14 @@ class Course extends Model
     }
 
     /**
+     * @return HasMany<CourseResult, $this>
+     */
+    public function results(): HasMany
+    {
+        return $this->hasMany(CourseResult::class);
+    }
+
+    /**
      * The implicit cohort: active student profiles whose enrollment tuple
      * (offering + level + academic_year) matches this course. There is no
      * enrollment table — membership is derived (plan/course-management/plan.md).

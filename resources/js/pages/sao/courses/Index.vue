@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { BookOpen, Check, Plus, UserCog, X } from 'lucide-vue-next';
+import { BookOpen, Check, Plus, Send, UserCog, X } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -110,6 +110,27 @@ function submitReject(): void {
 function goToEdit(course: CourseRow): void {
     router.visit(sao.courses.edit(course.id).url);
 }
+
+const publishDialogVisible = ref(false);
+const publishForm = useForm({});
+
+function openPublish(course: CourseRow): void {
+    activeCourse.value = course;
+    publishDialogVisible.value = true;
+}
+
+function submitPublish(): void {
+    if (!activeCourse.value) {
+        return;
+    }
+
+    publishForm.post(sao.courses.publishResults(activeCourse.value.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            publishDialogVisible.value = false;
+        },
+    });
+}
 </script>
 
 <template>
@@ -199,7 +220,7 @@ function goToEdit(course: CourseRow): void {
                             />
                         </template>
                     </Column>
-                    <Column header="" style="width: 16rem">
+                    <Column header="" style="width: 22rem">
                         <template #body="{ data }">
                             <div class="flex items-center justify-end gap-1">
                                 <Button
@@ -246,6 +267,18 @@ function goToEdit(course: CourseRow): void {
                                         </template>
                                     </Button>
                                 </template>
+                                <Button
+                                    v-if="data.plan_status === 'approved'"
+                                    label="Publish results"
+                                    severity="success"
+                                    text
+                                    size="small"
+                                    @click="openPublish(data)"
+                                >
+                                    <template #icon>
+                                        <Send class="size-4" />
+                                    </template>
+                                </Button>
                             </div>
                         </template>
                     </Column>
@@ -362,6 +395,39 @@ function goToEdit(course: CourseRow): void {
                     />
                 </div>
             </form>
+        </Dialog>
+
+        <Dialog
+            v-model:visible="publishDialogVisible"
+            header="Publish results"
+            modal
+            :style="{ width: '32rem' }"
+            :dismissable-mask="!publishForm.processing"
+            :closable="!publishForm.processing"
+        >
+            <p class="text-sm text-muted-foreground">
+                Publish all fully-scored results for
+                <span class="font-medium">{{ activeCourse?.code }}</span>
+                — {{ activeCourse?.title }}? Students will be able to view their
+                published CA and exam results and raise disputes.
+            </p>
+            <div class="flex items-center justify-end gap-2 pt-4">
+                <Button
+                    type="button"
+                    label="Cancel"
+                    severity="secondary"
+                    text
+                    :disabled="publishForm.processing"
+                    @click="publishDialogVisible = false"
+                />
+                <Button
+                    type="button"
+                    label="Publish results"
+                    severity="success"
+                    :loading="publishForm.processing"
+                    @click="submitPublish"
+                />
+            </div>
         </Dialog>
     </div>
 </template>
