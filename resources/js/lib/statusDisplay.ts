@@ -100,6 +100,15 @@ const ATTENDANCE_STATUS: Record<
     excused: { label: 'Excused', severity: 'secondary' },
 };
 
+/** `App\Enums\AssignmentSubmissionStatus` */
+const ASSIGNMENT_SUBMISSION_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    submitted: { label: 'Submitted', severity: 'info' },
+    graded: { label: 'Graded', severity: 'success' },
+};
+
 /** `App\Enums\DegreeProgram` */
 const DEGREE_LABELS: Record<string, string> = {
     hnd: 'HND',
@@ -181,6 +190,16 @@ export function attendanceStatusSeverity(
     status: string | null,
 ): TagSeverity {
     return status ? (ATTENDANCE_STATUS[status]?.severity ?? 'secondary') : 'secondary';
+}
+
+export function assignmentSubmissionStatusLabel(status: string): string {
+    return ASSIGNMENT_SUBMISSION_STATUS[status]?.label ?? status;
+}
+
+export function assignmentSubmissionStatusSeverity(
+    status: string,
+): TagSeverity {
+    return ASSIGNMENT_SUBMISSION_STATUS[status]?.severity ?? 'secondary';
 }
 
 export function degreeLabel(value: string | null | undefined): string {

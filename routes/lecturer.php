@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Lecturer\AssignmentController;
 use App\Http\Controllers\Lecturer\CourseController;
 use App\Http\Controllers\Lecturer\CourseSessionController;
 use Illuminate\Support\Facades\Route;
@@ -22,5 +23,15 @@ Route::middleware(['auth', 'verified', 'role:lecturer'])
             Route::delete('courses/{course}/sessions/{session}', [CourseSessionController::class, 'destroy'])->name('courses.sessions.destroy');
             Route::get('courses/{course}/sessions/{session}/attendance', [CourseSessionController::class, 'attendance'])->name('courses.sessions.attendance');
             Route::post('courses/{course}/sessions/{session}/attendance', [CourseSessionController::class, 'markAttendance'])->name('courses.sessions.markAttendance');
+
+            // Assignments + grading live under an approved course. {assignment} and
+            // {submission} are scope-bound to {course} so they can only be reached
+            // through their owning course.
+            Route::get('courses/{course}/assignments', [AssignmentController::class, 'index'])->name('courses.assignments.index');
+            Route::post('courses/{course}/assignments', [AssignmentController::class, 'store'])->name('courses.assignments.store');
+            Route::patch('courses/{course}/assignments/{assignment}', [AssignmentController::class, 'update'])->name('courses.assignments.update');
+            Route::delete('courses/{course}/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('courses.assignments.destroy');
+            Route::get('courses/{course}/assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])->name('courses.assignments.submissions');
+            Route::post('courses/{course}/assignments/{assignment}/submissions/{submission}/grade', [AssignmentController::class, 'grade'])->name('courses.assignments.grade');
         });
     });

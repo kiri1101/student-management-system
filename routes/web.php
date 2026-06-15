@@ -3,6 +3,8 @@
 use App\Http\Controllers\Applications\ApplicationController;
 use App\Http\Controllers\Applications\DocumentDownloadController;
 use App\Http\Controllers\Applications\DocumentViewController;
+use App\Http\Controllers\Assignments\SubmissionDownloadController;
+use App\Http\Controllers\Assignments\SubmissionViewController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dashboards\LecturerDashboardController;
 use App\Http\Controllers\Dashboards\StudentDashboardController;
@@ -64,6 +66,17 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('payments/{payment}/slip/view', PaymentSlipViewController::class)
         ->middleware('throttle:lookups')
         ->name('payments.slip.view');
+
+    // Assignment submissions are reachable by the submitting student, the course's
+    // lecturer, and admins; the controller enforces ownership/role itself.
+    Route::get('assignment-submissions/{submission}', SubmissionDownloadController::class)
+        ->middleware('throttle:lookups')
+        ->name('assignments.submission.download');
+
+    // Inline sibling of the submission download route — same auth, renders in-browser.
+    Route::get('assignment-submissions/{submission}/view', SubmissionViewController::class)
+        ->middleware('throttle:lookups')
+        ->name('assignments.submission.view');
 
     // Staff payment-standing lookup (#8): reachable by exam/gate-facing staff.
     Route::get('standing', StandingController::class)

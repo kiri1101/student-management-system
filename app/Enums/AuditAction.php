@@ -28,4 +28,7 @@ enum AuditAction: string
     case CourseSessionScheduled = 'course_session_scheduled';
     case CourseSessionCancelled = 'course_session_cancelled';
     case AttendanceMarked = 'attendance_marked';
+    case AssignmentCreated = 'assignment_created';
+    case AssignmentSubmitted = 'assignment_submitted';
+    case AssignmentGraded = 'assignment_graded';
 }
