@@ -4,6 +4,7 @@ use App\Http\Controllers\Student\AssignmentController;
 use App\Http\Controllers\Student\AttendanceController;
 use App\Http\Controllers\Student\CourseResultController;
 use App\Http\Controllers\Student\DeferralController;
+use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +25,7 @@ Route::middleware(['auth', 'verified', 'role:student,admin'])
 
         Route::get('results', [CourseResultController::class, 'index'])->name('results.index');
         Route::post('results/{result}/dispute', [CourseResultController::class, 'dispute'])->name('results.dispute');
+
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     });

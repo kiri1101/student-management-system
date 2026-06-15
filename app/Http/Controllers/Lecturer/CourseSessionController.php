@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Lecturer;
 use App\Actions\Lecturer\MarkAttendance;
 use App\Enums\AuditAction;
 use App\Enums\CoursePlanStatus;
+use App\Enums\SessionChangeType;
 use App\Enums\SessionStatus;
+use App\Events\CourseSessionChanged;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Lecturer\CancelCourseSessionRequest;
 use App\Http\Requests\Lecturer\MarkAttendanceRequest;
 use App\Http\Requests\Lecturer\StoreCourseSessionRequest;
 use App\Http\Requests\Lecturer\UpdateCourseSessionRequest;
@@ -14,6 +17,7 @@ use App\Models\AuditLog;
 use App\Models\Course;
 use App\Models\CourseSession;
 use App\Models\StudentProfile;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -80,11 +84,35 @@ class CourseSessionController extends Controller
         $this->authorizeOwnership($request, $course);
         $this->guardApproved($course);
 
+        $previous = $session->scheduled_for;
+
         $session->update([
             'scheduled_for' => $request->date('scheduled_for'),
             'topic' => $request->string('topic')->toString(),
             'duration_minutes' => $request->integer('duration_minutes'),
         ]);
+
+        // Only a genuine time move on a still-scheduled, future session is a
+        // reschedule worth notifying the cohort about — topic/duration-only
+        // edits stay silent.
+        $rescheduled = $session->status === SessionStatus::Scheduled
+            && ! $session->scheduled_for->equalTo($previous)
+            && $session->scheduled_for->isFuture();
+
+        if ($rescheduled) {
+            AuditLog::record(
+                AuditAction::CourseSessionRescheduled,
+                $session,
+                ['course_id' => $course->id],
+            );
+
+            CourseSessionChanged::dispatch(
+                $session,
+                SessionChangeType::Rescheduled,
+                null,
+                $previous instanceof CarbonImmutable ? $previous : $previous->toImmutable(),
+            );
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Session updated.')]);
 
@@ -93,18 +121,31 @@ class CourseSessionController extends Controller
 
     /**
      * Soft-cancel a session by flipping its status — sessions are never hard-deleted.
+     * Only a future, currently-scheduled session notifies the cohort; flipping an
+     * already-cancelled or past session stays silent.
      */
-    public function destroy(Request $request, Course $course, CourseSession $session): RedirectResponse
+    public function destroy(CancelCourseSessionRequest $request, Course $course, CourseSession $session): RedirectResponse
     {
         $this->authorizeOwnership($request, $course);
 
-        $session->update(['status' => SessionStatus::Cancelled]);
+        $shouldNotify = $session->status === SessionStatus::Scheduled && $session->scheduled_for->isFuture();
+
+        $reason = $request->string('reason')->toString() ?: null;
+
+        $session->update([
+            'status' => SessionStatus::Cancelled,
+            'cancellation_reason' => $reason,
+        ]);
 
         AuditLog::record(
             AuditAction::CourseSessionCancelled,
             $session,
             ['course_id' => $course->id],
         );
+
+        if ($shouldNotify) {
+            CourseSessionChanged::dispatch($session, SessionChangeType::Cancelled, $reason);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Session cancelled.')]);
 

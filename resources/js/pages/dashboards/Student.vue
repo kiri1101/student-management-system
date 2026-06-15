@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { FileText, GraduationCap } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    Bell,
+    CalendarClock,
+    CalendarX,
+    Check,
+    FileText,
+    GraduationCap,
+} from 'lucide-vue-next';
+import Badge from 'primevue/badge';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -41,7 +49,30 @@ type Application = {
     program_offering: ProgramOffering;
 };
 
-defineProps<{ profile: Profile; applications: Application[] }>();
+type NotificationData = {
+    type: 'cancelled' | 'rescheduled';
+    course_id: number;
+    course_code: string;
+    course_title: string;
+    session_id: number;
+    scheduled_for: string;
+    reason: string | null;
+    previous_scheduled_for: string | null;
+};
+
+type AppNotification = {
+    id: string;
+    data: NotificationData;
+    read_at: string | null;
+    created_at: string;
+};
+
+defineProps<{
+    profile: Profile;
+    applications: Application[];
+    notifications: AppNotification[];
+    unreadCount: number;
+}>();
 
 defineOptions({
     layout: {
@@ -73,12 +104,139 @@ function programmeLine(offering: ProgramOffering): string {
         ? `${offering.department.name} (${offering.department.code}) — ${degree}`
         : degree;
 }
+
+function formatDateTime(value: string | null): string {
+    if (!value) {
+        return '—';
+    }
+
+    return new Date(value).toLocaleString();
+}
+
+function notificationTitle(item: AppNotification): string {
+    return item.data.type === 'cancelled'
+        ? `${item.data.course_code} session cancelled`
+        : `${item.data.course_code} session rescheduled`;
+}
+
+function markRead(item: AppNotification): void {
+    if (item.read_at) {
+        return;
+    }
+
+    router.post(
+        `/student/notifications/${item.id}/read`,
+        {},
+        { preserveScroll: true },
+    );
+}
+
+function markAllRead(): void {
+    router.post('/student/notifications/read-all', {}, { preserveScroll: true });
+}
 </script>
 
 <template>
     <Head title="Student Dashboard" />
 
     <div class="space-y-4 p-4">
+        <Card>
+            <template #title>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <Bell class="size-5" />
+                        <span>Notifications</span>
+                        <Badge
+                            v-if="unreadCount > 0"
+                            :value="unreadCount"
+                            severity="danger"
+                        />
+                    </div>
+                    <Button
+                        label="Mark all read"
+                        severity="secondary"
+                        text
+                        size="small"
+                        :disabled="unreadCount === 0"
+                        @click="markAllRead"
+                    >
+                        <template #icon>
+                            <Check class="size-4" />
+                        </template>
+                    </Button>
+                </div>
+            </template>
+            <template #content>
+                <ul v-if="notifications.length" class="space-y-1">
+                    <li
+                        v-for="item in notifications"
+                        :key="item.id"
+                        class="flex items-start gap-3 rounded-md border border-transparent p-3 transition-colors"
+                        :class="
+                            item.read_at
+                                ? 'opacity-70'
+                                : 'cursor-pointer bg-muted/50 hover:bg-muted'
+                        "
+                        @click="markRead(item)"
+                    >
+                        <span class="mt-0.5 shrink-0 text-muted-foreground">
+                            <CalendarX
+                                v-if="item.data.type === 'cancelled'"
+                                class="size-5"
+                            />
+                            <CalendarClock v-else class="size-5" />
+                        </span>
+                        <div class="min-w-0 flex-1 space-y-0.5">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    v-if="!item.read_at"
+                                    class="size-2 shrink-0 rounded-full bg-primary"
+                                    aria-hidden="true"
+                                />
+                                <p class="text-sm font-medium">
+                                    {{ notificationTitle(item) }}
+                                </p>
+                            </div>
+                            <p
+                                v-if="item.data.type === 'cancelled'"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{ formatDateTime(item.data.scheduled_for) }}
+                                <template v-if="item.data.reason">
+                                    · {{ item.data.reason }}
+                                </template>
+                            </p>
+                            <p v-else class="text-xs text-muted-foreground">
+                                Moved from
+                                {{
+                                    formatDateTime(
+                                        item.data.previous_scheduled_for,
+                                    )
+                                }}
+                                to
+                                {{ formatDateTime(item.data.scheduled_for) }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                {{ formatDateTime(item.created_at) }}
+                            </p>
+                        </div>
+                        <Button
+                            v-if="!item.read_at"
+                            label="Mark read"
+                            severity="secondary"
+                            text
+                            size="small"
+                            class="shrink-0"
+                            @click.stop="markRead(item)"
+                        />
+                    </li>
+                </ul>
+                <p v-else class="py-6 text-center text-sm text-muted-foreground">
+                    No notifications yet.
+                </p>
+            </template>
+        </Card>
+
         <Card>
             <template #title>
                 <div class="flex items-center justify-between gap-2">

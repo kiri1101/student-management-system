@@ -11,6 +11,7 @@ import InputNumber from 'primevue/inputnumber';
 import InputText from 'primevue/inputtext';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
+import Textarea from 'primevue/textarea';
 import { computed, ref } from 'vue';
 import CourseSessionController from '@/actions/App/Http/Controllers/Lecturer/CourseSessionController';
 import {
@@ -150,12 +151,14 @@ function submitEdit(): void {
         );
 }
 
-const cancelForm = useForm({});
+const cancelForm = useForm<{ reason: string }>({ reason: '' });
 const cancelDialogVisible = ref(false);
 const cancellingSession = ref<Session | null>(null);
 
 function openCancel(session: Session): void {
     cancellingSession.value = session;
+    cancelForm.reset();
+    cancelForm.clearErrors();
     cancelDialogVisible.value = true;
 }
 
@@ -164,19 +167,24 @@ function confirmCancel(): void {
         return;
     }
 
-    cancelForm.delete(
-        CourseSessionController.destroy([
-            props.course.id,
-            cancellingSession.value.id,
-        ]).url,
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                cancelDialogVisible.value = false;
-                cancellingSession.value = null;
+    const reason = cancelForm.reason.trim();
+
+    cancelForm
+        .transform(() => ({ reason: reason || undefined }))
+        .delete(
+            CourseSessionController.destroy([
+                props.course.id,
+                cancellingSession.value.id,
+            ]).url,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    cancelDialogVisible.value = false;
+                    cancellingSession.value = null;
+                    cancelForm.reset();
+                },
             },
-        },
-    );
+        );
 }
 </script>
 
@@ -468,6 +476,10 @@ function confirmCancel(): void {
                         {{ editForm.errors.duration_minutes }}
                     </Message>
                 </div>
+                <p class="text-xs text-muted-foreground">
+                    Students in this cohort will be emailed and notified in-app
+                    when you reschedule.
+                </p>
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <Button
                         type="button"
@@ -498,6 +510,32 @@ function confirmCancel(): void {
                 Are you sure you want to cancel this session? Students will see
                 it marked as cancelled.
             </p>
+            <div class="mt-3 space-y-1">
+                <label for="cancel-reason" class="text-sm font-medium">
+                    Reason (shared with students)
+                </label>
+                <Textarea
+                    id="cancel-reason"
+                    v-model="cancelForm.reason"
+                    class="w-full"
+                    rows="3"
+                    auto-resize
+                    :maxlength="500"
+                    :disabled="cancelForm.processing"
+                    :invalid="!!cancelForm.errors.reason"
+                />
+                <Message
+                    v-if="cancelForm.errors.reason"
+                    severity="error"
+                    :closable="false"
+                    size="small"
+                >
+                    {{ cancelForm.errors.reason }}
+                </Message>
+                <p class="text-xs text-muted-foreground">
+                    Students in this cohort will be emailed and notified in-app.
+                </p>
+            </div>
             <div class="flex items-center justify-end gap-2 pt-4">
                 <Button
                     type="button"
