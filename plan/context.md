@@ -451,9 +451,9 @@ End-to-end smoke (manual + automated):
 
 These were mentioned in the original `CLAUDE.md` but were not designed in this session. They are downstream of the Foundations + Admissions work and will be addressed in later planning sessions:
 
-- ~~Payment validation + tamper-proof school receipts (signed QR, verification endpoint).~~ ✅ SHIPPED — #6/B1, PR #56 (see §17).
+- ~~Payment validation + tamper-proof school receipts (signed QR, verification endpoint).~~ ✅ SHIPPED — #6/B1, PR #56 (issue #6 closed 2026-06-15; see §17).
 - ~~Tuition deferral request/approval flow + facility/exam access gating.~~ ✅ SHIPPED — #8/B2, PR #57 (see §17).
-- Course management (planning, attendance, assignments, results, disputes).
+- ~~Course management (planning, attendance, assignments, results, disputes).~~ ✅ SHIPPED — #11/B3, PR #58 (see §17).
 - Lecturer absence notifications (push channel selection).
 - Receipt verification (public/staff lookup).
 - Notification channels (email vs in-app vs SMS — only stubs in Phase 9).
