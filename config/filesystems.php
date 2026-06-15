@@ -33,7 +33,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Security fix: prevent unauthenticated access to private files
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
