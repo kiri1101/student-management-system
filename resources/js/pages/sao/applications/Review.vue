@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Download, History } from 'lucide-vue-next';
+import { ArrowLeft, Download, Eye, History } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -11,6 +11,7 @@ import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { computed, ref } from 'vue';
 import ApplicationReviewController from '@/actions/App/Http/Controllers/Sao/ApplicationReviewController';
+import FileViewerDialog from '@/components/FileViewerDialog.vue';
 import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
 import application_routes from '@/routes/application';
 import sao from '@/routes/sao';
@@ -165,6 +166,14 @@ const triageNotesRequired = computed(
 );
 
 const decideRef = ref<HTMLElement | null>(null);
+
+const documentViewerVisible = ref(false);
+const activeDocument = ref<DocumentRow | null>(null);
+
+function openDocument(document: DocumentRow): void {
+    activeDocument.value = document;
+    documentViewerVisible.value = true;
+}
 
 function submitTriage(): void {
     triageForm.post(
@@ -397,27 +406,40 @@ function focusDecide(): void {
                             {{ formatSize(data.size_bytes) }}
                         </template>
                     </Column>
-                    <Column header="" style="width: 8rem">
+                    <Column header="" style="width: 12rem">
                         <template #body="{ data }">
-                            <a
-                                :href="
-                                    application_routes.documents.download({
-                                        application: application.id,
-                                        document: data.id,
-                                    }).url
-                                "
-                            >
+                            <div class="flex items-center gap-1">
                                 <Button
-                                    label="Download"
+                                    label="View"
                                     severity="secondary"
                                     text
                                     size="small"
+                                    @click="openDocument(data)"
                                 >
                                     <template #icon>
-                                        <Download class="size-4" />
+                                        <Eye class="size-4" />
                                     </template>
                                 </Button>
-                            </a>
+                                <a
+                                    :href="
+                                        application_routes.documents.download({
+                                            application: application.id,
+                                            document: data.id,
+                                        }).url
+                                    "
+                                >
+                                    <Button
+                                        label="Download"
+                                        severity="secondary"
+                                        text
+                                        size="small"
+                                    >
+                                        <template #icon>
+                                            <Download class="size-4" />
+                                        </template>
+                                    </Button>
+                                </a>
+                            </div>
                         </template>
                     </Column>
                 </DataTable>
@@ -560,5 +582,24 @@ function focusDecide(): void {
                 </template>
             </Card>
         </div>
+
+        <FileViewerDialog
+            v-if="activeDocument"
+            v-model:visible="documentViewerVisible"
+            :view-url="
+                application_routes.documents.view({
+                    application: application.id,
+                    document: activeDocument.id,
+                }).url
+            "
+            :download-url="
+                application_routes.documents.download({
+                    application: application.id,
+                    document: activeDocument.id,
+                }).url
+            "
+            :filename="activeDocument.original_filename"
+            :mime="activeDocument.mime_type"
+        />
     </div>
 </template>

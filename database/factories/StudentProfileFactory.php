@@ -25,7 +25,7 @@ class StudentProfileFactory extends Factory
             'matricule' => 'stm-'.fake()->unique()->numerify('######'),
             'program_offering_id' => fn () => $this->resolveDefaultOffering()->id,
             'level' => 100,
-            'academic_year' => '2025-2026',
+            'academic_year' => (string) now()->year,
             'enrolled_at' => now()->toDateString(),
             'status' => StudentStatus::Active->value,
         ];

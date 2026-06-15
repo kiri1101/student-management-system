@@ -1,20 +1,7 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import {
-    Banknote,
-    CalendarClock,
-    Database,
-    FilePlus2,
-    Inbox,
-    LayoutGrid,
-    ScrollText,
-    ShieldQuestion,
-    Users,
-    Wallet,
-} from 'lucide-vue-next';
-import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import { defineAsyncComponent } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
-import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
     Sidebar,
@@ -26,124 +13,17 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import accountant from '@/routes/accountant';
-import admin from '@/routes/admin';
-import application from '@/routes/application';
-import sao from '@/routes/sao';
-import standing from '@/routes/standing';
-import student from '@/routes/student';
-import type { NavItem } from '@/types';
-
-const page = usePage();
-const roles = computed<string[]>(() => page.props.auth?.roles ?? []);
 
 /**
- * Role-aware main navigation, computed from the shared `auth.roles` array.
- *
- * Every entry links to a route that already exists; "coming soon" dashboards
- * (lecturer/accountant/student) only expose the shared Dashboard link. The
- * list is assembled in a fixed priority order, then de-duplicated by title so
- * a user holding several roles gets a stable, gap-free union (B13, #34).
+ * The role-aware nav links carry every per-feature Wayfinder route barrel,
+ * which doesn't tree-shake and would otherwise accrete into the entry chunk as
+ * features grow it past the 500 kB budget. Loading it asynchronously keeps the
+ * sidebar shell (logo, footer) and page content eager while those barrels are
+ * code-split out of the entry; the nav links populate a tick later, on first
+ * load. The logo's dashboard() link stays eager — it's the only route the shell
+ * itself needs.
  */
-const mainNavItems = computed<NavItem[]>(() => {
-    const hasRole = (role: string): boolean => roles.value.includes(role);
-
-    const items: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-    ];
-
-    if (hasRole('admin')) {
-        items.push(
-            {
-                title: 'Users',
-                href: admin.users.index(),
-                icon: Users,
-            },
-            {
-                title: 'Reference data',
-                href: admin.references.index(),
-                icon: Database,
-            },
-            {
-                title: 'Fees',
-                href: admin.fees.index(),
-                icon: Banknote,
-            },
-            {
-                title: 'Audit logs',
-                href: admin.auditLogs.index(),
-                icon: ScrollText,
-            },
-        );
-    }
-
-    // SAO routes are also reachable by admins (role:sao,admin), so surface the
-    // review queue for either role.
-    if (hasRole('sao') || hasRole('admin')) {
-        items.push({
-            title: 'Application review',
-            href: sao.applications.index(),
-            icon: Inbox,
-        });
-    }
-
-    // Payment review is reachable by accountants and admins (role:accountant,admin).
-    if (hasRole('accountant') || hasRole('admin')) {
-        items.push(
-            {
-                title: 'Payment review',
-                href: accountant.payments.index(),
-                icon: Wallet,
-            },
-            {
-                title: 'Deferrals',
-                href: accountant.deferrals.index(),
-                icon: CalendarClock,
-            },
-        );
-    }
-
-    // Staff payment-standing lookup (role:sao,accountant,admin).
-    if (hasRole('sao') || hasRole('accountant') || hasRole('admin')) {
-        items.push({
-            title: 'Standing check',
-            href: standing.check(),
-            icon: ShieldQuestion,
-        });
-    }
-
-    if (hasRole('student')) {
-        items.push({
-            title: 'My payments',
-            href: student.payments.index(),
-            icon: Wallet,
-        });
-    }
-
-    if (hasRole('applicant')) {
-        items.push({
-            title: 'New application',
-            href: application.create(),
-            icon: FilePlus2,
-        });
-    }
-
-    const seen = new Set<string>();
-
-    return items.filter((item) => {
-        if (seen.has(item.title)) {
-            return false;
-        }
-
-        seen.add(item.title);
-
-        return true;
-    });
-});
+const AppSidebarNav = defineAsyncComponent(() => import('@/components/AppSidebarNav.vue'));
 </script>
 
 <template>
@@ -161,7 +41,7 @@ const mainNavItems = computed<NavItem[]>(() => {
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <AppSidebarNav />
         </SidebarContent>
 
         <SidebarFooter>

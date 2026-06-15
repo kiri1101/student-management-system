@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Check, Download, X } from 'lucide-vue-next';
+import { ArrowLeft, Check, Download, Eye, X } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
@@ -9,6 +9,7 @@ import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { ref } from 'vue';
 import PaymentController from '@/actions/App/Http/Controllers/Accountant/PaymentController';
+import FileViewerDialog from '@/components/FileViewerDialog.vue';
 import { degreeLabel, paymentStatusLabel, paymentStatusSeverity } from '@/lib/statusDisplay';
 import accountant from '@/routes/accountant';
 import payments from '@/routes/payments';
@@ -72,6 +73,7 @@ function formatDate(value: string | null): string {
 const validateForm = useForm({});
 const rejectForm = useForm({ rejection_reason: '' });
 const rejectDialogVisible = ref(false);
+const slipViewerVisible = ref(false);
 
 function validate(): void {
     validateForm.post(PaymentController.validatePayment(props.payment.id).url, {
@@ -175,7 +177,18 @@ function submitReject(): void {
                     </div>
                     <div>
                         <dt class="text-xs text-muted-foreground">Bank slip</dt>
-                        <dd class="text-sm">
+                        <dd class="flex items-center gap-3 text-sm">
+                            <Button
+                                label="View slip"
+                                severity="secondary"
+                                text
+                                size="small"
+                                @click="slipViewerVisible = true"
+                            >
+                                <template #icon>
+                                    <Eye class="size-4" />
+                                </template>
+                            </Button>
                             <a
                                 :href="payments.slip(payment.id).url"
                                 class="inline-flex items-center gap-1 text-primary hover:underline"
@@ -298,5 +311,13 @@ function submitReject(): void {
                 </div>
             </form>
         </Dialog>
+
+        <FileViewerDialog
+            v-model:visible="slipViewerVisible"
+            :view-url="payments.slip.view(payment.id).url"
+            :download-url="payments.slip(payment.id).url"
+            :filename="payment.slip_original_filename"
+            :mime="payment.slip_mime_type"
+        />
     </div>
 </template>
