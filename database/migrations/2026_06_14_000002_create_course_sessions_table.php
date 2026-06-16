@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('topic');
             $table->unsignedSmallInteger('duration_minutes');
             $table->string('status')->default(SessionStatus::Scheduled->value);
+            $table->string('cancellation_reason')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

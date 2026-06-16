@@ -38,6 +38,17 @@ class StudentDashboardController extends Controller
                 'program_offering' => $this->offering($application->programOffering),
             ]);
 
+        $notifications = $user->notifications()
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn ($notification): array => [
+                'id' => $notification->id,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at?->toIso8601String(),
+                'created_at' => $notification->created_at?->toIso8601String(),
+            ]);
+
         return Inertia::render('dashboards/Student', [
             'profile' => $profile === null ? null : [
                 'matricule' => $profile->matricule,
@@ -48,6 +59,8 @@ class StudentDashboardController extends Controller
                 'program_offering' => $this->offering($profile->programOffering),
             ],
             'applications' => $applications,
+            'notifications' => $notifications,
+            'unreadCount' => $user->unreadNotifications()->count(),
         ]);
     }
 

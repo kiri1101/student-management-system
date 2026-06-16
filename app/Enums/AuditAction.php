@@ -27,6 +27,7 @@ enum AuditAction: string
     case CoursePlanRejected = 'course_plan_rejected';
     case CourseSessionScheduled = 'course_session_scheduled';
     case CourseSessionCancelled = 'course_session_cancelled';
+    case CourseSessionRescheduled = 'course_session_rescheduled';
     case AttendanceMarked = 'attendance_marked';
     case AssignmentCreated = 'assignment_created';
     case AssignmentSubmitted = 'assignment_submitted';

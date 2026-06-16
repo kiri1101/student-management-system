@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'topic',
     'duration_minutes',
     'status',
+    'cancellation_reason',
 ])]
 class CourseSession extends Model
 {
