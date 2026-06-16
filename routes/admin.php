@@ -24,6 +24,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         // User management
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+        // Literal `import` segments declared before any `users/{user}` route so
+        // the literal segment wins over the wildcard.
+        Route::get('users/import', [UserController::class, 'importForm'])->name('users.import');
+        Route::get('users/import/template', [UserController::class, 'importTemplate'])->name('users.import.template');
+        Route::post('users/import/preview', [UserController::class, 'importPreview'])->name('users.import.preview');
+        Route::post('users/import', [UserController::class, 'import'])->name('users.import.store');
         Route::post('users', [UserController::class, 'store'])->name('users.store');
         Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Admin\ChangeUserRoleAction;
 use App\Actions\Admin\CreateUserAction;
+use App\Actions\Admin\ImportStaffUsers;
 use App\Enums\RoleName;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\ChangeRoleRequest;
+use App\Http\Requests\Admin\Users\ImportStaffUsersRequest;
 use App\Http\Requests\Admin\Users\StoreUserRequest;
 use App\Http\Requests\Admin\Users\UpdateUserRequest;
 use App\Models\Department;
@@ -16,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -99,6 +102,59 @@ class UserController extends Controller
         ]);
 
         return to_route('admin.users.index');
+    }
+
+    public function importForm(): Response
+    {
+        return Inertia::render('admin/users/Import');
+    }
+
+    public function importPreview(ImportStaffUsersRequest $request, ImportStaffUsers $importer): Response
+    {
+        $preview = $importer->validate($request->file('file'));
+
+        return Inertia::render('admin/users/Import', [
+            'preview' => $preview,
+        ]);
+    }
+
+    public function import(ImportStaffUsersRequest $request, ImportStaffUsers $importer): Response
+    {
+        $result = $importer->import($request->file('file'), $request->user());
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => __('Imported :n staff; :s skipped.', [
+                'n' => $result['summary']['imported'],
+                's' => $result['summary']['skipped'],
+            ]),
+        ]);
+
+        return Inertia::render('admin/users/Import', [
+            'result' => $result,
+        ]);
+    }
+
+    public function importTemplate(): StreamedResponse
+    {
+        $rows = [
+            ImportStaffUsers::COLUMNS,
+            ['Ada Lovelace', 'ada.lovelace@example.com', RoleName::Lecturer->value, 'lec-001', 'cs', 'Algorithms', '2024-09-01', '', '', ''],
+            ['Grace Hopper', 'grace.hopper@example.com', RoleName::Accountant->value, 'acc-001', '', '', '', 'UBA', 'Window 3', ''],
+            ['Alan Turing', 'alan.turing@example.com', RoleName::Sao->value, 'sao-001', '', '', '', '', '', 'Undergraduate'],
+        ];
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, 'staff-import-template.csv', [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     public function edit(User $user): Response
