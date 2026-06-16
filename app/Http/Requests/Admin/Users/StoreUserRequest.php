@@ -24,6 +24,14 @@ class StoreUserRequest extends FormRequest
     ];
 
     /**
+     * Validation rule for employee IDs, shared with the bulk staff importer so
+     * the two paths can't drift. No `@` (so it can never shadow the email
+     * namespace in the login resolver) and no `stm-` prefix (reserved for
+     * matricules).
+     */
+    public const EMPLOYEE_ID_REGEX = 'regex:/^(?!stm-)[a-z0-9][a-z0-9._-]*$/';
+
+    /**
      * Lowercase the employee ID before validation so the unique check and the
      * stored value both match the canonicalized login identifier (Fortify's
      * `lowercase_usernames`).
@@ -53,13 +61,11 @@ class StoreUserRequest extends FormRequest
                 // the admin should restore the prior user, not duplicate it.
                 Rule::unique(User::class, 'email'),
             ],
-            // No `@` (so it can never shadow the email namespace in the login
-            // resolver) and no `stm-` prefix (reserved for matricules).
             'employee_id' => [
                 'nullable',
                 'string',
                 'max:255',
-                'regex:/^(?!stm-)[a-z0-9][a-z0-9._-]*$/',
+                self::EMPLOYEE_ID_REGEX,
                 Rule::unique(User::class, 'employee_id'),
             ],
             'role' => ['required', 'string', Rule::in($roleValues)],

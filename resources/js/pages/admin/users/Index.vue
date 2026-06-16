@@ -9,6 +9,7 @@ import {
     Search,
     ShieldCheck,
     Trash2,
+    Upload,
     Users,
 } from 'lucide-vue-next';
 import Button from 'primevue/button';
@@ -153,13 +154,27 @@ function resendInvite(row: UserRow): void {
                         <Users class="size-5" />
                         <span>Users</span>
                     </div>
-                    <Link :href="usersRoutes.create().url">
-                        <Button label="New user" size="small">
-                            <template #icon>
-                                <Plus class="size-4" />
-                            </template>
-                        </Button>
-                    </Link>
+                    <div class="flex items-center gap-2">
+                        <Link :href="usersRoutes.import().url">
+                            <Button
+                                label="Import CSV"
+                                size="small"
+                                severity="secondary"
+                                outlined
+                            >
+                                <template #icon>
+                                    <Upload class="size-4" />
+                                </template>
+                            </Button>
+                        </Link>
+                        <Link :href="usersRoutes.create().url">
+                            <Button label="New user" size="small">
+                                <template #icon>
+                                    <Plus class="size-4" />
+                                </template>
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </template>
             <template #content>

@@ -11,6 +11,7 @@ enum AuditAction: string
     case StatusChanged = 'status_changed';
     case RoleAssigned = 'role_assigned';
     case RoleRevoked = 'role_revoked';
+    case UsersImported = 'users_imported';
     case LoggedIn = 'logged_in';
     case LoginFailed = 'login_failed';
     case LoggedOut = 'logged_out';
