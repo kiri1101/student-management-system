@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     BookOpen,
     Database,
     FileText,
     GraduationCap,
     History,
-    Shield,
     Users,
 } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AuditLogModal from '@/components/admin/AuditLogModal.vue';
+import StatCard from '@/components/StatCard.vue';
 import { degreeLabel } from '@/lib/statusDisplay';
 import admin from '@/routes/admin';
 import adminUsers from '@/routes/admin/users';
@@ -49,6 +49,11 @@ defineOptions({
     },
 });
 
+const page = usePage();
+const firstName = computed<string>(
+    () => (page.props.auth?.user?.name ?? '').split(' ')[0] ?? '',
+);
+
 const auditModalVisible = ref(false);
 
 function formatDate(value: string | null): string {
@@ -67,102 +72,81 @@ function openAuditLog(): void {
 <template>
     <Head title="Admin Dashboard" />
 
-    <div class="space-y-4 p-4">
-        <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <Shield class="size-5" />
-                        <span>Administrator</span>
-                    </div>
-                    <Button
-                        label="Open audit log"
-                        size="small"
-                        severity="secondary"
-                        @click="openAuditLog"
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <!-- Hero -->
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Administrator
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Welcome back<template v-if="firstName"
+                        >, {{ firstName }}</template
                     >
-                        <template #icon>
-                            <History class="size-4" />
-                        </template>
-                    </Button>
-                </div>
-            </template>
-            <template #content>
-                <p class="text-sm text-muted-foreground">
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
                     Manage reference data, monitor admissions, and review every
                     audited event across the system.
                 </p>
-            </template>
-        </Card>
+            </div>
+            <Button
+                label="Open audit log"
+                severity="secondary"
+                @click="openAuditLog"
+            >
+                <template #icon>
+                    <History class="size-4" />
+                </template>
+            </Button>
+        </section>
 
-        <div class="grid gap-4 md:grid-cols-3">
-            <Card>
-                <template #title>
-                    <div class="flex items-center gap-2">
-                        <Users class="size-5" />
-                        <span>Users</span>
-                    </div>
-                </template>
-                <template #content>
-                    <p class="text-3xl font-semibold">
-                        {{ totals.users }}
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                        Active accounts (excludes soft-deleted)
-                    </p>
-                </template>
-            </Card>
-            <Card>
-                <template #title>
-                    <div class="flex items-center gap-2">
-                        <FileText class="size-5" />
-                        <span>Applications</span>
-                    </div>
-                </template>
-                <template #content>
-                    <p class="text-3xl font-semibold">
-                        {{ totals.applications }}
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                        Submissions across every status
-                    </p>
-                </template>
-            </Card>
-            <Card>
-                <template #title>
-                    <div class="flex items-center gap-2">
-                        <GraduationCap class="size-5" />
-                        <span>Student profiles</span>
-                    </div>
-                </template>
-                <template #content>
-                    <p class="text-3xl font-semibold">
-                        {{ totals.student_profiles }}
-                    </p>
-                    <p class="text-xs text-muted-foreground">
-                        Promoted from admitted applications
-                    </p>
-                </template>
-            </Card>
-        </div>
+        <!-- Totals -->
+        <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <StatCard
+                label="Users"
+                :value="totals.users"
+                :icon="Users"
+                tone="blue"
+            />
+            <StatCard
+                label="Applications"
+                :value="totals.applications"
+                :icon="FileText"
+                tone="violet"
+            />
+            <StatCard
+                label="Student profiles"
+                :value="totals.student_profiles"
+                :icon="GraduationCap"
+                tone="emerald"
+            />
+        </section>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-6 md:grid-cols-2">
             <Card>
                 <template #title>
                     <div class="flex items-center gap-2">
-                        <Users class="size-5" />
-                        <span>Users by role</span>
+                        <Users class="size-5 text-muted-foreground" />
+                        <span class="text-base font-semibold"
+                            >Users by role</span
+                        >
                     </div>
                 </template>
                 <template #content>
-                    <ul class="space-y-1">
+                    <ul class="divide-y divide-border">
                         <li
                             v-for="row in usersByRole"
                             :key="row.role"
-                            class="flex justify-between text-sm"
+                            class="flex items-center justify-between py-2.5 text-sm"
                         >
                             <span>{{ row.label }}</span>
-                            <span class="font-mono">{{ row.count }}</span>
+                            <span class="font-mono font-semibold">{{
+                                row.count
+                            }}</span>
                         </li>
                     </ul>
                 </template>
@@ -171,19 +155,23 @@ function openAuditLog(): void {
             <Card>
                 <template #title>
                     <div class="flex items-center gap-2">
-                        <FileText class="size-5" />
-                        <span>Applications by status</span>
+                        <FileText class="size-5 text-muted-foreground" />
+                        <span class="text-base font-semibold"
+                            >Applications by status</span
+                        >
                     </div>
                 </template>
                 <template #content>
-                    <ul class="space-y-1">
+                    <ul class="divide-y divide-border">
                         <li
                             v-for="row in applicationsByStatus"
                             :key="row.status"
-                            class="flex justify-between text-sm"
+                            class="flex items-center justify-between py-2.5 text-sm"
                         >
                             <span>{{ row.label }}</span>
-                            <span class="font-mono">{{ row.count }}</span>
+                            <span class="font-mono font-semibold">{{
+                                row.count
+                            }}</span>
                         </li>
                     </ul>
                 </template>
@@ -193,8 +181,10 @@ function openAuditLog(): void {
         <Card>
             <template #title>
                 <div class="flex items-center gap-2">
-                    <GraduationCap class="size-5" />
-                    <span>Recent admissions</span>
+                    <GraduationCap class="size-5 text-muted-foreground" />
+                    <span class="text-base font-semibold"
+                        >Recent admissions</span
+                    >
                 </div>
             </template>
             <template #content>
@@ -250,7 +240,9 @@ function openAuditLog(): void {
                     </Column>
                     <Column header="Enrolled" style="width: 9rem">
                         <template #body="{ data }">
-                            <span>{{ formatDate(data.enrolled_at) }}</span>
+                            <span class="text-muted-foreground">{{
+                                formatDate(data.enrolled_at)
+                            }}</span>
                         </template>
                     </Column>
                     <template #empty>
@@ -265,6 +257,7 @@ function openAuditLog(): void {
             </template>
         </Card>
 
+        <!-- Quick links -->
         <div class="grid gap-4 md:grid-cols-3">
             <Link
                 :href="adminUsers.index().url"
@@ -273,8 +266,10 @@ function openAuditLog(): void {
                 <Card class="h-full transition-colors hover:bg-muted/50">
                     <template #title>
                         <div class="flex items-center gap-2">
-                            <Users class="size-5" />
-                            <span>Manage users</span>
+                            <Users class="size-5 text-primary-600" />
+                            <span class="text-base font-semibold"
+                                >Manage users</span
+                            >
                         </div>
                     </template>
                     <template #content>
@@ -293,8 +288,10 @@ function openAuditLog(): void {
                 <Card class="h-full transition-colors hover:bg-muted/50">
                     <template #title>
                         <div class="flex items-center gap-2">
-                            <Database class="size-5" />
-                            <span>Reference data</span>
+                            <Database class="size-5 text-primary-600" />
+                            <span class="text-base font-semibold"
+                                >Reference data</span
+                            >
                         </div>
                     </template>
                     <template #content>
@@ -309,8 +306,8 @@ function openAuditLog(): void {
             <Card class="h-full">
                 <template #title>
                     <div class="flex items-center gap-2">
-                        <BookOpen class="size-5" />
-                        <span>Audit log</span>
+                        <BookOpen class="size-5 text-primary-600" />
+                        <span class="text-base font-semibold">Audit log</span>
                     </div>
                 </template>
                 <template #content>
