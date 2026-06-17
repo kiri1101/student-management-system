@@ -16,6 +16,7 @@ import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
 import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
+import StatCard from '@/components/StatCard.vue';
 import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
 import applicant from '@/routes/applicant';
 
@@ -114,61 +115,30 @@ function formatDate(value: string | null): string {
 
         <!-- Status-summary chips -->
         <section class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-muted-foreground"
-                        >Submitted</span
-                    >
-                    <span
-                        class="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
-                    >
-                        <Send class="size-3.5" />
-                    </span>
-                </div>
-                <p class="mt-2 text-2xl font-bold">{{ summary.submitted }}</p>
-            </div>
-
-            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-muted-foreground"
-                        >In review</span
-                    >
-                    <span
-                        class="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
-                    >
-                        <Clock class="size-3.5" />
-                    </span>
-                </div>
-                <p class="mt-2 text-2xl font-bold">{{ summary.inReview }}</p>
-            </div>
-
-            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-muted-foreground"
-                        >Admitted</span
-                    >
-                    <span
-                        class="grid size-7 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                    >
-                        <CircleCheck class="size-3.5" />
-                    </span>
-                </div>
-                <p class="mt-2 text-2xl font-bold">{{ summary.admitted }}</p>
-            </div>
-
-            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-medium text-muted-foreground"
-                        >Rejected</span
-                    >
-                    <span
-                        class="grid size-7 place-items-center rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
-                    >
-                        <CircleX class="size-3.5" />
-                    </span>
-                </div>
-                <p class="mt-2 text-2xl font-bold">{{ summary.rejected }}</p>
-            </div>
+            <StatCard
+                label="Submitted"
+                :value="summary.submitted"
+                :icon="Send"
+                tone="blue"
+            />
+            <StatCard
+                label="In review"
+                :value="summary.inReview"
+                :icon="Clock"
+                tone="amber"
+            />
+            <StatCard
+                label="Admitted"
+                :value="summary.admitted"
+                :icon="CircleCheck"
+                tone="emerald"
+            />
+            <StatCard
+                label="Rejected"
+                :value="summary.rejected"
+                :icon="CircleX"
+                tone="red"
+            />
         </section>
 
         <!-- Applications table -->

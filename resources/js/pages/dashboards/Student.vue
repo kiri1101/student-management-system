@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Bell,
+    CalendarCheck,
     CalendarClock,
     CalendarX,
     Check,
+    ChevronRight,
+    ClipboardList,
     FileText,
     GraduationCap,
+    Wallet,
 } from 'lucide-vue-next';
 import Badge from 'primevue/badge';
 import Button from 'primevue/button';
@@ -14,6 +18,7 @@ import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
+import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
 import {
     degreeLabel,
@@ -23,6 +28,10 @@ import {
     statusSeverity,
 } from '@/lib/statusDisplay';
 import student from '@/routes/student';
+import { index as studentAssignmentsIndex } from '@/routes/student/assignments';
+import { index as studentAttendanceIndex } from '@/routes/student/attendance';
+import { index as studentPaymentsIndex } from '@/routes/student/payments';
+import { index as studentResultsIndex } from '@/routes/student/results';
 
 type Department = { name: string; code: string } | null;
 
@@ -85,6 +94,30 @@ defineOptions({
     },
 });
 
+const page = usePage();
+const firstName = computed<string>(
+    () => (page.props.auth?.user?.name ?? '').split(' ')[0] ?? '',
+);
+
+const quickLinks = computed(() => [
+    { label: 'My payments', icon: Wallet, href: studentPaymentsIndex().url },
+    {
+        label: 'My attendance',
+        icon: CalendarCheck,
+        href: studentAttendanceIndex().url,
+    },
+    {
+        label: 'My assignments',
+        icon: ClipboardList,
+        href: studentAssignmentsIndex().url,
+    },
+    {
+        label: 'My results',
+        icon: GraduationCap,
+        href: studentResultsIndex().url,
+    },
+]);
+
 function formatDate(value: string | null): string {
     if (!value) {
         return '—';
@@ -132,20 +165,78 @@ function markRead(item: AppNotification): void {
 }
 
 function markAllRead(): void {
-    router.post('/student/notifications/read-all', {}, { preserveScroll: true });
+    router.post(
+        '/student/notifications/read-all',
+        {},
+        { preserveScroll: true },
+    );
 }
 </script>
 
 <template>
     <Head title="Student Dashboard" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <!-- Hero -->
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Student
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Welcome back<template v-if="firstName"
+                        >, {{ firstName }}</template
+                    >
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Your enrollment, course updates, payments and results at a
+                    glance.
+                </p>
+            </div>
+            <Tag
+                v-if="profile"
+                :value="enrollmentLabel(profile.status)"
+                :severity="enrollmentSeverity(profile.status)"
+            />
+        </section>
+
+        <!-- Quick links -->
+        <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+                v-for="link in quickLinks"
+                :key="link.label"
+                :href="link.href"
+                class="focus:outline-none"
+            >
+                <div
+                    class="flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:bg-muted/50"
+                >
+                    <span
+                        class="grid size-9 flex-none place-items-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
+                    >
+                        <component :is="link.icon" class="size-4" />
+                    </span>
+                    <span class="text-sm font-medium">{{ link.label }}</span>
+                    <ChevronRight
+                        class="ml-auto size-4 flex-none text-muted-foreground"
+                    />
+                </div>
+            </Link>
+        </section>
+
+        <!-- Notifications -->
         <Card>
             <template #title>
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
-                        <Bell class="size-5" />
-                        <span>Notifications</span>
+                        <Bell class="size-5 text-muted-foreground" />
+                        <span class="text-base font-semibold"
+                            >Notifications</span
+                        >
                         <Badge
                             v-if="unreadCount > 0"
                             :value="unreadCount"
@@ -231,25 +322,21 @@ function markAllRead(): void {
                         />
                     </li>
                 </ul>
-                <p v-else class="py-6 text-center text-sm text-muted-foreground">
+                <p
+                    v-else
+                    class="py-6 text-center text-sm text-muted-foreground"
+                >
                     No notifications yet.
                 </p>
             </template>
         </Card>
 
+        <!-- Enrollment -->
         <Card>
             <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <GraduationCap class="size-5" />
-                        <span>My enrollment</span>
-                    </div>
-                    <Tag
-                        v-if="profile"
-                        :value="enrollmentLabel(profile.status)"
-                        :severity="enrollmentSeverity(profile.status)"
-                        class="capitalize"
-                    />
+                <div class="flex items-center gap-2">
+                    <GraduationCap class="size-5 text-muted-foreground" />
+                    <span class="text-base font-semibold">My enrollment</span>
                 </div>
             </template>
             <template #content>
@@ -295,11 +382,14 @@ function markAllRead(): void {
             </template>
         </Card>
 
+        <!-- Application history -->
         <Card>
             <template #title>
                 <div class="flex items-center gap-2">
-                    <FileText class="size-5" />
-                    <span>Application history</span>
+                    <FileText class="size-5 text-muted-foreground" />
+                    <span class="text-base font-semibold"
+                        >Application history</span
+                    >
                 </div>
             </template>
             <template #content>
@@ -344,7 +434,9 @@ function markAllRead(): void {
                         style="width: 9rem"
                     >
                         <template #body="{ data }">
-                            <span>{{ formatDate(data.submitted_at) }}</span>
+                            <span class="text-muted-foreground">{{
+                                formatDate(data.submitted_at)
+                            }}</span>
                         </template>
                     </Column>
                     <Column
@@ -354,7 +446,9 @@ function markAllRead(): void {
                         style="width: 9rem"
                     >
                         <template #body="{ data }">
-                            <span>{{ formatDate(data.decided_at) }}</span>
+                            <span class="text-muted-foreground">{{
+                                formatDate(data.decided_at)
+                            }}</span>
                         </template>
                     </Column>
                     <Column header="" style="width: 6rem">
