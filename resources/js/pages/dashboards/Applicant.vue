@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { FileText, Plus } from 'lucide-vue-next';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import {
+    CircleCheck,
+    CircleX,
+    Clock,
+    FileSearch,
+    FileText,
+    Plus,
+    Send,
+} from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
+import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
 import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
 import applicant from '@/routes/applicant';
@@ -27,7 +36,7 @@ type Application = {
     program_offering: ProgramOffering;
 };
 
-defineProps<{ applications: Application[] }>();
+const props = defineProps<{ applications: Application[] }>();
 
 defineOptions({
     layout: {
@@ -35,6 +44,35 @@ defineOptions({
             { title: 'Applicant Dashboard', href: applicant.dashboard() },
         ],
     },
+});
+
+const page = usePage();
+
+const firstName = computed<string>(() => {
+    const name = page.props.auth?.user?.name ?? '';
+
+    return name.split(' ')[0] ?? '';
+});
+
+const summary = computed(() => {
+    const counts = { submitted: 0, inReview: 0, admitted: 0, rejected: 0 };
+
+    for (const application of props.applications) {
+        if (application.status === 'submitted') {
+            counts.submitted += 1;
+        } else if (
+            application.status === 'under_review' ||
+            application.status === 'documents_requested'
+        ) {
+            counts.inReview += 1;
+        } else if (application.status === 'admitted') {
+            counts.admitted += 1;
+        } else if (application.status === 'rejected') {
+            counts.rejected += 1;
+        }
+    }
+
+    return counts;
 });
 
 function formatDate(value: string | null): string {
@@ -49,21 +87,96 @@ function formatDate(value: string | null): string {
 <template>
     <Head title="Applicant Dashboard" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <!-- Hero -->
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">
+                    Welcome back<template v-if="firstName"
+                        >, {{ firstName }}</template
+                    >
+                    👋
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Track your admission applications below.
+                </p>
+            </div>
+            <Link :href="ApplicationController.create().url">
+                <Button label="New application">
+                    <template #icon>
+                        <Plus class="size-4" />
+                    </template>
+                </Button>
+            </Link>
+        </section>
+
+        <!-- Status-summary chips -->
+        <section class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-muted-foreground"
+                        >Submitted</span
+                    >
+                    <span
+                        class="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
+                    >
+                        <Send class="size-3.5" />
+                    </span>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ summary.submitted }}</p>
+            </div>
+
+            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-muted-foreground"
+                        >In review</span
+                    >
+                    <span
+                        class="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                    >
+                        <Clock class="size-3.5" />
+                    </span>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ summary.inReview }}</p>
+            </div>
+
+            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-muted-foreground"
+                        >Admitted</span
+                    >
+                    <span
+                        class="grid size-7 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                    >
+                        <CircleCheck class="size-3.5" />
+                    </span>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ summary.admitted }}</p>
+            </div>
+
+            <div class="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-muted-foreground"
+                        >Rejected</span
+                    >
+                    <span
+                        class="grid size-7 place-items-center rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"
+                    >
+                        <CircleX class="size-3.5" />
+                    </span>
+                </div>
+                <p class="mt-2 text-2xl font-bold">{{ summary.rejected }}</p>
+            </div>
+        </section>
+
+        <!-- Applications table -->
         <Card>
             <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <FileText class="size-5" />
-                        <span>My applications</span>
-                    </div>
-                    <Link :href="ApplicationController.create().url">
-                        <Button label="Start a new application" size="small">
-                            <template #icon>
-                                <Plus class="size-4" />
-                            </template>
-                        </Button>
-                    </Link>
+                <div class="flex items-center gap-2">
+                    <FileText class="size-5 text-muted-foreground" />
+                    <span class="text-base font-semibold">My applications</span>
                 </div>
             </template>
             <template #content>
@@ -131,7 +244,9 @@ function formatDate(value: string | null): string {
                         style="width: 9rem"
                     >
                         <template #body="{ data }">
-                            <span>{{ formatDate(data.submitted_at) }}</span>
+                            <span class="text-muted-foreground">{{
+                                formatDate(data.submitted_at)
+                            }}</span>
                         </template>
                     </Column>
                     <Column header="" style="width: 6rem">
@@ -153,15 +268,25 @@ function formatDate(value: string | null): string {
                         </template>
                     </Column>
                     <template #empty>
-                        <div class="space-y-2 py-6 text-center">
-                            <p class="text-sm text-muted-foreground">
-                                You have not submitted any applications yet.
-                            </p>
+                        <div
+                            class="flex flex-col items-center gap-4 py-12 text-center"
+                        >
+                            <span
+                                class="grid size-16 place-items-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
+                            >
+                                <FileSearch class="size-8" />
+                            </span>
+                            <div>
+                                <p class="text-base font-semibold">
+                                    You haven't submitted any applications yet
+                                </p>
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                    Start your first application to apply for
+                                    admission.
+                                </p>
+                            </div>
                             <Link :href="ApplicationController.create().url">
-                                <Button
-                                    label="Start a new application"
-                                    size="small"
-                                >
+                                <Button label="Start your first application">
                                     <template #icon>
                                         <Plus class="size-4" />
                                     </template>

@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en" class="h-full">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>New application · SchuLyf</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                        colors: {
+                            primary: {
+                                50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
+                                300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
+                                600: '#059669', 700: '#047857', 800: '#065f46',
+                                900: '#064e3b', 950: '#022c22',
+                            },
+                        },
+                        borderRadius: { xl: '0.875rem' },
+                    },
+                },
+            };
+        </script>
+        <link rel="stylesheet" href="assets/app.css" />
+    </head>
+    <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        <div class="flex h-full">
+            <!-- ====================== SIDEBAR (desktop) ====================== -->
+            <aside class="hidden w-64 flex-none flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex">
+                <a href="dashboard.html" class="flex items-center gap-2.5 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <span class="grid size-9 place-items-center rounded-xl bg-primary-600">
+                        <svg viewBox="0 0 32 32" class="size-5" aria-hidden="true">
+                            <path d="M16 3 3 9l13 6 10-4.6V20h2.6V9L16 3Z" fill="#fff" />
+                            <path d="M7 14.4V20c0 2.6 4 4.8 9 4.8s9-2.2 9-4.8v-5.6l-9 4.1-9-4.1Z" fill="#fff" opacity=".7" />
+                        </svg>
+                    </span>
+                    <span class="text-lg font-extrabold tracking-tight">SchuLyf</span>
+                </a>
+                <nav class="thin-scroll flex-1 space-y-1 overflow-y-auto p-3" aria-label="Primary">
+                    <p class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Menu</p>
+                    <a href="dashboard.html" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+                        <i data-lucide="layout-dashboard" class="size-4"></i> Dashboard
+                    </a>
+                    <a href="application.html" aria-current="page" class="flex items-center gap-3 rounded-lg bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                        <i data-lucide="file-plus-2" class="size-4"></i> New application
+                    </a>
+                </nav>
+                <div class="border-t border-slate-200 p-3 dark:border-slate-800" data-menu>
+                    <button type="button" data-menu-trigger aria-haspopup="true" aria-expanded="false" class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <span class="grid size-9 flex-none place-items-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">JD</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold">Jane Doe</span>
+                            <span class="block truncate text-xs text-slate-500 dark:text-slate-400">Applicant</span>
+                        </span>
+                        <i data-lucide="chevrons-up-down" class="size-4 text-slate-400"></i>
+                    </button>
+                    <div data-menu-panel hidden role="menu" class="mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                        <a href="#" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"><i data-lucide="user-cog" class="size-4"></i> Account</a>
+                        <a href="login.html" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"><i data-lucide="log-out" class="size-4"></i> Sign out</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ====================== MOBILE DRAWER ====================== -->
+            <div data-scrim class="scrim pointer-events-none fixed inset-0 z-30 bg-slate-900/50 opacity-0 lg:hidden" data-drawer-close aria-hidden="true"></div>
+            <aside data-drawer aria-hidden="true" class="drawer fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:hidden">
+                <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <a href="dashboard.html" class="flex items-center gap-2.5">
+                        <span class="grid size-9 place-items-center rounded-xl bg-primary-600">
+                            <svg viewBox="0 0 32 32" class="size-5" aria-hidden="true">
+                                <path d="M16 3 3 9l13 6 10-4.6V20h2.6V9L16 3Z" fill="#fff" />
+                                <path d="M7 14.4V20c0 2.6 4 4.8 9 4.8s9-2.2 9-4.8v-5.6l-9 4.1-9-4.1Z" fill="#fff" opacity=".7" />
+                            </svg>
+                        </span>
+                        <span class="text-lg font-extrabold tracking-tight">SchuLyf</span>
+                    </a>
+                    <button type="button" data-drawer-close aria-label="Close menu" class="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
+                <nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Primary mobile">
+                    <a href="dashboard.html" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                        <i data-lucide="layout-dashboard" class="size-4"></i> Dashboard
+                    </a>
+                    <a href="application.html" aria-current="page" class="flex items-center gap-3 rounded-lg bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                        <i data-lucide="file-plus-2" class="size-4"></i> New application
+                    </a>
+                </nav>
+                <div class="border-t border-slate-200 p-3 dark:border-slate-800">
+                    <a href="login.html" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+                        <i data-lucide="log-out" class="size-4"></i> Sign out
+                    </a>
+                </div>
+            </aside>
+
+            <!-- ====================== MAIN COLUMN ====================== -->
+            <div class="flex min-w-0 flex-1 flex-col">
+                <!-- Topbar -->
+                <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:px-6">
+                    <button type="button" data-drawer-toggle aria-label="Open menu" class="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden">
+                        <i data-lucide="menu" class="size-5"></i>
+                    </button>
+                    <nav aria-label="Breadcrumb" class="min-w-0 flex-1">
+                        <ol class="flex items-center gap-1.5 text-sm">
+                            <li><a href="dashboard.html" class="text-slate-500 hover:text-slate-800 hover:underline dark:text-slate-400 dark:hover:text-slate-200">Dashboard</a></li>
+                            <li class="text-slate-300 dark:text-slate-600"><i data-lucide="chevron-right" class="size-4"></i></li>
+                            <li class="font-semibold text-slate-900 dark:text-white">New application</li>
+                        </ol>
+                    </nav>
+                    <div class="flex items-center gap-1">
+                        <button type="button" data-theme-toggle aria-pressed="false" aria-label="Toggle theme" class="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                            <i data-icon-sun data-lucide="sun" class="size-[18px]"></i>
+                            <i data-icon-moon data-lucide="moon" class="size-[18px]" hidden></i>
+                        </button>
+                        <button type="button" aria-label="Notifications" class="relative grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                            <i data-lucide="bell" class="size-[18px]"></i>
+                            <span class="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary-500 ring-2 ring-white dark:ring-slate-900"></span>
+                        </button>
+                        <div class="ml-1" data-menu>
+                            <button type="button" data-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Account menu" class="grid size-9 place-items-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 hover:ring-2 hover:ring-primary-500/40 dark:bg-primary-900/40 dark:text-primary-300">JD</button>
+                            <div data-menu-panel hidden role="menu" class="absolute right-4 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:right-6">
+                                <a href="#" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"><i data-lucide="user-cog" class="size-4"></i> Account</a>
+                                <a href="login.html" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"><i data-lucide="log-out" class="size-4"></i> Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page content -->
+                <main class="thin-scroll flex-1 overflow-y-auto">
+                    <div class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8" data-wizard>
+                        <div class="mb-2">
+                            <h1 class="text-2xl font-bold tracking-tight">New application</h1>
+                            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Pick the programme you're applying for, then upload the documents required for the level you're entering.</p>
+                        </div>
+
+                        <!-- Step indicator (desktop) -->
+                        <div class="my-6 hidden sm:block">
+                            <ol class="flex items-center">
+                                <!-- 1 -->
+                                <li class="flex items-center" data-step-indicator aria-current="step">
+                                    <span class="flex items-center gap-2.5">
+                                        <span data-step-circle class="step-line grid size-9 flex-none place-items-center rounded-full border-2 text-sm font-semibold">
+                                            <span data-step-num>1</span>
+                                            <i data-step-check data-lucide="check" class="size-4" hidden></i>
+                                        </span>
+                                        <span data-step-label class="text-sm">Programme</span>
+                                    </span>
+                                </li>
+                                <li class="mx-3 h-0.5 flex-1 rounded bg-slate-200 dark:bg-slate-700" data-step-line></li>
+                                <!-- 2 -->
+                                <li class="flex items-center" data-step-indicator>
+                                    <span class="flex items-center gap-2.5">
+                                        <span data-step-circle class="step-line grid size-9 flex-none place-items-center rounded-full border-2 text-sm font-semibold">
+                                            <span data-step-num>2</span>
+                                            <i data-step-check data-lucide="check" class="size-4" hidden></i>
+                                        </span>
+                                        <span data-step-label class="text-sm">Personal</span>
+                                    </span>
+                                </li>
+                                <li class="mx-3 h-0.5 flex-1 rounded bg-slate-200 dark:bg-slate-700" data-step-line></li>
+                                <!-- 3 -->
+                                <li class="flex items-center" data-step-indicator>
+                                    <span class="flex items-center gap-2.5">
+                                        <span data-step-circle class="step-line grid size-9 flex-none place-items-center rounded-full border-2 text-sm font-semibold">
+                                            <span data-step-num>3</span>
+                                            <i data-step-check data-lucide="check" class="size-4" hidden></i>
+                                        </span>
+                                        <span data-step-label class="text-sm">Documents</span>
+                                    </span>
+                                </li>
+                                <li class="mx-3 h-0.5 flex-1 rounded bg-slate-200 dark:bg-slate-700" data-step-line></li>
+                                <!-- 4 -->
+                                <li class="flex items-center" data-step-indicator>
+                                    <span class="flex items-center gap-2.5">
+                                        <span data-step-circle class="step-line grid size-9 flex-none place-items-center rounded-full border-2 text-sm font-semibold">
+                                            <span data-step-num>4</span>
+                                            <i data-step-check data-lucide="check" class="size-4" hidden></i>
+                                        </span>
+                                        <span data-step-label class="text-sm">Review</span>
+                                    </span>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <!-- Step indicator (mobile compact) -->
+                        <div class="my-5 sm:hidden">
+                            <div class="mb-2 flex items-center justify-between text-sm">
+                                <span data-progress-label class="font-semibold">Step 1 of 4</span>
+                                <span class="text-slate-500 dark:text-slate-400">Programme · Personal · Documents · Review</span>
+                            </div>
+                            <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                                <div data-progress-bar class="h-full rounded-full bg-primary-600 transition-all" style="width:25%"></div>
+                            </div>
+                        </div>
+
+                        <form class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6" onsubmit="window.location.href='dashboard.html';return false;">
+                            <!-- ===== STEP 1 · PROGRAMME ===== -->
+                            <section data-step>
+                                <h2 tabindex="-1" data-step-heading class="text-base font-semibold">Programme</h2>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Choose your degree programme, department and entry level.</p>
+
+                                <div class="mt-5 grid gap-5 md:grid-cols-3">
+                                    <div class="space-y-1.5">
+                                        <label for="degree_program" class="text-sm font-medium text-slate-700 dark:text-slate-200">Degree programme</label>
+                                        <select id="degree_program" name="degree_program" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800">
+                                            <option value="">Select a programme</option>
+                                            <option>HND</option>
+                                            <option selected>Bachelors</option>
+                                            <option>Masters</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="department" class="text-sm font-medium text-slate-700 dark:text-slate-200">Department</label>
+                                        <select id="department" name="department" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800">
+                                            <option value="">Select a department</option>
+                                            <option selected>Computer Science</option>
+                                            <option>Electrical Engineering</option>
+                                            <option>Business Management</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="level" class="text-sm font-medium text-slate-700 dark:text-slate-200">Level</label>
+                                        <div class="flex items-stretch rounded-lg border border-slate-300 dark:border-slate-700">
+                                            <button type="button" data-level-dec aria-label="Decrease level" class="grid w-10 place-items-center rounded-l-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                                <i data-lucide="minus" class="size-4"></i>
+                                            </button>
+                                            <input id="level" name="level" type="number" data-level-input min="1" max="3" value="1" class="w-full border-x border-slate-300 bg-white text-center text-sm focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                            <button type="button" data-level-inc aria-label="Increase level" class="grid w-10 place-items-center rounded-r-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                                <i data-lucide="plus" class="size-4"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Allowed: 1 – 3</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 flex items-center justify-end">
+                                    <button type="button" data-next class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                                        Continue <i data-lucide="arrow-right" class="size-4"></i>
+                                    </button>
+                                </div>
+                            </section>
+
+                            <!-- ===== STEP 2 · PERSONAL ===== -->
+                            <section data-step hidden>
+                                <h2 tabindex="-1" data-step-heading class="text-base font-semibold">Personal details</h2>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Tell us who you are. These details appear on your admission record.</p>
+
+                                <div class="mt-5 grid gap-5 md:grid-cols-2">
+                                    <div class="space-y-1.5">
+                                        <label for="first_name" class="text-sm font-medium text-slate-700 dark:text-slate-200">First name</label>
+                                        <input id="first_name" name="first_name" type="text" value="Jane" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="last_name" class="text-sm font-medium text-slate-700 dark:text-slate-200">Last name</label>
+                                        <input id="last_name" name="last_name" type="text" value="Doe" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="contact_email" class="text-sm font-medium text-slate-700 dark:text-slate-200">Contact email</label>
+                                        <input id="contact_email" name="contact_email" type="email" value="jane@school.edu" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="phone" class="text-sm font-medium text-slate-700 dark:text-slate-200">Phone</label>
+                                        <input id="phone" name="phone" type="tel" placeholder="6XXXXXXXX" value="677123456" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="date_of_birth" class="text-sm font-medium text-slate-700 dark:text-slate-200">Date of birth</label>
+                                        <input id="date_of_birth" name="date_of_birth" type="date" value="2003-04-15" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800 dark:[color-scheme:dark]" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="previous_institute" class="text-sm font-medium text-slate-700 dark:text-slate-200">Previous institute <span class="font-normal text-slate-400">(optional)</span></label>
+                                        <input id="previous_institute" name="previous_institute" type="text" placeholder="e.g. Government Bilingual High School" class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 dark:border-slate-700 dark:bg-slate-800" />
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 flex items-center justify-between">
+                                    <button type="button" data-back class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                        <i data-lucide="arrow-left" class="size-4"></i> Back
+                                    </button>
+                                    <button type="button" data-next class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                                        Continue <i data-lucide="arrow-right" class="size-4"></i>
+                                    </button>
+                                </div>
+                            </section>
+
+                            <!-- ===== STEP 3 · DOCUMENTS ===== -->
+                            <section data-step hidden>
+                                <h2 tabindex="-1" data-step-heading class="text-base font-semibold">Required documents</h2>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Identity and birth-certificate uploads are required for every application. Additional documents depend on your level.</p>
+
+                                <div class="mt-5 space-y-4">
+                                    <!-- NID -->
+                                    <div data-doc-card data-doc-name="National ID Card" class="rounded-xl border border-slate-200 p-4 transition dark:border-slate-800">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="grid size-10 flex-none place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"><i data-lucide="id-card" class="size-5"></i></span>
+                                                <div>
+                                                    <p class="text-sm font-semibold">National ID Card <span class="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase text-red-600 dark:bg-red-950/40 dark:text-red-400">Required</span></p>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400">PDF / JPG / PNG up to 8 MB</p>
+                                                    <p data-file-empty class="mt-1 text-xs italic text-slate-400 dark:text-slate-500">No file chosen</p>
+                                                    <p data-file-name class="mt-1 text-xs font-medium text-primary-700 dark:text-primary-300" hidden></p>
+                                                </div>
+                                            </div>
+                                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                                <i data-lucide="upload-cloud" class="size-4"></i> Choose file
+                                                <input type="file" data-file accept="application/pdf,image/jpeg,image/png" class="sr-only" />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- BIRTH -->
+                                    <div data-doc-card data-doc-name="Birth Certificate" class="rounded-xl border border-slate-200 p-4 transition dark:border-slate-800">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="grid size-10 flex-none place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"><i data-lucide="scroll" class="size-5"></i></span>
+                                                <div>
+                                                    <p class="text-sm font-semibold">Birth Certificate <span class="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase text-red-600 dark:bg-red-950/40 dark:text-red-400">Required</span></p>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400">PDF / JPG / PNG up to 8 MB</p>
+                                                    <p data-file-empty class="mt-1 text-xs italic text-slate-400 dark:text-slate-500">No file chosen</p>
+                                                    <p data-file-name class="mt-1 text-xs font-medium text-primary-700 dark:text-primary-300" hidden></p>
+                                                </div>
+                                            </div>
+                                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                                <i data-lucide="upload-cloud" class="size-4"></i> Choose file
+                                                <input type="file" data-file accept="application/pdf,image/jpeg,image/png" class="sr-only" />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Level-specific sample doc -->
+                                    <div data-doc-card data-doc-name="GCE Advanced Level" class="rounded-xl border border-slate-200 p-4 transition dark:border-slate-800">
+                                        <div class="flex flex-wrap items-start justify-between gap-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="grid size-10 flex-none place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"><i data-lucide="graduation-cap" class="size-5"></i></span>
+                                                <div>
+                                                    <p class="text-sm font-semibold">GCE Advanced Level <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">Level 1</span></p>
+                                                    <p class="text-xs text-slate-500 dark:text-slate-400">PDF / JPG / PNG up to 8 MB</p>
+                                                    <p data-file-empty class="mt-1 text-xs italic text-slate-400 dark:text-slate-500">No file chosen</p>
+                                                    <p data-file-name class="mt-1 text-xs font-medium text-primary-700 dark:text-primary-300" hidden></p>
+                                                </div>
+                                            </div>
+                                            <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                                <i data-lucide="upload-cloud" class="size-4"></i> Choose file
+                                                <input type="file" data-file accept="application/pdf,image/jpeg,image/png" class="sr-only" />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 flex items-center justify-between">
+                                    <button type="button" data-back class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                        <i data-lucide="arrow-left" class="size-4"></i> Back
+                                    </button>
+                                    <button type="button" data-next class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                                        Continue <i data-lucide="arrow-right" class="size-4"></i>
+                                    </button>
+                                </div>
+                            </section>
+
+                            <!-- ===== STEP 4 · REVIEW ===== -->
+                            <section data-step hidden>
+                                <h2 tabindex="-1" data-step-heading class="text-base font-semibold">Review &amp; submit</h2>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Check everything is correct. You can go back to edit any step before submitting.</p>
+
+                                <div class="mt-5 space-y-4">
+                                    <div class="rounded-xl border border-slate-200 dark:border-slate-800">
+                                        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-2.5 dark:border-slate-800">
+                                            <h3 class="text-sm font-semibold">Programme</h3>
+                                        </div>
+                                        <dl class="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-3">
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Degree programme</dt><dd data-review="review-degree" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Department</dt><dd data-review="review-department" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Level</dt><dd data-review="review-level" class="text-sm font-medium">—</dd></div>
+                                        </dl>
+                                    </div>
+
+                                    <div class="rounded-xl border border-slate-200 dark:border-slate-800">
+                                        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-2.5 dark:border-slate-800">
+                                            <h3 class="text-sm font-semibold">Personal details</h3>
+                                        </div>
+                                        <dl class="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-2">
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">First name</dt><dd data-review="review-first" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Last name</dt><dd data-review="review-last" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Contact email</dt><dd data-review="review-email" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Phone</dt><dd data-review="review-phone" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Date of birth</dt><dd data-review="review-dob" class="text-sm font-medium">—</dd></div>
+                                            <div><dt class="text-xs text-slate-500 dark:text-slate-400">Previous institute</dt><dd data-review="review-prev" class="text-sm font-medium">—</dd></div>
+                                        </dl>
+                                    </div>
+
+                                    <div class="rounded-xl border border-slate-200 dark:border-slate-800">
+                                        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-2.5 dark:border-slate-800">
+                                            <h3 class="text-sm font-semibold">Documents</h3>
+                                        </div>
+                                        <ul data-review-docs class="px-4 py-2"></ul>
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 flex items-center justify-between">
+                                    <button type="button" data-back class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                        <i data-lucide="arrow-left" class="size-4"></i> Back
+                                    </button>
+                                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 active:bg-primary-800">
+                                        <i data-lucide="send" class="size-4"></i> Submit application
+                                    </button>
+                                </div>
+                            </section>
+                        </form>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="assets/app.js"></script>
+    </body>
+</html>

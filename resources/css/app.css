@@ -11,9 +11,27 @@
 
 @theme inline {
     --font-sans:
-        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /*
+      SchuLyf brand scale — Tailwind `emerald`, exposed as a numbered
+      `primary-*` scale so brand utilities (`bg-primary-600`, `text-primary-700`,
+      `ring-primary-500/30`, `dark:bg-primary-900/30`) resolve. This coexists
+      with shadcn's single `--color-primary` token below (distinct utility keys).
+      PrimeVue/Aura already ships emerald as its primary, so these align.
+    */
+    --color-primary-50: #ecfdf5;
+    --color-primary-100: #d1fae5;
+    --color-primary-200: #a7f3d0;
+    --color-primary-300: #6ee7b7;
+    --color-primary-400: #34d399;
+    --color-primary-500: #10b981;
+    --color-primary-600: #059669;
+    --color-primary-700: #047857;
+    --color-primary-800: #065f46;
+    --color-primary-900: #064e3b;
+    --color-primary-950: #022c22;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -85,9 +103,8 @@
     body,
     html {
         --font-sans:
-            'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-            'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-            'Noto Color Emoji';
+            'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     }
 }
 
@@ -98,8 +115,8 @@
     --card-foreground: hsl(0 0% 3.9%);
     --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(0 0% 3.9%);
-    --primary: hsl(0 0% 9%);
-    --primary-foreground: hsl(0 0% 98%);
+    --primary: #059669; /* SchuLyf emerald-600 brand */
+    --primary-foreground: #ffffff;
     --secondary: hsl(0 0% 92.1%);
     --secondary-foreground: hsl(0 0% 9%);
     --muted: hsl(0 0% 96.1%);
@@ -110,7 +127,7 @@
     --destructive-foreground: hsl(0 0% 98%);
     --border: hsl(0 0% 92.8%);
     --input: hsl(0 0% 89.8%);
-    --ring: hsl(0 0% 3.9%);
+    --ring: #10b981; /* emerald-500 focus ring */
     --chart-1: hsl(12 76% 61%);
     --chart-2: hsl(173 58% 39%);
     --chart-3: hsl(197 37% 24%);
@@ -119,12 +136,12 @@
     --radius: 0.5rem;
     --sidebar-background: hsl(0 0% 98%);
     --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(0 0% 10%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
+    --sidebar-primary: #059669; /* emerald brand mark tile */
+    --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: hsl(0 0% 94%);
     --sidebar-accent-foreground: hsl(0 0% 30%);
     --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    --sidebar-ring: #10b981;
     --sidebar: hsl(0 0% 98%);
 }
 
@@ -135,8 +152,8 @@
     --card-foreground: hsl(0 0% 98%);
     --popover: hsl(0 0% 3.9%);
     --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(0 0% 9%);
+    --primary: #059669; /* keep emerald-600 + white text for AA button contrast in dark */
+    --primary-foreground: #ffffff;
     --secondary: hsl(0 0% 14.9%);
     --secondary-foreground: hsl(0 0% 98%);
     --muted: hsl(0 0% 16.08%);
@@ -147,7 +164,7 @@
     --destructive-foreground: hsl(0 0% 98%);
     --border: hsl(0 0% 14.9%);
     --input: hsl(0 0% 14.9%);
-    --ring: hsl(0 0% 83.1%);
+    --ring: #34d399; /* emerald-400 reads better on dark surfaces */
     --chart-1: hsl(220 70% 50%);
     --chart-2: hsl(160 60% 45%);
     --chart-3: hsl(30 80% 55%);
@@ -155,12 +172,12 @@
     --chart-5: hsl(340 75% 55%);
     --sidebar-background: hsl(0 0% 7%);
     --sidebar-foreground: hsl(0 0% 95.9%);
-    --sidebar-primary: hsl(360, 100%, 100%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-primary: #059669; /* emerald brand mark tile (dark) */
+    --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: hsl(0 0% 15.9%);
     --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
     --sidebar-border: hsl(0 0% 15.9%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    --sidebar-ring: #34d399;
     --sidebar: hsl(240 5.9% 10%);
 }
 
@@ -171,4 +188,31 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/*
+  SchuLyf auth brand-panel decoration (the emerald split layout). Plain CSS —
+  these dot-grid + glow effects can't be expressed cleanly as Tailwind utilities.
+*/
+.brand-pattern {
+    background-image: radial-gradient(
+        circle at 1px 1px,
+        rgb(255 255 255 / 0.16) 1px,
+        transparent 0
+    );
+    background-size: 22px 22px;
+}
+
+.brand-glow {
+    background:
+        radial-gradient(
+            60% 50% at 15% 10%,
+            rgb(16 185 129 / 0.55) 0%,
+            transparent 60%
+        ),
+        radial-gradient(
+            50% 60% at 90% 90%,
+            rgb(5 150 105 / 0.5) 0%,
+            transparent 60%
+        );
 }
