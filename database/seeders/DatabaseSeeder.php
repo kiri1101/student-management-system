@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\RoleName;
 use App\Models\User;
+use App\Services\ReferenceDataCache;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,6 +18,11 @@ class DatabaseSeeder extends Seeder
             DemoReferencesSeeder::class,
             LocalStaffSeeder::class,
         ]);
+
+        // Drop any reference-data cache left over from a prior run so a freshly
+        // (re)seeded database is reflected immediately rather than waiting out
+        // the TTL (issue #39 — seeders write reference rows out of band).
+        app(ReferenceDataCache::class)->flush();
 
         // Known-credential accounts are a local/testing convenience only.
         // Seeding a deployed database must never mint an admin with a known

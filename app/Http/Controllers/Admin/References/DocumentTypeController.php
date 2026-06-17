@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\References\DocumentTypeStoreRequest;
 use App\Http\Requests\Admin\References\DocumentTypeUpdateRequest;
 use App\Models\DocumentType;
+use App\Services\ReferenceDataCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class DocumentTypeController extends Controller
 {
+    public function __construct(private readonly ReferenceDataCache $cache) {}
+
     /**
      * Display a listing of document types, optionally including trashed rows
      * so they can be restored (AUDIT.md AUD-021).
@@ -38,6 +41,8 @@ class DocumentTypeController extends Controller
     {
         DocumentType::create($request->validated());
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Document type created.')]);
 
         return back();
@@ -49,6 +54,8 @@ class DocumentTypeController extends Controller
     public function update(DocumentTypeUpdateRequest $request, DocumentType $documentType): RedirectResponse
     {
         $documentType->update($request->validated());
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Document type updated.')]);
 
@@ -82,6 +89,8 @@ class DocumentTypeController extends Controller
 
         $documentType->delete();
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Document type deleted.')]);
 
         return back();
@@ -99,6 +108,8 @@ class DocumentTypeController extends Controller
         }
 
         $documentType->restore();
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Document type restored.')]);
 

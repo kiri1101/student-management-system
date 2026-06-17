@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\References\LevelCredentialRequirementUpdateRequest;
 use App\Models\DocumentType;
 use App\Models\LevelCredentialRequirement;
 use App\Models\ProgramOffering;
+use App\Services\ReferenceDataCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class LevelCredentialRequirementController extends Controller
 {
+    public function __construct(private readonly ReferenceDataCache $cache) {}
+
     /**
      * Display a listing of level credential requirements, optionally including
      * trashed rows so they can be restored (AUDIT.md AUD-021).
@@ -53,6 +56,8 @@ class LevelCredentialRequirementController extends Controller
     {
         LevelCredentialRequirement::create($request->validated());
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Level requirement created.')]);
 
         return back();
@@ -67,6 +72,8 @@ class LevelCredentialRequirementController extends Controller
     ): RedirectResponse {
         $levelCredentialRequirement->update($request->validated());
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Level requirement updated.')]);
 
         return back();
@@ -78,6 +85,8 @@ class LevelCredentialRequirementController extends Controller
     public function destroy(LevelCredentialRequirement $levelCredentialRequirement): RedirectResponse
     {
         $levelCredentialRequirement->delete();
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Level requirement deleted.')]);
 
@@ -106,6 +115,8 @@ class LevelCredentialRequirementController extends Controller
         }
 
         $levelCredentialRequirement->restore();
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Level requirement restored.')]);
 
