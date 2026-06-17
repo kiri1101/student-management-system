@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\References\ProgramOfferingStoreRequest;
 use App\Http\Requests\Admin\References\ProgramOfferingUpdateRequest;
 use App\Models\Department;
 use App\Models\ProgramOffering;
+use App\Services\ReferenceDataCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class ProgramOfferingController extends Controller
 {
+    public function __construct(private readonly ReferenceDataCache $cache) {}
+
     /**
      * Display a listing of program offerings with department + child counts,
      * optionally including trashed rows so they can be restored (AUD-021).
@@ -51,6 +54,8 @@ class ProgramOfferingController extends Controller
     {
         ProgramOffering::create($request->validated());
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Program offering created.')]);
 
         return back();
@@ -62,6 +67,8 @@ class ProgramOfferingController extends Controller
     public function update(ProgramOfferingUpdateRequest $request, ProgramOffering $programOffering): RedirectResponse
     {
         $programOffering->update($request->validated());
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Program offering updated.')]);
 
@@ -94,6 +101,8 @@ class ProgramOfferingController extends Controller
 
         $programOffering->delete();
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Program offering deleted.')]);
 
         return back();
@@ -120,6 +129,8 @@ class ProgramOfferingController extends Controller
         }
 
         $programOffering->restore();
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Program offering restored.')]);
 

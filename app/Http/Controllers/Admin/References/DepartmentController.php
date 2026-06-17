@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\References\DepartmentStoreRequest;
 use App\Http\Requests\Admin\References\DepartmentUpdateRequest;
 use App\Models\Department;
+use App\Services\ReferenceDataCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,6 +14,8 @@ use Inertia\Response;
 
 class DepartmentController extends Controller
 {
+    public function __construct(private readonly ReferenceDataCache $cache) {}
+
     /**
      * Display a listing of departments, optionally including trashed rows so
      * they can be restored (AUDIT.md AUD-021).
@@ -38,6 +41,8 @@ class DepartmentController extends Controller
     {
         Department::create($request->validated());
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Department created.')]);
 
         return back();
@@ -49,6 +54,8 @@ class DepartmentController extends Controller
     public function update(DepartmentUpdateRequest $request, Department $department): RedirectResponse
     {
         $department->update($request->validated());
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Department updated.')]);
 
@@ -71,6 +78,8 @@ class DepartmentController extends Controller
 
         $department->delete();
 
+        $this->cache->flush();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Department deleted.')]);
 
         return back();
@@ -88,6 +97,8 @@ class DepartmentController extends Controller
         }
 
         $department->restore();
+
+        $this->cache->flush();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Department restored.')]);
 

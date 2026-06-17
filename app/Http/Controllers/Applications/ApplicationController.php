@@ -12,9 +12,8 @@ use App\Models\Application;
 use App\Models\ApplicationDocument;
 use App\Models\AuditLog;
 use App\Models\Department;
-use App\Models\DocumentType;
-use App\Models\ProgramOffering;
 use App\Models\User;
+use App\Services\ReferenceDataCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,7 +71,7 @@ class ApplicationController extends Controller
      * Show the application form. Sends the reference data the cascading
      * dropdowns depend on; the level-credential lookup is fetched on demand.
      */
-    public function create(): Response
+    public function create(ReferenceDataCache $cache): Response
     {
         return Inertia::render('applicant/applications/Create', [
             'degreePrograms' => collect(DegreeProgram::cases())
@@ -81,13 +80,8 @@ class ApplicationController extends Controller
                     'label' => $case->name,
                 ])
                 ->values(),
-            'departments' => Department::query()
-                ->orderBy('name')
-                ->get(['id', 'name', 'code']),
-            'alwaysRequiredDocumentTypes' => DocumentType::query()
-                ->whereIn('code', DocumentType::PROTECTED_CODES)
-                ->orderBy('code')
-                ->get(['id', 'name', 'code']),
+            'departments' => $cache->departments(),
+            'alwaysRequiredDocumentTypes' => $cache->protectedDocumentTypes(),
         ]);
     }
 
@@ -243,38 +237,23 @@ class ApplicationController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    public function offerings(Request $request): array
+    public function offerings(Request $request, ReferenceDataCache $cache): array
     {
         $request->validate([
             'degree_program' => ['nullable', 'string'],
             'department_id' => ['nullable', 'integer'],
         ]);
 
-        return ProgramOffering::query()
-            ->with('department:id,name,code')
-            ->when(
-                $request->filled('degree_program'),
-                fn ($query) => $query->where('degree_program', $request->string('degree_program')->toString()),
-            )
-            ->when(
-                $request->filled('department_id'),
-                fn ($query) => $query->where('department_id', $request->integer('department_id')),
-            )
-            ->orderBy('department_id')
-            ->orderBy('degree_program')
-            ->get(['id', 'department_id', 'degree_program', 'min_level', 'max_level'])
-            ->map(fn (ProgramOffering $offering): array => [
-                'id' => $offering->id,
-                'department_id' => $offering->department_id,
-                'department' => [
-                    'id' => $offering->department->id,
-                    'name' => $offering->department->name,
-                    'code' => $offering->department->code,
-                ],
-                'degree_program' => $offering->degree_program->value,
-                'min_level' => $offering->min_level,
-                'max_level' => $offering->max_level,
-            ])
+        $degreeProgram = $request->filled('degree_program')
+            ? $request->string('degree_program')->toString()
+            : null;
+        $departmentId = $request->filled('department_id')
+            ? $request->integer('department_id')
+            : null;
+
+        return collect($cache->offerings())
+            ->when($degreeProgram !== null, fn ($offerings) => $offerings->where('degree_program', $degreeProgram))
+            ->when($departmentId !== null, fn ($offerings) => $offerings->where('department_id', $departmentId))
             ->values()
             ->all();
     }
@@ -286,34 +265,17 @@ class ApplicationController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    public function levelRequirements(Request $request): array
+    public function levelRequirements(Request $request, ReferenceDataCache $cache): array
     {
         $data = $request->validate([
             'offering' => ['required', 'integer'],
             'level' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
 
-        $offering = ProgramOffering::find($data['offering']);
+        $rules = $cache->levelRequirements()[$data['offering']] ?? [];
 
-        if ($offering === null) {
-            return [];
-        }
-
-        return $offering->levelCredentialRequirements()
+        return collect($rules)
             ->where('level', $data['level'])
-            ->where('required', true)
-            ->with('documentType:id,name,code')
-            ->get()
-            ->map(fn ($rule): array => [
-                'id' => $rule->id,
-                'level' => $rule->level,
-                'required' => $rule->required,
-                'document_type' => [
-                    'id' => $rule->documentType->id,
-                    'name' => $rule->documentType->name,
-                    'code' => $rule->documentType->code,
-                ],
-            ])
             ->values()
             ->all();
     }
