@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import { Info } from 'lucide-vue-next';
-import InputError from '@/components/InputError.vue';
-import PasswordInput from '@/components/PasswordInput.vue';
+import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
+import InputText from 'primevue/inputtext';
+import Password from 'primevue/password';
 import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Sign in to your account',
+        title: 'Welcome back',
+        description: 'Sign in to your account',
     },
 });
 
@@ -31,7 +29,7 @@ defineProps<{
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="mb-4 rounded-lg bg-primary-50 px-4 py-2.5 text-center text-sm font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
     >
         {{ status }}
     </div>
@@ -40,77 +38,99 @@ defineProps<{
         v-bind="store.form()"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="flex flex-col gap-5"
     >
-        <div class="grid gap-3">
-            <div class="grid gap-2">
-                <div class="flex items-center space-x-2">
-                    <Label for="email">Username</Label>
-
-                    <Info
-                        v-tooltip="'Email, employee ID, or Matricule'"
-                        :size="12"
-                        class="cursor-pointer"
-                        pt:text:class="text-xs!"
-                    />
-                </div>
-
-                <Input
-                    id="email"
-                    type="text"
-                    name="email"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="username"
+        <!-- Username -->
+        <div class="grid gap-2">
+            <div class="flex items-center gap-2">
+                <label for="email" class="text-sm font-medium text-foreground">
+                    Username
+                </label>
+                <Info
+                    v-tooltip="'Email, employee ID, or Matricule'"
+                    :size="14"
+                    class="cursor-pointer text-muted-foreground"
                 />
-                <InputError :message="errors.email" />
             </div>
-
-            <div class="grid gap-2">
-                <Label for="password">Password</Label>
-
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    required
-                    :tabindex="2"
-                    autocomplete="current-password"
-                />
-                <InputError :message="errors.password" />
-            </div>
-
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
-                </Label>
-
-                <TextLink
-                    v-if="canResetPassword"
-                    :href="request()"
-                    class="text-sm"
-                    :tabindex="5"
-                >
-                    Forgot password?
-                </TextLink>
-            </div>
-
-            <Button
-                type="submit"
-                class="mt-4 w-full"
-                :tabindex="4"
-                :disabled="processing"
-                data-test="login-button"
-            >
-                <Spinner v-if="processing" />
-                Log in
-            </Button>
+            <InputText
+                id="email"
+                name="email"
+                type="text"
+                required
+                autofocus
+                :tabindex="1"
+                autocomplete="username"
+                placeholder="you@school.edu · EMP-001 · 22A001"
+                fluid
+                :invalid="!!errors.email"
+            />
+            <p v-if="errors.email" class="text-sm text-destructive">
+                {{ errors.email }}
+            </p>
         </div>
 
+        <!-- Password -->
+        <div class="grid gap-2">
+            <label for="password" class="text-sm font-medium text-foreground">
+                Password
+            </label>
+            <Password
+                input-id="password"
+                name="password"
+                required
+                toggle-mask
+                :feedback="false"
+                fluid
+                placeholder="Enter your password"
+                :invalid="!!errors.password"
+                :input-props="{
+                    autocomplete: 'current-password',
+                    tabindex: 2,
+                }"
+            />
+            <p v-if="errors.password" class="text-sm text-destructive">
+                {{ errors.password }}
+            </p>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <label
+                for="remember"
+                class="flex cursor-pointer items-center gap-2.5 text-sm text-foreground"
+            >
+                <Checkbox
+                    input-id="remember"
+                    name="remember"
+                    value="1"
+                    binary
+                    :tabindex="3"
+                />
+                <span>Remember me</span>
+            </label>
+
+            <TextLink
+                v-if="canResetPassword"
+                :href="request()"
+                class="text-sm"
+                :tabindex="5"
+            >
+                Forgot password?
+            </TextLink>
+        </div>
+
+        <Button
+            type="submit"
+            label="Log in"
+            fluid
+            class="mt-1"
+            :tabindex="4"
+            :loading="processing"
+            data-test="login-button"
+        />
+
         <div
-            class="text-center text-sm text-muted-foreground"
             v-if="canRegister"
+            class="text-center text-sm text-muted-foreground"
         >
             Don't have an account?
             <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
@@ -124,7 +144,6 @@ defineProps<{
 }
 
 .p-tooltip {
-    width: full !important;
-    max-width: 10rem !important;
+    max-width: 12rem !important;
 }
 </style>

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en" class="h-full">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Dashboard · SchuLyf</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                theme: {
+                    extend: {
+                        fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                        colors: {
+                            primary: {
+                                50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
+                                300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
+                                600: '#059669', 700: '#047857', 800: '#065f46',
+                                900: '#064e3b', 950: '#022c22',
+                            },
+                        },
+                        borderRadius: { xl: '0.875rem' },
+                    },
+                },
+            };
+        </script>
+        <link rel="stylesheet" href="assets/app.css" />
+    </head>
+    <body class="h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        <div class="flex h-full">
+            <!-- ====================== SIDEBAR (desktop) ====================== -->
+            <aside
+                class="hidden w-64 flex-none flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:flex"
+            >
+                <!-- Brand lockup -->
+                <a
+                    href="dashboard.html"
+                    class="flex items-center gap-2.5 border-b border-slate-200 px-5 py-4 dark:border-slate-800"
+                >
+                    <span class="grid size-9 place-items-center rounded-xl bg-primary-600">
+                        <svg viewBox="0 0 32 32" class="size-5" aria-hidden="true">
+                            <path d="M16 3 3 9l13 6 10-4.6V20h2.6V9L16 3Z" fill="#fff" />
+                            <path d="M7 14.4V20c0 2.6 4 4.8 9 4.8s9-2.2 9-4.8v-5.6l-9 4.1-9-4.1Z" fill="#fff" opacity=".7" />
+                        </svg>
+                    </span>
+                    <span class="text-lg font-extrabold tracking-tight">SchuLyf</span>
+                </a>
+
+                <!-- Nav -->
+                <nav class="thin-scroll flex-1 space-y-1 overflow-y-auto p-3" aria-label="Primary">
+                    <p class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Menu</p>
+                    <a
+                        href="dashboard.html"
+                        aria-current="page"
+                        class="flex items-center gap-3 rounded-lg bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                    >
+                        <i data-lucide="layout-dashboard" class="size-4"></i>
+                        Dashboard
+                    </a>
+                    <a
+                        href="application.html"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    >
+                        <i data-lucide="file-plus-2" class="size-4"></i>
+                        New application
+                    </a>
+                </nav>
+
+                <!-- User menu pinned bottom -->
+                <div class="border-t border-slate-200 p-3 dark:border-slate-800" data-menu>
+                    <button
+                        type="button"
+                        data-menu-trigger
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        class="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800"
+                    >
+                        <span class="grid size-9 flex-none place-items-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">JD</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold">Jane Doe</span>
+                            <span class="block truncate text-xs text-slate-500 dark:text-slate-400">Applicant</span>
+                        </span>
+                        <i data-lucide="chevrons-up-down" class="size-4 text-slate-400"></i>
+                    </button>
+                    <div
+                        data-menu-panel
+                        hidden
+                        class="mt-1 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                        role="menu"
+                    >
+                        <a href="#" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700">
+                            <i data-lucide="user-cog" class="size-4"></i> Account
+                        </a>
+                        <a href="login.html" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+                            <i data-lucide="log-out" class="size-4"></i> Sign out
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ====================== MOBILE DRAWER ====================== -->
+            <div
+                data-scrim
+                class="scrim pointer-events-none fixed inset-0 z-30 bg-slate-900/50 opacity-0 lg:hidden"
+                data-drawer-close
+                aria-hidden="true"
+            ></div>
+            <aside
+                data-drawer
+                aria-hidden="true"
+                class="drawer fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 lg:hidden"
+            >
+                <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                    <a href="dashboard.html" class="flex items-center gap-2.5">
+                        <span class="grid size-9 place-items-center rounded-xl bg-primary-600">
+                            <svg viewBox="0 0 32 32" class="size-5" aria-hidden="true">
+                                <path d="M16 3 3 9l13 6 10-4.6V20h2.6V9L16 3Z" fill="#fff" />
+                                <path d="M7 14.4V20c0 2.6 4 4.8 9 4.8s9-2.2 9-4.8v-5.6l-9 4.1-9-4.1Z" fill="#fff" opacity=".7" />
+                            </svg>
+                        </span>
+                        <span class="text-lg font-extrabold tracking-tight">SchuLyf</span>
+                    </a>
+                    <button type="button" data-drawer-close aria-label="Close menu" class="grid size-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i data-lucide="x" class="size-5"></i>
+                    </button>
+                </div>
+                <nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Primary mobile">
+                    <a href="dashboard.html" aria-current="page" class="flex items-center gap-3 rounded-lg bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                        <i data-lucide="layout-dashboard" class="size-4"></i> Dashboard
+                    </a>
+                    <a href="application.html" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                        <i data-lucide="file-plus-2" class="size-4"></i> New application
+                    </a>
+                </nav>
+                <div class="border-t border-slate-200 p-3 dark:border-slate-800">
+                    <div class="flex items-center gap-3 px-2 py-2">
+                        <span class="grid size-9 flex-none place-items-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">JD</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold">Jane Doe</span>
+                            <span class="block truncate text-xs text-slate-500 dark:text-slate-400">Applicant</span>
+                        </span>
+                    </div>
+                    <a href="login.html" class="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+                        <i data-lucide="log-out" class="size-4"></i> Sign out
+                    </a>
+                </div>
+            </aside>
+
+            <!-- ====================== MAIN COLUMN ====================== -->
+            <div class="flex min-w-0 flex-1 flex-col">
+                <!-- Topbar -->
+                <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:px-6">
+                    <button type="button" data-drawer-toggle aria-label="Open menu" class="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden">
+                        <i data-lucide="menu" class="size-5"></i>
+                    </button>
+                    <nav aria-label="Breadcrumb" class="min-w-0 flex-1">
+                        <ol class="flex items-center gap-1.5 text-sm">
+                            <li class="font-semibold text-slate-900 dark:text-white">Dashboard</li>
+                        </ol>
+                    </nav>
+
+                    <div class="flex items-center gap-1">
+                        <button type="button" data-theme-toggle aria-pressed="false" aria-label="Toggle theme" class="grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                            <i data-icon-sun data-lucide="sun" class="size-[18px]"></i>
+                            <i data-icon-moon data-lucide="moon" class="size-[18px]" hidden></i>
+                        </button>
+                        <button type="button" aria-label="Notifications" class="relative grid size-9 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                            <i data-lucide="bell" class="size-[18px]"></i>
+                            <span class="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary-500 ring-2 ring-white dark:ring-slate-900"></span>
+                        </button>
+                        <div class="ml-1" data-menu>
+                            <button type="button" data-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Account menu" class="grid size-9 place-items-center rounded-full bg-primary-100 text-sm font-bold text-primary-700 hover:ring-2 hover:ring-primary-500/40 dark:bg-primary-900/40 dark:text-primary-300">JD</button>
+                            <div data-menu-panel hidden role="menu" class="absolute right-4 mt-1 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:right-6">
+                                <div class="border-b border-slate-100 px-3 py-2 dark:border-slate-700">
+                                    <p class="text-sm font-semibold">Jane Doe</p>
+                                    <p class="truncate text-xs text-slate-500 dark:text-slate-400">jane@school.edu</p>
+                                </div>
+                                <a href="#" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"><i data-lucide="user-cog" class="size-4"></i> Account</a>
+                                <a href="login.html" role="menuitem" class="flex items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40"><i data-lucide="log-out" class="size-4"></i> Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page content -->
+                <main class="thin-scroll flex-1 overflow-y-auto">
+                    <div class="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+                        <!-- Hero -->
+                        <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h1 class="text-2xl font-bold tracking-tight">Welcome back, Jane 👋</h1>
+                                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Track your admission applications below.</p>
+                            </div>
+                            <a href="application.html" class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 active:bg-primary-800">
+                                <i data-lucide="plus" class="size-4"></i>
+                                New application
+                            </a>
+                        </section>
+
+                        <!-- Status-summary chips (Decision C) -->
+                        <section class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Submitted</span>
+                                    <span class="grid size-7 place-items-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"><i data-lucide="send" class="size-3.5"></i></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-bold">2</p>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">In review</span>
+                                    <span class="grid size-7 place-items-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"><i data-lucide="clock" class="size-3.5"></i></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-bold">1</p>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Admitted</span>
+                                    <span class="grid size-7 place-items-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"><i data-lucide="circle-check" class="size-3.5"></i></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-bold">0</p>
+                            </div>
+                            <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Rejected</span>
+                                    <span class="grid size-7 place-items-center rounded-lg bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400"><i data-lucide="circle-x" class="size-3.5"></i></span>
+                                </div>
+                                <p class="mt-2 text-2xl font-bold">0</p>
+                            </div>
+                        </section>
+
+                        <!-- Preview toggle (lets the PO see the empty state on demand) -->
+                        <div class="flex justify-end">
+                            <button type="button" data-empty-toggle class="inline-flex items-center gap-1.5 rounded-md border border-dashed border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-500 hover:border-slate-400 hover:text-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                                <i data-lucide="eye" class="size-3.5"></i> Preview: empty state
+                            </button>
+                        </div>
+
+                        <!-- Applications card -->
+                        <section class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                            <div class="flex items-center gap-2 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                                <i data-lucide="file-text" class="size-5 text-slate-500 dark:text-slate-400"></i>
+                                <h2 class="text-base font-semibold">My applications</h2>
+                            </div>
+
+                            <!-- POPULATED state -->
+                            <div data-state-populated>
+                                <div class="thin-scroll overflow-x-auto">
+                                    <table class="w-full min-w-[44rem] text-left text-sm">
+                                        <thead>
+                                            <tr class="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                                                <th scope="col" class="px-5 py-3 font-semibold">Department</th>
+                                                <th scope="col" class="px-5 py-3 font-semibold">Programme</th>
+                                                <th scope="col" class="px-5 py-3 font-semibold">Level</th>
+                                                <th scope="col" class="px-5 py-3 font-semibold">Status</th>
+                                                <th scope="col" class="px-5 py-3 font-semibold">Submitted</th>
+                                                <th scope="col" class="px-5 py-3 text-right font-semibold"><span class="sr-only">Actions</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                <td class="px-5 py-3.5">
+                                                    <div class="font-medium">Computer Science</div>
+                                                    <div class="text-xs text-slate-400 dark:text-slate-500">CS</div>
+                                                </td>
+                                                <td class="px-5 py-3.5">Bachelors</td>
+                                                <td class="px-5 py-3.5">1</td>
+                                                <td class="px-5 py-3.5"><span class="badge badge-info">Submitted</span></td>
+                                                <td class="px-5 py-3.5 text-slate-500 dark:text-slate-400">12 Jun 2026</td>
+                                                <td class="px-5 py-3.5 text-right">
+                                                    <a href="#" class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30">View <i data-lucide="arrow-right" class="size-3.5"></i></a>
+                                                </td>
+                                            </tr>
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                <td class="px-5 py-3.5">
+                                                    <div class="font-medium">Electrical Engineering</div>
+                                                    <div class="text-xs text-slate-400 dark:text-slate-500">EE</div>
+                                                </td>
+                                                <td class="px-5 py-3.5">HND</td>
+                                                <td class="px-5 py-3.5">2</td>
+                                                <td class="px-5 py-3.5"><span class="badge badge-warn">Under review</span></td>
+                                                <td class="px-5 py-3.5 text-slate-500 dark:text-slate-400">09 Jun 2026</td>
+                                                <td class="px-5 py-3.5 text-right">
+                                                    <a href="#" class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30">View <i data-lucide="arrow-right" class="size-3.5"></i></a>
+                                                </td>
+                                            </tr>
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                <td class="px-5 py-3.5">
+                                                    <div class="font-medium">Business Management</div>
+                                                    <div class="text-xs text-slate-400 dark:text-slate-500">BM</div>
+                                                </td>
+                                                <td class="px-5 py-3.5">Masters</td>
+                                                <td class="px-5 py-3.5">1</td>
+                                                <td class="px-5 py-3.5"><span class="badge badge-info">Submitted</span></td>
+                                                <td class="px-5 py-3.5 text-slate-500 dark:text-slate-400">05 Jun 2026</td>
+                                                <td class="px-5 py-3.5 text-right">
+                                                    <a href="#" class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-primary-700 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30">View <i data-lucide="arrow-right" class="size-3.5"></i></a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- EMPTY state (toggled by the preview button) -->
+                            <div data-state-empty hidden class="flex flex-col items-center gap-4 px-6 py-16 text-center">
+                                <span class="grid size-16 place-items-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400">
+                                    <i data-lucide="file-search" class="size-8"></i>
+                                </span>
+                                <div>
+                                    <p class="text-base font-semibold">You haven't submitted any applications yet</p>
+                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Start your first application to apply for admission.</p>
+                                </div>
+                                <a href="application.html" class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700">
+                                    <i data-lucide="plus" class="size-4"></i> Start your first application
+                                </a>
+                            </div>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="assets/app.js"></script>
+    </body>
+</html>

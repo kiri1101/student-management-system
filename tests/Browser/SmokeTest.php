@@ -29,10 +29,11 @@ it('renders the applicant application form without JavaScript errors', function 
 
     $page = visit('/application/new');
 
+    // The form is now a 4-step wizard; step 1 (Programme) is what renders first.
     $page->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs()
         ->assertSee('New application')
-        ->assertSee('First name');
+        ->assertSee('Degree programme');
 });
 
 it('opens the admin audit-log modal without JavaScript errors', function () {

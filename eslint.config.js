@@ -80,6 +80,7 @@ export default defineConfigWithVueTs(
             'vendor',
             'node_modules',
             'public',
+            'plan', // planning scratch: prototypes, wireframes, audit notes — not app source
             'bootstrap/ssr',
             'tailwind.config.js',
             'vite.config.ts',
