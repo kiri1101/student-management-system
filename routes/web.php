@@ -13,11 +13,11 @@ use App\Http\Controllers\Payments\PaymentSlipViewController;
 use App\Http\Controllers\Receipts\VerifyReceiptController;
 use App\Http\Controllers\StandingController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'Welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
+// The landing page is the auth funnel: every request to `/` (any verb) is
+// redirected to the login screen. Authenticated users then bounce on to their
+// role dashboard via Fortify's guest middleware on the login route.
+Route::redirect('/', '/login')->name('home');
 
 // Public, unauthenticated school-receipt verification (#16). Throttled to slow
 // enumeration; the page reveals only the identity a receipt is bound to.
