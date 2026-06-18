@@ -120,30 +120,38 @@ function restore(row: DocumentType): void {
 <template>
     <Head title="Document types" />
 
-    <div class="p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Reference data
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Document types
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Credentials and identity documents the application form can
+                    request.
+                </p>
+            </div>
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 text-sm font-normal">
+                    <ToggleSwitch v-model="showDeleted" />
+                    <span>Show deleted</span>
+                </label>
+                <Button label="New document type" @click="openCreate">
+                    <template #icon>
+                        <Plus class="size-4" />
+                    </template>
+                </Button>
+            </div>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between">
-                    <span>Document types</span>
-                    <div class="flex items-center gap-4">
-                        <label
-                            class="flex items-center gap-2 text-sm font-normal"
-                        >
-                            <ToggleSwitch v-model="showDeleted" />
-                            <span>Show deleted</span>
-                        </label>
-                        <Button
-                            label="New document type"
-                            size="small"
-                            @click="openCreate"
-                        >
-                            <template #icon>
-                                <Plus class="size-4" />
-                            </template>
-                        </Button>
-                    </div>
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="documentTypes"

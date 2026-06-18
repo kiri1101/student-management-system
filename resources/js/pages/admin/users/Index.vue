@@ -10,7 +10,6 @@ import {
     ShieldCheck,
     Trash2,
     Upload,
-    Users,
 } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -146,37 +145,40 @@ function resendInvite(row: UserRow): void {
 <template>
     <Head title="Users" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Administration
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">Users</h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Create, invite, and manage staff and admin accounts.
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <Link :href="usersRoutes.import().url">
+                    <Button label="Import CSV" severity="secondary" outlined>
+                        <template #icon>
+                            <Upload class="size-4" />
+                        </template>
+                    </Button>
+                </Link>
+                <Link :href="usersRoutes.create().url">
+                    <Button label="New user">
+                        <template #icon>
+                            <Plus class="size-4" />
+                        </template>
+                    </Button>
+                </Link>
+            </div>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <Users class="size-5" />
-                        <span>Users</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <Link :href="usersRoutes.import().url">
-                            <Button
-                                label="Import CSV"
-                                size="small"
-                                severity="secondary"
-                                outlined
-                            >
-                                <template #icon>
-                                    <Upload class="size-4" />
-                                </template>
-                            </Button>
-                        </Link>
-                        <Link :href="usersRoutes.create().url">
-                            <Button label="New user" size="small">
-                                <template #icon>
-                                    <Plus class="size-4" />
-                                </template>
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-            </template>
             <template #content>
                 <div class="mb-4 grid gap-3 sm:grid-cols-3">
                     <MultiSelect

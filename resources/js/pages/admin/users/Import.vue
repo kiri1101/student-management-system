@@ -156,8 +156,8 @@ function reset(): void {
 <template>
     <Head title="Import users" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="usersRoutes.index().url">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="usersRoutes.index().url" class="inline-block">
             <Button
                 label="Back to users"
                 severity="secondary"
@@ -170,22 +170,25 @@ function reset(): void {
             </Button>
         </Link>
 
+        <div>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Users
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                Bulk staff import
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Upload a CSV to create multiple staff accounts at once. Each new
+                user receives a single-use link to set their password. Validate
+                the file first, then confirm to import only the valid rows.
+            </p>
+        </div>
+
         <!-- Step 1: pick file + actions -->
         <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <Upload class="size-5" />
-                    <span>Bulk staff import</span>
-                </div>
-            </template>
             <template #content>
-                <p class="mb-4 text-sm text-muted-foreground">
-                    Upload a CSV to create multiple staff accounts at once. Each
-                    new user receives a single-use link to set their password.
-                    Validate the file first, then confirm to import only the
-                    valid rows.
-                </p>
-
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div class="space-y-3">
                         <div class="space-y-1">
@@ -408,11 +411,7 @@ function reset(): void {
                 <span>Import result</span>
             </template>
             <template #content>
-                <Message
-                    v-if="result.fatal"
-                    severity="error"
-                    :closable="false"
-                >
+                <Message v-if="result.fatal" severity="error" :closable="false">
                     <div class="flex items-center gap-2">
                         <AlertTriangle class="size-4" />
                         <span>{{ result.fatal }}</span>
@@ -439,9 +438,7 @@ function reset(): void {
                     </div>
 
                     <div v-if="result.skipped.length" class="mb-4">
-                        <h3 class="mb-2 text-sm font-semibold">
-                            Skipped rows
-                        </h3>
+                        <h3 class="mb-2 text-sm font-semibold">Skipped rows</h3>
                         <DataTable
                             :value="result.skipped"
                             data-key="line"

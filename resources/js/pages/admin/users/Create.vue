@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, UserPlus } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import DatePicker from 'primevue/datepicker';
@@ -83,8 +83,8 @@ function formatHiredAt(value: Date): string {
 <template>
     <Head title="New user" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="usersRoutes.index().url">
+    <div class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+        <Link :href="usersRoutes.index().url" class="inline-block">
             <Button
                 label="Back to users"
                 severity="secondary"
@@ -97,20 +97,22 @@ function formatHiredAt(value: Date): string {
             </Button>
         </Link>
 
-        <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <UserPlus class="size-5" />
-                    <span>New user</span>
-                </div>
-            </template>
-            <template #content>
-                <p class="mb-4 text-sm text-muted-foreground">
-                    The new user will receive an email with a single-use link to
-                    set their password and sign in. They are pre-verified — no
-                    additional verification step is required.
-                </p>
+        <div>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Users
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">New user</h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                The new user will receive an email with a single-use link to set
+                their password and sign in. They are pre-verified — no
+                additional verification step is required.
+            </p>
+        </div>
 
+        <Card>
+            <template #content>
                 <form class="space-y-4" @submit.prevent="submit">
                     <div class="grid gap-4 md:grid-cols-2">
                         <div class="space-y-1">
