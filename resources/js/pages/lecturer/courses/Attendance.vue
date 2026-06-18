@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -9,10 +9,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import { reactive } from 'vue';
 import CourseSessionController from '@/actions/App/Http/Controllers/Lecturer/CourseSessionController';
-import {
-    sessionStatusLabel,
-    sessionStatusSeverity,
-} from '@/lib/statusDisplay';
+import { sessionStatusLabel, sessionStatusSeverity } from '@/lib/statusDisplay';
 import lecturer from '@/routes/lecturer';
 
 type Course = {
@@ -79,28 +76,29 @@ const form = useForm<{
 });
 
 function save(): void {
-    form
-        .transform(() => ({
-            records: props.students.map((s) => ({
-                student_profile_id: s.student_profile_id,
-                status: statuses[s.student_profile_id],
-            })),
-        }))
-        .post(
-            CourseSessionController.markAttendance([
-                props.course.id,
-                props.session.id,
-            ]).url,
-            { preserveScroll: true },
-        );
+    form.transform(() => ({
+        records: props.students.map((s) => ({
+            student_profile_id: s.student_profile_id,
+            status: statuses[s.student_profile_id],
+        })),
+    })).post(
+        CourseSessionController.markAttendance([
+            props.course.id,
+            props.session.id,
+        ]).url,
+        { preserveScroll: true },
+    );
 }
 </script>
 
 <template>
     <Head :title="`Attendance · ${course.code}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="lecturer.courses.sessions.index(course.id).url">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link
+            :href="lecturer.courses.sessions.index(course.id).url"
+            class="inline-block"
+        >
             <Button
                 label="Back to sessions"
                 severity="secondary"
@@ -113,24 +111,30 @@ function save(): void {
             </Button>
         </Link>
 
-        <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <ClipboardList class="size-5" />
-                        <span>{{ course.code }} — {{ session.topic }}</span>
-                    </div>
-                    <Tag
-                        :value="sessionStatusLabel(session.status)"
-                        :severity="sessionStatusSeverity(session.status)"
-                    />
-                </div>
-            </template>
-            <template #content>
-                <p class="mb-4 text-sm text-muted-foreground">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Attendance
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ course.code }} · {{ session.topic }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
                     {{ formatDateTime(session.scheduled_for) }}
                 </p>
+            </div>
+            <Tag
+                :value="sessionStatusLabel(session.status)"
+                :severity="sessionStatusSeverity(session.status)"
+            />
+        </section>
 
+        <Card>
+            <template #content>
                 <DataTable
                     :value="students"
                     data-key="student_profile_id"

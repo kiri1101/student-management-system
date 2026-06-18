@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, FileText } from 'lucide-vue-next';
+import { ArrowLeft, ClipboardList } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -184,8 +184,8 @@ function confirmDelete(): void {
 <template>
     <Head :title="`Assignments · ${course.code}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="lecturer.courses.index().url">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <Link :href="lecturer.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"
                 severity="secondary"
@@ -198,21 +198,30 @@ function confirmDelete(): void {
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Assignments
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ course.code }} · {{ course.title }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Create assignments and grade student submissions.
+                </p>
+            </div>
+            <Button
+                label="New assignment"
+                :disabled="!planApproved"
+                @click="openCreate"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <FileText class="size-5" />
-                        <span>{{ course.code }} — {{ course.title }}</span>
-                    </div>
-                    <Button
-                        label="New assignment"
-                        size="small"
-                        :disabled="!planApproved"
-                        @click="openCreate"
-                    />
-                </div>
-            </template>
             <template #content>
                 <Message
                     v-if="!planApproved"

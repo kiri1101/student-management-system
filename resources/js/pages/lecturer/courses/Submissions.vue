@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ClipboardList, Eye } from 'lucide-vue-next';
+import { ArrowLeft, Eye } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -128,9 +128,10 @@ function submitGrade(): void {
 <template>
     <Head :title="`Submissions · ${assignment.title}`" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
         <Link
             :href="lecturer.courses.assignments.index(course.id).url"
+            class="inline-block"
         >
             <Button
                 label="Back to assignments"
@@ -144,23 +145,25 @@ function submitGrade(): void {
             </Button>
         </Link>
 
-        <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <ClipboardList class="size-5" />
-                    <span>{{ course.code }} — {{ assignment.title }}</span>
-                </div>
-            </template>
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Submissions
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                {{ course.code }} · {{ assignment.title }}
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Due {{ formatDateTime(assignment.due_at) }} · Max score
+                {{ assignment.max_score }}
+            </p>
+        </section>
+
+        <Card v-if="assignment.instructions">
             <template #content>
-                <p
-                    v-if="assignment.instructions"
-                    class="mb-2 text-sm whitespace-pre-line"
-                >
+                <p class="text-sm whitespace-pre-line">
                     {{ assignment.instructions }}
-                </p>
-                <p class="text-sm text-muted-foreground">
-                    Due {{ formatDateTime(assignment.due_at) }} · Max score
-                    {{ assignment.max_score }}
                 </p>
             </template>
         </Card>

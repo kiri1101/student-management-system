@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import {
-    BookOpen,
-    CalendarClock,
-    FileText,
-    GraduationCap,
-} from 'lucide-vue-next';
+import { CalendarClock, FileText, GraduationCap } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -44,14 +39,21 @@ defineOptions({
 <template>
     <Head title="Lecturer · Courses" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Lecturer
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">My courses</h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Your assigned courses, plans, sessions, assignments, and
+                results.
+            </p>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <BookOpen class="size-5" />
-                    <span>My courses</span>
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="courses"
@@ -62,7 +64,9 @@ defineOptions({
                     <Column header="Course">
                         <template #body="{ data }">
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ data.title }}</span>
+                                <span class="font-medium">{{
+                                    data.title
+                                }}</span>
                                 <span
                                     class="font-mono text-xs text-muted-foreground"
                                 >
@@ -80,7 +84,9 @@ defineOptions({
                         style="width: 7rem"
                     />
                     <Column field="semester" header="Sem." style="width: 6rem">
-                        <template #body="{ data }">S{{ data.semester }}</template>
+                        <template #body="{ data }"
+                            >S{{ data.semester }}</template
+                        >
                     </Column>
                     <Column
                         field="credits"
@@ -204,7 +210,9 @@ defineOptions({
                                     size="small"
                                     disabled
                                 />
-                                <Link :href="lecturer.courses.edit(data.id).url">
+                                <Link
+                                    :href="lecturer.courses.edit(data.id).url"
+                                >
                                     <Button
                                         label="Edit plan"
                                         severity="secondary"

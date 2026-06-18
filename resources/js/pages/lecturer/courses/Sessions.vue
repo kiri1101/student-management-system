@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, CalendarClock, ClipboardList } from 'lucide-vue-next';
+import { ArrowLeft, ClipboardList } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -14,10 +14,7 @@ import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { computed, ref } from 'vue';
 import CourseSessionController from '@/actions/App/Http/Controllers/Lecturer/CourseSessionController';
-import {
-    sessionStatusLabel,
-    sessionStatusSeverity,
-} from '@/lib/statusDisplay';
+import { sessionStatusLabel, sessionStatusSeverity } from '@/lib/statusDisplay';
 import lecturer from '@/routes/lecturer';
 
 type Course = {
@@ -191,8 +188,8 @@ function confirmCancel(): void {
 <template>
     <Head :title="`Sessions · ${course.code}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="lecturer.courses.index().url">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <Link :href="lecturer.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"
                 severity="secondary"
@@ -205,21 +202,30 @@ function confirmCancel(): void {
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Sessions
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ course.code }} · {{ course.title }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Schedule sessions and mark attendance.
+                </p>
+            </div>
+            <Button
+                label="Add session"
+                :disabled="!planApproved"
+                @click="openCreate"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <CalendarClock class="size-5" />
-                        <span>{{ course.code }} — {{ course.title }}</span>
-                    </div>
-                    <Button
-                        label="Add session"
-                        size="small"
-                        :disabled="!planApproved"
-                        @click="openCreate"
-                    />
-                </div>
-            </template>
             <template #content>
                 <Message
                     v-if="!planApproved"
