@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { Gavel } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -11,10 +10,7 @@ import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { ref } from 'vue';
-import {
-    disputeStatusLabel,
-    disputeStatusSeverity,
-} from '@/lib/statusDisplay';
+import { disputeStatusLabel, disputeStatusSeverity } from '@/lib/statusDisplay';
 import sao from '@/routes/sao';
 
 type DisputeRow = {
@@ -66,7 +62,10 @@ const filterOptions = [
 function applyFilter(): void {
     router.get(
         sao.disputes.index().url,
-        { status: statusFilter.value === 'all' ? undefined : statusFilter.value },
+        {
+            status:
+                statusFilter.value === 'all' ? undefined : statusFilter.value,
+        },
         { preserveState: true, preserveScroll: true, replace: true },
     );
 }
@@ -120,24 +119,34 @@ function submitReview(): void {
 <template>
     <Head title="SAO · Result disputes" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Student Affairs
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Result disputes
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Review and resolve student result disputes.
+                </p>
+            </div>
+            <Select
+                v-model="statusFilter"
+                :options="filterOptions"
+                option-label="label"
+                option-value="value"
+                class="w-full sm:w-48"
+                @change="applyFilter"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <Gavel class="size-5" />
-                        <span>Result disputes</span>
-                    </div>
-                    <Select
-                        v-model="statusFilter"
-                        :options="filterOptions"
-                        option-label="label"
-                        option-value="value"
-                        class="w-48"
-                        @change="applyFilter"
-                    />
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="disputes"
@@ -179,10 +188,7 @@ function submitReview(): void {
                                 <span>
                                     Final:
                                     {{ data.final_score ?? '—' }}
-                                    <span
-                                        v-if="data.grade"
-                                        class="font-medium"
-                                    >
+                                    <span v-if="data.grade" class="font-medium">
                                         ({{ data.grade }})
                                     </span>
                                 </span>

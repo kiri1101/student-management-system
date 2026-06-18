@@ -210,20 +210,37 @@ function focusDecide(): void {
 <template>
     <Head :title="`Review · #${application.id}`" />
 
-    <div class="space-y-4 p-4">
-        <div class="flex items-center justify-between">
-            <Link :href="sao.applications.index().url">
-                <Button label="Back to queue" text size="small">
-                    <template #icon>
-                        <ArrowLeft class="size-4" />
-                    </template>
-                </Button>
-            </Link>
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="sao.applications.index().url" class="inline-block">
+            <Button label="Back to queue" text size="small">
+                <template #icon>
+                    <ArrowLeft class="size-4" />
+                </template>
+            </Button>
+        </Link>
+
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Application review
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ application.first_name }} {{ application.last_name }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Application #{{ application.id }} · submitted
+                    {{ formatDate(application.submitted_at) }}
+                </p>
+            </div>
             <Tag
                 :value="statusLabel(application.status)"
                 :severity="statusSeverity(application.status)"
             />
-        </div>
+        </section>
 
         <Card>
             <template #title>Applicant</template>

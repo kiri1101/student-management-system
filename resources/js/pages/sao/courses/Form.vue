@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, BookOpen } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import InputNumber from 'primevue/inputnumber';
@@ -95,8 +95,8 @@ function submit(): void {
 <template>
     <Head :title="isEdit ? 'Edit course' : 'New course'" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="sao.courses.index().url">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="sao.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"
                 severity="secondary"
@@ -109,13 +109,21 @@ function submit(): void {
             </Button>
         </Link>
 
+        <div>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Courses
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                {{ isEdit ? 'Edit course' : 'New course' }}
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Define the course details, level, and lecturer assignment.
+            </p>
+        </div>
+
         <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <BookOpen class="size-5" />
-                    <span>{{ isEdit ? 'Edit course' : 'New course' }}</span>
-                </div>
-            </template>
             <template #content>
                 <form class="space-y-4" @submit.prevent="submit">
                     <div class="grid gap-4 md:grid-cols-2">

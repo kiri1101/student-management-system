@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { BookOpen, Check, Plus, Send, UserCog, X } from 'lucide-vue-next';
+import { Check, Plus, Send, UserCog, X } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -136,23 +136,32 @@ function submitPublish(): void {
 <template>
     <Head title="SAO · Courses" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Student Affairs
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">Courses</h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Plan the catalog, assign lecturers, and approve course
+                    plans.
+                </p>
+            </div>
+            <Link :href="sao.courses.create().url" class="inline-block">
+                <Button label="New course">
+                    <template #icon>
+                        <Plus class="size-4" />
+                    </template>
+                </Button>
+            </Link>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <BookOpen class="size-5" />
-                        <span>Course catalog</span>
-                    </div>
-                    <Link :href="sao.courses.create().url">
-                        <Button label="New course" size="small">
-                            <template #icon>
-                                <Plus class="size-4" />
-                            </template>
-                        </Button>
-                    </Link>
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="courses"
@@ -163,7 +172,9 @@ function submitPublish(): void {
                     <Column header="Course">
                         <template #body="{ data }">
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ data.title }}</span>
+                                <span class="font-medium">{{
+                                    data.title
+                                }}</span>
                                 <span
                                     class="font-mono text-xs text-muted-foreground"
                                 >
@@ -173,11 +184,7 @@ function submitPublish(): void {
                         </template>
                     </Column>
                     <Column field="offering_label" header="Offering" />
-                    <Column
-                        field="level"
-                        header="Level"
-                        style="width: 6rem"
-                    >
+                    <Column field="level" header="Level" style="width: 6rem">
                         <template #body="{ data }">L{{ data.level }}</template>
                     </Column>
                     <Column
@@ -190,12 +197,10 @@ function submitPublish(): void {
                         header="Credits"
                         style="width: 6rem"
                     />
-                    <Column
-                        field="semester"
-                        header="Sem."
-                        style="width: 6rem"
-                    >
-                        <template #body="{ data }">S{{ data.semester }}</template>
+                    <Column field="semester" header="Sem." style="width: 6rem">
+                        <template #body="{ data }"
+                            >S{{ data.semester }}</template
+                        >
                     </Column>
                     <Column header="Lecturer">
                         <template #body="{ data }">
