@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Wallet } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -118,25 +117,33 @@ watch(selectedStatuses, () => {
 <template>
     <Head title="Accountant · Payments" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Accounts
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">Payments</h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Verify bank slips and validate student tuition payments.
+                </p>
+            </div>
+            <MultiSelect
+                v-model="selectedStatuses"
+                :options="statusOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="Filter by status"
+                :max-selected-labels="3"
+                class="w-full sm:w-72"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <Wallet class="size-5" />
-                        <span>Payment queue</span>
-                    </div>
-                    <MultiSelect
-                        v-model="selectedStatuses"
-                        :options="statusOptions"
-                        option-label="label"
-                        option-value="value"
-                        placeholder="Filter by status"
-                        :max-selected-labels="3"
-                        class="w-72"
-                    />
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="payments.data"
@@ -213,7 +220,9 @@ watch(selectedStatuses, () => {
                     <Column header="" style="width: 6rem">
                         <template #body="{ data }">
                             <div class="flex items-center justify-end">
-                                <Link :href="PaymentController.show(data.id).url">
+                                <Link
+                                    :href="PaymentController.show(data.id).url"
+                                >
                                     <Button
                                         label="Review"
                                         severity="secondary"
