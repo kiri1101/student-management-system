@@ -8,10 +8,7 @@ import Message from 'primevue/message';
 import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { ref } from 'vue';
-import {
-    disputeStatusLabel,
-    disputeStatusSeverity,
-} from '@/lib/statusDisplay';
+import { disputeStatusLabel, disputeStatusSeverity } from '@/lib/statusDisplay';
 import student from '@/routes/student';
 
 type Dispute = {
@@ -39,9 +36,7 @@ defineProps<{ courses: CourseRow[] }>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            { title: 'My results', href: student.results.index() },
-        ],
+        breadcrumbs: [{ title: 'My results', href: student.results.index() }],
     },
 });
 
@@ -78,7 +73,20 @@ function submitDispute(): void {
 <template>
     <Head title="My results" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Student
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">My results</h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Your published CA and exam results. Raise a dispute if a score
+                looks wrong.
+            </p>
+        </section>
+
         <Card v-for="course in courses" :key="course.id">
             <template #title>
                 <div class="flex items-center gap-2">
@@ -118,10 +126,7 @@ function submitDispute(): void {
                 </div>
 
                 <div class="mt-4 border-t pt-4">
-                    <div
-                        v-if="course.dispute"
-                        class="flex flex-col gap-2"
-                    >
+                    <div v-if="course.dispute" class="flex flex-col gap-2">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-medium">
                                 Your dispute
@@ -135,7 +140,7 @@ function submitDispute(): void {
                                 "
                             />
                         </div>
-                        <p class="whitespace-pre-line text-sm">
+                        <p class="text-sm whitespace-pre-line">
                             {{ course.dispute.reason }}
                         </p>
                         <Message

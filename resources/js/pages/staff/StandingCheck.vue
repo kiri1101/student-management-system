@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { Search, ShieldQuestion } from 'lucide-vue-next';
+import { Search } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
@@ -72,19 +72,24 @@ function search(): void {
 <template>
     <Head title="Standing check" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Staff
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                Standing check
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Enter a student's matricule to confirm whether they are cleared
+                for exams and facilities.
+            </p>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <ShieldQuestion class="size-5" />
-                    <span>Payment standing check</span>
-                </div>
-            </template>
             <template #content>
-                <p class="mb-4 text-sm text-muted-foreground">
-                    Enter a student's matricule to confirm whether they are
-                    cleared for exams and facilities.
-                </p>
                 <form class="flex items-end gap-2" @submit.prevent="search">
                     <div class="flex-1 space-y-1">
                         <label for="matricule" class="text-sm font-medium">
@@ -155,7 +160,9 @@ function search(): void {
                     class="mt-4 grid gap-4 rounded-md bg-muted/40 p-4 sm:grid-cols-4"
                 >
                     <div>
-                        <dt class="text-xs text-muted-foreground">Due so far</dt>
+                        <dt class="text-xs text-muted-foreground">
+                            Due so far
+                        </dt>
                         <dd class="text-sm font-medium">
                             {{ formatXaf(result.standing.required_so_far) }}
                         </dd>
@@ -188,8 +195,8 @@ function search(): void {
                     </div>
                 </dl>
                 <p v-else class="mt-4 text-sm text-muted-foreground">
-                    No fee schedule is configured for this enrollment, so nothing
-                    is owed yet.
+                    No fee schedule is configured for this enrollment, so
+                    nothing is owed yet.
                 </p>
             </template>
         </Card>
