@@ -10,13 +10,13 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 | Doc | What it covers | Status |
 |---|---|---|
-| [Architecture](architecture.md) | Request lifecycle, the Laravel 13 + Inertia v3 + Vue 3 + PrimeVue/Aura + Fortify stack, core patterns (Actions, ability gates, audit log, enum-as-string) | 🚧 |
-| [Onboarding](onboarding.md) | Local setup (Laragon, MySQL, Redis), seeded credentials, the quality gate (Pint / Pest / vue-tsc / ESLint / Vite) | 🚧 |
-| [Data model](data-model.md) | 24-model schema reference + ER diagram | 🚧 |
-| [Routes & endpoints](routes.md) | Reference across the 8 route files, the `api/v1` lookups, and the public receipt-verify endpoint | 🚧 |
-| [Security](security.md) | Fortify auth, ability gates, immutable audit log, HMAC receipts + public verify, file-viewer hardening | 🚧 |
-| [Testing](testing.md) | Pest feature + `tests/Browser` smoke conventions | 🚧 |
-| [Deployment & ops](deployment.md) | Laravel Cloud, queue worker, mail, Redis/predis cache runbook | 🚧 |
+| [Architecture](architecture.md) | Request lifecycle, the Laravel 13 + Inertia v3 + Vue 3 + PrimeVue/Aura + Fortify stack, core patterns (Actions, ability gates, audit log, enum-as-string) | ✅ |
+| [Onboarding](onboarding.md) | Local setup (Laragon, MySQL, Redis), seeded credentials, the quality gate (Pint / Pest / vue-tsc / ESLint / Vite) | ✅ |
+| [Data model](data-model.md) | 25-table schema reference + ER diagrams | ✅ |
+| [Routes & endpoints](routes.md) | Reference across the route files, the `api/v1` lookups, the public receipt-verify endpoint, and the Fortify auth routes | ✅ |
+| [Security](security.md) | Fortify auth, ability gates, immutable audit log, HMAC receipts + public verify, file-viewer hardening | ✅ |
+| [Testing](testing.md) | Pest feature + `tests/Browser` smoke conventions | ✅ |
+| [Deployment & ops](deployment.md) | Laravel Cloud, queue worker, mail, Redis/predis cache runbook | ✅ |
 
 ## Domain modules
 
