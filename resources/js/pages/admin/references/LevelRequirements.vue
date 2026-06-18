@@ -185,30 +185,37 @@ function restore(row: Requirement): void {
 <template>
     <Head title="Level requirements" />
 
-    <div class="p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Reference data
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Level requirements
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Per-level required documents for each programme offering.
+                </p>
+            </div>
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 text-sm font-normal">
+                    <ToggleSwitch v-model="showDeleted" />
+                    <span>Show deleted</span>
+                </label>
+                <Button label="New requirement" @click="openCreate">
+                    <template #icon>
+                        <Plus class="size-4" />
+                    </template>
+                </Button>
+            </div>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between">
-                    <span>Level credential requirements</span>
-                    <div class="flex items-center gap-4">
-                        <label
-                            class="flex items-center gap-2 text-sm font-normal"
-                        >
-                            <ToggleSwitch v-model="showDeleted" />
-                            <span>Show deleted</span>
-                        </label>
-                        <Button
-                            label="New requirement"
-                            size="small"
-                            @click="openCreate"
-                        >
-                            <template #icon>
-                                <Plus class="size-4" />
-                            </template>
-                        </Button>
-                    </div>
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="requirements"

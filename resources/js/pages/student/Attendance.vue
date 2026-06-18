@@ -47,7 +47,21 @@ function formatDateTime(value: string): string {
 <template>
     <Head title="My attendance" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Student
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                My attendance
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Your session attendance across enrolled courses.
+            </p>
+        </section>
+
         <Card v-for="course in courses" :key="course.id">
             <template #title>
                 <div class="flex items-center gap-2">

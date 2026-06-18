@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Inbox } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -118,25 +117,35 @@ watch(selectedStatuses, () => {
 <template>
     <Head title="SAO · Applications" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Student Affairs
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Applications
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Triage, review, and decide incoming applications.
+                </p>
+            </div>
+            <MultiSelect
+                v-model="selectedStatuses"
+                :options="statusOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="Filter by status"
+                :max-selected-labels="3"
+                class="w-full sm:w-72"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <Inbox class="size-5" />
-                        <span>Applications queue</span>
-                    </div>
-                    <MultiSelect
-                        v-model="selectedStatuses"
-                        :options="statusOptions"
-                        option-label="label"
-                        option-value="value"
-                        placeholder="Filter by status"
-                        :max-selected-labels="3"
-                        class="w-72"
-                    />
-                </div>
-            </template>
             <template #content>
                 <DataTable
                     :value="applications.data"

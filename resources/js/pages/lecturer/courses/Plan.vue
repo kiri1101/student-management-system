@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, BookOpen, Send } from 'lucide-vue-next';
+import { ArrowLeft, Send } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Message from 'primevue/message';
@@ -64,8 +64,8 @@ function submitForApproval(): void {
 <template>
     <Head :title="`Course plan · ${course.code}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="lecturer.courses.index().url">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="lecturer.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"
                 severity="secondary"
@@ -78,19 +78,26 @@ function submitForApproval(): void {
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Course plan
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ course.code }} · {{ course.title }}
+                </h1>
+            </div>
+            <Tag
+                :value="coursePlanStatusLabel(course.plan_status)"
+                :severity="coursePlanStatusSeverity(course.plan_status)"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <BookOpen class="size-5" />
-                        <span>{{ course.code }} — {{ course.title }}</span>
-                    </div>
-                    <Tag
-                        :value="coursePlanStatusLabel(course.plan_status)"
-                        :severity="coursePlanStatusSeverity(course.plan_status)"
-                    />
-                </div>
-            </template>
             <template #content>
                 <dl class="grid gap-4 sm:grid-cols-4">
                     <div>
@@ -127,7 +134,10 @@ function submitForApproval(): void {
             <template #content>
                 <form class="space-y-4" @submit.prevent="savePlan">
                     <div class="space-y-1">
-                        <label for="plan-description" class="text-sm font-medium">
+                        <label
+                            for="plan-description"
+                            class="text-sm font-medium"
+                        >
                             Description
                         </label>
                         <Textarea

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { CalendarClock, CloudUpload, Download, FileCheck, Wallet } from 'lucide-vue-next';
+import {
+    CalendarClock,
+    CloudUpload,
+    Download,
+    FileCheck,
+} from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -119,7 +124,9 @@ function formatDate(value: string | null): string {
 }
 
 const remaining = computed(() =>
-    props.schedule ? Math.max(props.schedule.total_xaf - props.validatedTotal, 0) : null,
+    props.schedule
+        ? Math.max(props.schedule.total_xaf - props.validatedTotal, 0)
+        : null,
 );
 
 const form = useForm<{
@@ -200,14 +207,22 @@ function submitDeferral(): void {
 <template>
     <Head title="My payments" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Student
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                Tuition payments
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Report deposits, track validation, and request a deferral.
+            </p>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center gap-2">
-                    <Wallet class="size-5" />
-                    <span>Tuition payments</span>
-                </div>
-            </template>
             <template #content>
                 <div v-if="profile" class="space-y-4">
                     <dl class="grid gap-4 sm:grid-cols-3">
@@ -224,11 +239,15 @@ function submitDeferral(): void {
                                 Programme
                             </dt>
                             <dd class="text-sm">
-                                {{ profile.program_offering?.department?.name ?? '—' }}
+                                {{
+                                    profile.program_offering?.department
+                                        ?.name ?? '—'
+                                }}
                                 ·
                                 {{
                                     degreeLabel(
-                                        profile.program_offering?.degree_program,
+                                        profile.program_offering
+                                            ?.degree_program,
                                     )
                                 }}
                                 · L{{ profile.level }}
@@ -271,9 +290,12 @@ function submitDeferral(): void {
                                 </p>
                                 <p v-else class="text-muted-foreground">
                                     Pay
-                                    <span class="font-medium text-destructive">{{
-                                        formatXaf(standing.shortfall)
-                                    }}</span>
+                                    <span
+                                        class="font-medium text-destructive"
+                                        >{{
+                                            formatXaf(standing.shortfall)
+                                        }}</span
+                                    >
                                     to clear, or request a deferral.
                                 </p>
                             </div>
@@ -318,7 +340,11 @@ function submitDeferral(): void {
                                 Remaining
                             </dt>
                             <dd class="text-sm font-medium">
-                                {{ remaining === null ? '—' : formatXaf(remaining) }}
+                                {{
+                                    remaining === null
+                                        ? '—'
+                                        : formatXaf(remaining)
+                                }}
                             </dd>
                         </div>
                     </div>
@@ -343,7 +369,9 @@ function submitDeferral(): void {
                     @submit.prevent="submit"
                 >
                     <div class="space-y-1">
-                        <label for="bank" class="text-sm font-medium">Bank</label>
+                        <label for="bank" class="text-sm font-medium"
+                            >Bank</label
+                        >
                         <Select
                             id="bank"
                             v-model="form.bank"
@@ -354,7 +382,10 @@ function submitDeferral(): void {
                             class="w-full"
                             :invalid="!!form.errors.bank"
                         />
-                        <p v-if="form.errors.bank" class="text-xs text-destructive">
+                        <p
+                            v-if="form.errors.bank"
+                            class="text-xs text-destructive"
+                        >
                             {{ form.errors.bank }}
                         </p>
                     </div>
@@ -415,7 +446,10 @@ function submitDeferral(): void {
                                 <CloudUpload class="size-4" />
                             </template>
                         </FileUpload>
-                        <p v-if="form.errors.slip" class="text-xs text-destructive">
+                        <p
+                            v-if="form.errors.slip"
+                            class="text-xs text-destructive"
+                        >
                             {{ form.errors.slip }}
                         </p>
                     </div>
@@ -486,7 +520,8 @@ function submitDeferral(): void {
                             <a
                                 v-if="data.receipt_number"
                                 :href="
-                                    StudentPaymentController.receipt(data.id).url
+                                    StudentPaymentController.receipt(data.id)
+                                        .url
                                 "
                                 class="inline-flex items-center gap-1 text-primary hover:underline"
                                 :title="data.receipt_number"

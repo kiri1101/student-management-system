@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, GraduationCap } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -9,10 +9,7 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
 import { ref, watch } from 'vue';
-import {
-    resultStatusLabel,
-    resultStatusSeverity,
-} from '@/lib/statusDisplay';
+import { resultStatusLabel, resultStatusSeverity } from '@/lib/statusDisplay';
 import lecturer from '@/routes/lecturer';
 
 type Course = {
@@ -87,8 +84,8 @@ function saveResults(): void {
 <template>
     <Head title="Lecturer · Results" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="lecturer.courses.index().url">
+    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+        <Link :href="lecturer.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"
                 severity="secondary"
@@ -101,30 +98,36 @@ function saveResults(): void {
             </Button>
         </Link>
 
-        <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <GraduationCap class="size-5" />
-                        <span>{{ course.code }} — {{ course.title }}</span>
-                    </div>
-                    <Button
-                        label="Save results"
-                        size="small"
-                        :loading="saving"
-                        :disabled="rows.length === 0"
-                        @click="saveResults"
-                    />
-                </div>
-            </template>
-            <template #content>
-                <p class="mb-2 text-sm text-muted-foreground">
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Results
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ course.code }} · {{ course.title }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
                     {{ draft_count }} draft · {{ published_count }} published ·
                     {{ publishable_count }} ready to publish
                 </p>
+            </div>
+            <Button
+                label="Save results"
+                :loading="saving"
+                :disabled="rows.length === 0"
+                @click="saveResults"
+            />
+        </section>
+
+        <Card>
+            <template #content>
                 <Message severity="info" :closable="false" class="mb-4">
-                    Enter CA and exam scores, then save. Fully-scored results are
-                    published to students by the Student Affairs Officer.
+                    Enter CA and exam scores, then save. Fully-scored results
+                    are published to students by the Student Affairs Officer.
                     Published rows are locked.
                 </Message>
 

@@ -10,7 +10,11 @@ import Textarea from 'primevue/textarea';
 import { ref } from 'vue';
 import PaymentController from '@/actions/App/Http/Controllers/Accountant/PaymentController';
 import FileViewerDialog from '@/components/FileViewerDialog.vue';
-import { degreeLabel, paymentStatusLabel, paymentStatusSeverity } from '@/lib/statusDisplay';
+import {
+    degreeLabel,
+    paymentStatusLabel,
+    paymentStatusSeverity,
+} from '@/lib/statusDisplay';
 import accountant from '@/routes/accountant';
 import payments from '@/routes/payments';
 
@@ -100,32 +104,53 @@ function submitReject(): void {
 <template>
     <Head :title="`Payment #${payment.id}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="accountant.payments.index().url">
-            <Button label="Back to queue" severity="secondary" text size="small">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="accountant.payments.index().url" class="inline-block">
+            <Button
+                label="Back to queue"
+                severity="secondary"
+                text
+                size="small"
+            >
                 <template #icon>
                     <ArrowLeft class="size-4" />
                 </template>
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Payment review
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Payment #{{ payment.id }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{ payment.student?.name ?? 'Unknown student' }} ·
+                    {{ formatXaf(payment.amount_xaf) }}
+                </p>
+            </div>
+            <Tag
+                :value="paymentStatusLabel(payment.status)"
+                :severity="paymentStatusSeverity(payment.status)"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <span>Payment #{{ payment.id }}</span>
-                    <Tag
-                        :value="paymentStatusLabel(payment.status)"
-                        :severity="paymentStatusSeverity(payment.status)"
-                    />
-                </div>
-            </template>
             <template #content>
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <dt class="text-xs text-muted-foreground">Student</dt>
                         <dd class="text-sm">
                             {{ payment.student?.name ?? '—' }}
-                            <span class="font-mono text-xs text-muted-foreground">
+                            <span
+                                class="font-mono text-xs text-muted-foreground"
+                            >
                                 ({{ payment.student?.matricule ?? '—' }})
                             </span>
                         </dd>

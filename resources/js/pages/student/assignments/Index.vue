@@ -97,25 +97,36 @@ function submitUpload(): void {
         return;
     }
 
-    uploadForm.post(
-        student.assignments.submit(activeAssignmentId.value).url,
-        {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                uploadDialogVisible.value = false;
-                activeAssignmentId.value = null;
-                uploadForm.reset();
-            },
+    uploadForm.post(student.assignments.submit(activeAssignmentId.value).url, {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => {
+            uploadDialogVisible.value = false;
+            activeAssignmentId.value = null;
+            uploadForm.reset();
         },
-    );
+    });
 }
 </script>
 
 <template>
     <Head title="My assignments" />
 
-    <div class="space-y-4 p-4">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Student
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                My assignments
+            </h1>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Submit your work and track grades and feedback per course.
+            </p>
+        </section>
+
         <Card v-for="course in courses" :key="course.id">
             <template #title>
                 <div class="flex items-center gap-2">

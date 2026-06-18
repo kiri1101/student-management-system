@@ -10,7 +10,11 @@ import Tag from 'primevue/tag';
 import Textarea from 'primevue/textarea';
 import { ref } from 'vue';
 import DeferralController from '@/actions/App/Http/Controllers/Accountant/DeferralController';
-import { deferralStatusLabel, deferralStatusSeverity, degreeLabel } from '@/lib/statusDisplay';
+import {
+    deferralStatusLabel,
+    deferralStatusSeverity,
+    degreeLabel,
+} from '@/lib/statusDisplay';
 import accountant from '@/routes/accountant';
 
 type Deferral = {
@@ -61,7 +65,10 @@ function toYmd(date: Date): string {
     return `${year}-${month}-${day}`;
 }
 
-const approveForm = useForm<{ new_deadline: Date | null; decision_notes: string }>({
+const approveForm = useForm<{
+    new_deadline: Date | null;
+    decision_notes: string;
+}>({
     new_deadline: null,
     decision_notes: '',
 });
@@ -108,32 +115,53 @@ function submitReject(): void {
 <template>
     <Head :title="`Deferral #${deferral.id}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="accountant.deferrals.index().url">
-            <Button label="Back to queue" severity="secondary" text size="small">
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <Link :href="accountant.deferrals.index().url" class="inline-block">
+            <Button
+                label="Back to queue"
+                severity="secondary"
+                text
+                size="small"
+            >
                 <template #icon>
                     <ArrowLeft class="size-4" />
                 </template>
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Deferral review
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    Deferral #{{ deferral.id }}
+                </h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    {{ deferral.student?.name ?? 'Unknown student' }} ·
+                    {{ deferral.academic_year }}
+                </p>
+            </div>
+            <Tag
+                :value="deferralStatusLabel(deferral.status)"
+                :severity="deferralStatusSeverity(deferral.status)"
+            />
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <span>Deferral #{{ deferral.id }}</span>
-                    <Tag
-                        :value="deferralStatusLabel(deferral.status)"
-                        :severity="deferralStatusSeverity(deferral.status)"
-                    />
-                </div>
-            </template>
             <template #content>
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <dt class="text-xs text-muted-foreground">Student</dt>
                         <dd class="text-sm">
                             {{ deferral.student?.name ?? '—' }}
-                            <span class="font-mono text-xs text-muted-foreground">
+                            <span
+                                class="font-mono text-xs text-muted-foreground"
+                            >
                                 ({{ deferral.student?.matricule ?? '—' }})
                             </span>
                         </dd>

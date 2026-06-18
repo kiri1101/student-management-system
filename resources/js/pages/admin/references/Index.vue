@@ -52,13 +52,20 @@ const cards = [
 <template>
     <Head title="Reference data" />
 
-    <div class="p-4">
-        <div class="mb-6">
-            <h1 class="text-2xl font-semibold">Reference data</h1>
+    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+        <section>
+            <p
+                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+            >
+                Administration
+            </p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                Reference data
+            </h1>
             <p class="mt-1 text-sm text-muted-foreground">
                 Manage the lookup tables the application form depends on.
             </p>
-        </div>
+        </section>
 
         <div class="grid gap-4 md:grid-cols-2">
             <Link

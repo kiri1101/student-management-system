@@ -7,7 +7,6 @@ import {
     ShieldCheck,
     Trash2,
     UserCog,
-    UserPen,
 } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
@@ -228,8 +227,8 @@ function submitRole(): void {
 <template>
     <Head :title="`Edit · ${user.name}`" />
 
-    <div class="space-y-4 p-4">
-        <Link :href="usersRoutes.index().url">
+    <div class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+        <Link :href="usersRoutes.index().url" class="inline-block">
             <Button
                 label="Back to users"
                 severity="secondary"
@@ -242,33 +241,40 @@ function submitRole(): void {
             </Button>
         </Link>
 
+        <section
+            class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Users
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">
+                    {{ user.name }}
+                </h1>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <Tag
+                    v-for="role in user.roles"
+                    :key="role"
+                    :value="roleLabel(role)"
+                    :severity="roleSeverity(role)"
+                />
+                <Tag
+                    v-if="user.deleted_at"
+                    value="Deactivated"
+                    severity="danger"
+                />
+                <Tag
+                    v-else-if="!user.email_verified_at"
+                    value="Pending invite"
+                    severity="warn"
+                />
+            </div>
+        </section>
+
         <Card>
-            <template #title>
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <UserPen class="size-5" />
-                        <span>{{ user.name }}</span>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Tag
-                            v-for="role in user.roles"
-                            :key="role"
-                            :value="roleLabel(role)"
-                            :severity="roleSeverity(role)"
-                        />
-                        <Tag
-                            v-if="user.deleted_at"
-                            value="Deactivated"
-                            severity="danger"
-                        />
-                        <Tag
-                            v-else-if="!user.email_verified_at"
-                            value="Pending invite"
-                            severity="warn"
-                        />
-                    </div>
-                </div>
-            </template>
             <template #content>
                 <p class="mb-4 text-sm text-muted-foreground">
                     Email is managed by the user via password reset / email
