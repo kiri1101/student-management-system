@@ -22,12 +22,12 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 | Module | Issue | Status |
 |---|---|---|
-| [Admissions](modules/admissions.md) — applicant funnel + SAO decisions | — | 🚧 |
-| [Payments & receipts](modules/payments.md) — slip upload, validation, HMAC school receipts | #6 | 🚧 |
-| [Exam gating](modules/exam-gating.md) — payment standing + tuition deferrals | #8 | 🚧 |
-| [Course management](modules/course-management.md) — catalog, attendance, assignments, results, disputes | #11 | 🚧 |
-| [Notifications](modules/notifications.md) — channel strategy via Laravel Notifications | #12 / #18 | 🚧 |
-| [Admin user management](modules/admin-user-management.md) — invite-link users, role change, CSV import, audit | #30 | 🚧 |
+| [Admissions](modules/admissions.md) — applicant funnel + SAO decisions | — | ✅ |
+| [Payments & receipts](modules/payments.md) — slip upload, validation, HMAC school receipts | #6 | ✅ |
+| [Exam gating](modules/exam-gating.md) — payment standing + tuition deferrals | #8 | ✅ |
+| [Course management](modules/course-management.md) — catalog, attendance, assignments, results, disputes | #11 | ✅ |
+| [Notifications](modules/notifications.md) — channel strategy via Laravel Notifications | #12 / #18 | ✅ |
+| [Admin user management](modules/admin-user-management.md) — invite-link users, role change, CSV import, audit | #30 | ✅ |
 
 ## User guides (by role)
 
