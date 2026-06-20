@@ -42,7 +42,7 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 ## Decisions
 
-- [Architecture Decision Records](adr/README.md) — the numbered record of locked design decisions.
+- [Architecture Decision Records](adr/README.md) — 22 numbered records of the locked design decisions (all Accepted; ADR-0022 records a known authorization-enforcement gap).
 
 ---
 
