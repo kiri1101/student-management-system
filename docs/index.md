@@ -33,12 +33,12 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 | Guide | For | Status |
 |---|---|---|
-| [Applicant](guides/applicant.md) | Prospective students applying for admission | 🚧 |
-| [Student](guides/student.md) | Admitted students — payments, attendance, results | 🚧 |
-| [SAO](guides/sao.md) | Student Affairs Officers — admissions, course plans, publishing results | 🚧 |
-| [Accountant](guides/accountant.md) | Validating payments, issuing receipts, granting deferrals | 🚧 |
-| [Lecturer](guides/lecturer.md) | Courses, attendance, assignments, results, absence notices | 🚧 |
-| [Admin](guides/admin.md) | System configuration & user management | 🚧 |
+| [Applicant](guides/applicant.md) | Prospective students applying for admission | ✅ |
+| [Student](guides/student.md) | Admitted students — payments, attendance, results | ✅ |
+| [SAO](guides/sao.md) | Student Affairs Officers — admissions, course plans, publishing results | ✅ |
+| [Accountant](guides/accountant.md) | Validating payments, issuing receipts, granting deferrals | ✅ |
+| [Lecturer](guides/lecturer.md) | Courses, attendance, assignments, results, absence notices | ✅ |
+| [Admin](guides/admin.md) | System configuration & user management | ✅ |
 
 ## Decisions
 
