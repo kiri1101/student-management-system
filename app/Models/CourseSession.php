@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A single scheduled lecture for a course. Status (SessionStatus) is one of
+ * Scheduled → Held or Scheduled → Cancelled; cancelling or rescheduling a future
+ * session notifies the implicit cohort (#12). Attendance is captured per session
+ * via attendanceRecords once the session is held.
+ */
 #[Fillable([
     'course_id',
     'scheduled_for',
@@ -37,6 +43,9 @@ class CourseSession extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Course, $this>
+     */
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);

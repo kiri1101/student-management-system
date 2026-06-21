@@ -13,6 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A student's result for one course: raw CA and exam marks that combine into a
+ * weighted final score (CA 0.3 / exam 0.7, see CA_WEIGHT/EXAM_WEIGHT) and a
+ * derived letter grade. Status (ResultStatus) is Draft until published; a
+ * published result may be contested by the student via disputes.
+ */
 #[Fillable([
     'course_id',
     'student_profile_id',
@@ -50,16 +56,25 @@ class CourseResult extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Course, $this>
+     */
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
 
+    /**
+     * @return BelongsTo<StudentProfile, $this>
+     */
     public function studentProfile(): BelongsTo
     {
         return $this->belongsTo(StudentProfile::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function publisher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'published_by');

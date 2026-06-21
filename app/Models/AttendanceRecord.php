@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * One student's attendance for one course session, marked by a lecturer.
+ * Status (AttendanceStatus) is one of Present, Absent, Late or Excused.
+ */
 #[Fillable([
     'course_session_id',
     'student_profile_id',
@@ -34,16 +38,25 @@ class AttendanceRecord extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<CourseSession, $this>
+     */
     public function session(): BelongsTo
     {
         return $this->belongsTo(CourseSession::class, 'course_session_id');
     }
 
+    /**
+     * @return BelongsTo<StudentProfile, $this>
+     */
     public function studentProfile(): BelongsTo
     {
         return $this->belongsTo(StudentProfile::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function markedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'marked_by');

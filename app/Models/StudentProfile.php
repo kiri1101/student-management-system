@@ -14,6 +14,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * Role-specific data for a user holding the Student role: their enrollment
+ * tuple (offering + level + academic_year) and lifecycle status. The
+ * lowercased `matricule` is the unique student identifier used as a login
+ * alias. Students are not staff, so unlike staff profiles a user carries
+ * exactly one of these per enrollment identity.
+ */
 #[Fillable([
     'user_id',
     'matricule',
@@ -51,6 +58,9 @@ class StudentProfile extends Model
         );
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -59,6 +69,8 @@ class StudentProfile extends Model
     /**
      * Resolved withTrashed so enrollments keep rendering even if their
      * offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     *
+     * @return BelongsTo<ProgramOffering, $this>
      */
     public function programOffering(): BelongsTo
     {

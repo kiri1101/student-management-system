@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A student's contestation of a published course result. Status (DisputeStatus)
+ * runs Open → UnderReview → Resolved or Rejected; an SAO/lecturer reviewer records
+ * the outcome and resolution_notes. Resolved and Rejected are terminal.
+ */
 #[Fillable([
     'course_result_id',
     'student_profile_id',
@@ -36,16 +41,25 @@ class ResultDispute extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<CourseResult, $this>
+     */
     public function courseResult(): BelongsTo
     {
         return $this->belongsTo(CourseResult::class);
     }
 
+    /**
+     * @return BelongsTo<StudentProfile, $this>
+     */
     public function studentProfile(): BelongsTo
     {
         return $this->belongsTo(StudentProfile::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');

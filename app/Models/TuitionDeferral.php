@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A student's request to extend their tuition deadline, reviewed by an accountant.
+ * An `Approved` deferral whose `new_deadline` has not yet passed lifts the access
+ * gate (standing becomes `Deferred` rather than `Blocked`); see the `activeAsOf`
+ * scope and PaymentStandingService. Mutable and audited.
+ */
 #[Fillable([
     'student_profile_id',
     'academic_year',
@@ -41,16 +47,27 @@ class TuitionDeferral extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<StudentProfile, $this>
+     */
     public function studentProfile(): BelongsTo
     {
         return $this->belongsTo(StudentProfile::class);
     }
 
+    /**
+     * The accountant who approved or rejected this request.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    /**
+     * True once approved or rejected — no longer actionable in the review queue.
+     */
     public function isTerminal(): bool
     {
         return $this->status->isTerminal();

@@ -12,6 +12,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * An admission application moving through the SAO triage lifecycle
+ * (Draft → Submitted → interim → terminal; see {@see ApplicationStatus}).
+ *
+ * Carries its own snapshot of the applicant's identity at submission time
+ * (first_name, last_name, contact_email, phone, date_of_birth,
+ * previous_institute) rather than reading live off the owning User, so the
+ * record stays faithful to what was submitted even if the account later
+ * changes. At most one application per applicant may be "open" at a time
+ * (see {@see Application::OPEN_STATUSES}).
+ */
 #[Fillable([
     'user_id',
     'program_offering_id',
@@ -47,6 +58,9 @@ class Application extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function applicant(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -55,17 +69,27 @@ class Application extends Model
     /**
      * Resolved withTrashed so historical applications keep rendering even if
      * their offering is soft-deleted out from under them (AUDIT.md AUD-013).
+     *
+     * @return BelongsTo<ProgramOffering, $this>
      */
     public function programOffering(): BelongsTo
     {
         return $this->belongsTo(ProgramOffering::class)->withTrashed();
     }
 
+    /**
+     * The SAO/staff user who issued the terminal decision, if any.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function decidedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'decided_by_user_id');
     }
 
+    /**
+     * @return HasMany<ApplicationDocument, $this>
+     */
     public function documents(): HasMany
     {
         return $this->hasMany(ApplicationDocument::class);
@@ -105,6 +129,10 @@ class Application extends Model
         ...self::INTERIM_STATUSES,
     ];
 
+    /**
+     * Whether the application has reached a status from which no further
+     * transition is allowed.
+     */
     public function isTerminal(): bool
     {
         return in_array($this->status, self::TERMINAL_STATUSES, strict: true);

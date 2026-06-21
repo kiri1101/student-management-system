@@ -71,6 +71,10 @@ class CreateUserAction
         return $user;
     }
 
+    /**
+     * Mint a fresh password-reset token for the user and queue the invitation
+     * email carrying the single-use setup link. Safe to call again to re-send.
+     */
     public function sendInvitation(User $user): void
     {
         $token = Password::broker()->createToken($user);

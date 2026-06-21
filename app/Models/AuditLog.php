@@ -11,6 +11,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
+/**
+ * Append-only audit trail. Records are immutable once written — the `booted`
+ * guards reject Eloquent updates and deletes — so pruning past RETENTION_DAYS
+ * happens via the query builder in the `audit:prune` command. Most rows are
+ * written automatically by the RecordsAudit trait; AuditLog::record() handles
+ * non-CRUD domain events.
+ */
 #[Fillable(['user_id', 'action', 'subject_type', 'subject_id', 'changes', 'context', 'occurred_at'])]
 class AuditLog extends Model
 {
@@ -47,11 +54,19 @@ class AuditLog extends Model
         });
     }
 
+    /**
+     * The actor who triggered the entry, or null for system/unauthenticated events.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * The model the entry is about (polymorphic; null for subject-less events).
+     */
     public function subject(): MorphTo
     {
         return $this->morphTo();

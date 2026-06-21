@@ -13,6 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A student's claim of a bank deposit toward tuition, awaiting accountant review.
+ * Mutable and audited; a `Validated` submission is the figure that counts toward
+ * payment standing (#8) and is the sole trigger for issuing the immutable
+ * SchoolReceipt. Money is integer XAF.
+ */
 #[Fillable([
     'student_profile_id',
     'academic_year',
@@ -45,21 +51,37 @@ class PaymentSubmission extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<StudentProfile, $this>
+     */
     public function studentProfile(): BelongsTo
     {
         return $this->belongsTo(StudentProfile::class);
     }
 
+    /**
+     * The accountant who validated or rejected this submission.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    /**
+     * The receipt issued on validation; null until then.
+     *
+     * @return HasOne<SchoolReceipt, $this>
+     */
     public function schoolReceipt(): HasOne
     {
         return $this->hasOne(SchoolReceipt::class);
     }
 
+    /**
+     * True once validated or rejected — no longer actionable in the review queue.
+     */
     public function isTerminal(): bool
     {
         return $this->status->isTerminal();

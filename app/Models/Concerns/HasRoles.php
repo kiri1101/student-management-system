@@ -8,11 +8,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 trait HasRoles
 {
+    /**
+     * @return BelongsToMany<Role, $this>
+     */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class)->withTimestamps();
     }
 
+    /**
+     * Whether the user holds the given role.
+     */
     public function hasRole(RoleName $role): bool
     {
         return $this->hasAnyRole([$role]);
@@ -42,6 +48,9 @@ trait HasRoles
         return $this->roles()->whereIn('name', $values)->exists();
     }
 
+    /**
+     * Attach the role idempotently. Throws if the role has not been seeded.
+     */
     public function assignRole(RoleName $role): void
     {
         $roleId = Role::query()->where('name', $role->value)->value('id');
@@ -54,6 +63,9 @@ trait HasRoles
         $this->unsetRelation('roles');
     }
 
+    /**
+     * Detach the role if present; a no-op when the role is unseeded or unattached.
+     */
     public function removeRole(RoleName $role): void
     {
         $roleId = Role::query()->where('name', $role->value)->value('id');

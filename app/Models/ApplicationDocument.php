@@ -10,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A single uploaded credential attached to an {@see Application}, classified
+ * by its {@see DocumentType}. Stores the stored file_path alongside the
+ * original_filename, mime_type and size_bytes captured at upload time.
+ */
 #[Fillable([
     'application_id',
     'document_type_id',
@@ -35,11 +40,17 @@ class ApplicationDocument extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Application, $this>
+     */
     public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class);
     }
 
+    /**
+     * @return BelongsTo<DocumentType, $this>
+     */
     public function documentType(): BelongsTo
     {
         return $this->belongsTo(DocumentType::class);
