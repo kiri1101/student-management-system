@@ -122,6 +122,9 @@ Notes:
   bundle regression.
 - **Tests** run on in-memory SQLite with `CACHE_STORE=array` (pinned in `phpunit.xml`), so
   they need neither MySQL nor Redis. See [Testing](testing.md).
+- **Docs** — after a feature ships, or a route/schema/flow changes, run the `docs-refresh`
+  skill to bring the affected `/docs` pages back in sync. Treat it as the gate's final step,
+  not an afterthought.
 
 ## Finding your way around
 

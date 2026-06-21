@@ -10,6 +10,16 @@ Another issue is `Requests for tuition payment deferral`. During examination per
 `Course management` is another important aspect of student management and it has its own issues in the university i attended. It spans over course planning, lecturer absence notification, student course attendance, course assignment management and course CA & examination student results. All these as well as earlier issues should be discussed thoroughly before implementation.
 Some other issue faced by students is notification when a lecturer is absent from course lectures. Sometimes the information given by the lecturer about their presence on campus is manipulated by students to whom it is given such that they either deliver the information late or their classmates do not trust the information thy deliver. Thus bringing up a need to improve lecturer course management as well as other services such as `Notifications`, `School receipt verification`, `Access to CA and examination results with the ability to raise disputes`.
 
+## Documentation
+
+- Full project documentation lives in [`docs/`](docs/index.md) (start at the index) and the
+  root [`README.md`](README.md). It is verified against the **shipped code**, not the planning
+  log — developer docs (architecture, onboarding, data-model + ER, routes, security, testing,
+  deployment), per-module docs (`docs/modules/`), per-role user guides (`docs/guides/`), and 22
+  ADRs (`docs/adr/`).
+- **Keep docs in sync:** when a feature ships or a route/schema/flow changes, run the
+  `docs-refresh` skill to update the affected pages. Treat it as part of the per-feature gate.
+
 ## Database & Routes
 
 - Driver: MySQL (`student_management` database, root/no password)
