@@ -10,6 +10,15 @@ use App\Enums\PaymentStanding;
  */
 final readonly class PaymentStandingResult
 {
+    /**
+     * @param  PaymentStanding  $standing  the computed verdict (cleared/deferred/blocked)
+     * @param  bool  $hasSchedule  false when no fee schedule is configured (treated as cleared)
+     * @param  int  $totalXaf  the schedule's full tuition for the year, in XAF
+     * @param  int  $requiredSoFar  Σ of installment amounts whose due_date has passed, in XAF
+     * @param  int  $validatedPaid  Σ of the student's validated submissions for the year, in XAF
+     * @param  int  $shortfall  max(requiredSoFar − validatedPaid, 0), in XAF
+     * @param  string|null  $activeDeferralDeadline  the active deferral's new_deadline (Y-m-d), if any
+     */
     public function __construct(
         public PaymentStanding $standing,
         public bool $hasSchedule,

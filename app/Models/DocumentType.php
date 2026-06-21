@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A catalog entry for a kind of credential an applicant may upload (e.g.
+ * National Identity, Birth Certificate). Referenced by code from the
+ * application form's required-document logic and by {@see LevelCredentialRequirement}.
+ */
 #[Fillable(['name', 'code', 'description'])]
 class DocumentType extends Model
 {
@@ -25,11 +30,17 @@ class DocumentType extends Model
      */
     public const PROTECTED_CODES = ['NID', 'BIRTH'];
 
+    /**
+     * Whether this type is one of the always-required, undeletable codes.
+     */
     public function isProtected(): bool
     {
         return in_array($this->code, self::PROTECTED_CODES, strict: true);
     }
 
+    /**
+     * @return HasMany<LevelCredentialRequirement, $this>
+     */
     public function levelCredentialRequirements(): HasMany
     {
         return $this->hasMany(LevelCredentialRequirement::class);

@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
+/**
+ * The single, tamper-evident proof of a validated tuition payment. Immutable
+ * after issuance (Eloquent updates/deletes throw; no timestamps). Each receipt
+ * carries an HMAC-SHA256 `signature` over `receipt_number|matricule|amount_xaf|
+ * academic_year` keyed by APP_KEY, so the public verify endpoint can detect any
+ * forgery or tampering. Receipt numbers (`RCP-{year}-{00001}`) are issued from a
+ * per-year locked sequence. Money is integer XAF.
+ */
 #[Fillable(['payment_submission_id', 'receipt_number', 'amount_xaf', 'signature', 'issued_at'])]
 class SchoolReceipt extends Model
 {
@@ -39,6 +47,9 @@ class SchoolReceipt extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<PaymentSubmission, $this>
+     */
     public function paymentSubmission(): BelongsTo
     {
         return $this->belongsTo(PaymentSubmission::class);

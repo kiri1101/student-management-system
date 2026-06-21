@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * The tuition plan for one (program offering, level, academic year): a `total_xaf`
+ * split into ordered, dated installments. PaymentStandingService derives
+ * `required_so_far` from the installments whose due_date has passed. Money is
+ * integer XAF.
+ */
 #[Fillable(['program_offering_id', 'level', 'academic_year', 'total_xaf'])]
 class FeeSchedule extends Model
 {
@@ -28,6 +34,9 @@ class FeeSchedule extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ProgramOffering, $this>
+     */
     public function programOffering(): BelongsTo
     {
         return $this->belongsTo(ProgramOffering::class);
@@ -35,6 +44,8 @@ class FeeSchedule extends Model
 
     /**
      * Ordered payment milestones, lowest sequence first.
+     *
+     * @return HasMany<FeeInstallment, $this>
      */
     public function installments(): HasMany
     {

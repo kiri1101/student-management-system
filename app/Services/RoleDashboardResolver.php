@@ -5,6 +5,11 @@ namespace App\Services;
 use App\Enums\RoleName;
 use App\Models\User;
 
+/**
+ * Resolves the dashboard a user lands on after login by walking a fixed role
+ * priority. A user may hold several roles; the highest-priority match wins, and
+ * a roleless user falls through to the applicant dashboard.
+ */
 final class RoleDashboardResolver
 {
     /**
@@ -22,6 +27,11 @@ final class RoleDashboardResolver
         [RoleName::Applicant, '/applicant/dashboard'],
     ];
 
+    /**
+     * Return the dashboard path for the highest-priority role $user holds,
+     * defaulting to the applicant dashboard when the user has no role. Eager-
+     * loads the roles relation so the priority walk stays query-free.
+     */
     public function pathFor(User $user): string
     {
         // Login happens mid-request, after the Inertia share saw a guest —

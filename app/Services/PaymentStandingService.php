@@ -24,6 +24,9 @@ use Illuminate\Support\Carbon;
  */
 class PaymentStandingService
 {
+    /**
+     * Compute a student's tuition standing as of `$asOf` (defaults to now).
+     */
     public function for(StudentProfile $profile, ?CarbonInterface $asOf = null): PaymentStandingResult
     {
         $asOf ??= Carbon::now();
