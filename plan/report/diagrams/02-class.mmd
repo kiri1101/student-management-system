@@ -1,0 +1,76 @@
+classDiagram
+  direction LR
+  class User {
+    +int id
+    +string name
+    +string email
+    +string employee_id
+    +string phone
+    +hasAnyRole()
+  }
+  class Role {
+    +RoleName name
+  }
+  class StudentProfile {
+    +string matricule
+    +int level
+    +string academic_year
+    +StudentStatus status
+    +nextMatriculeForYear()
+  }
+  class Application {
+    +string first_name
+    +string last_name
+    +ApplicationStatus status
+    +canTransitionTo()
+    +isTerminal()
+  }
+  class ProgramOffering {
+    +DegreeProgram degree_program
+    +int min_level
+    +int max_level
+  }
+  class PaymentSubmission {
+    +int amount_xaf
+    +Bank bank
+    +PaymentStatus status
+  }
+  class SchoolReceipt {
+    +string receipt_number
+    +string signature
+    +verifies() bool
+  }
+  class TuitionDeferral {
+    +DeferralStatus status
+    +date new_deadline
+    +activeAsOf()
+  }
+  class Course {
+    +string code
+    +CoursePlanStatus plan_status
+    +cohortStudents()
+  }
+  class CourseResult {
+    +int ca_score
+    +int exam_score
+    +final_score()
+    +grade()
+  }
+  class AuditLog {
+    +AuditAction action
+    +json changes
+    +record()
+  }
+
+  User "1" -- "0..*" Role
+  User "1" -- "0..1" StudentProfile
+  StudentProfile "1" -- "0..*" PaymentSubmission
+  PaymentSubmission "1" -- "0..1" SchoolReceipt
+  StudentProfile "1" -- "0..*" TuitionDeferral
+  ProgramOffering "1" -- "0..*" Application
+  User "1" -- "0..*" Application
+  ProgramOffering "1" -- "0..*" StudentProfile
+  ProgramOffering "1" -- "0..*" Course
+  Course "1" -- "0..*" CourseResult
+  StudentProfile "1" -- "0..*" CourseResult
+  User "1" -- "0..*" AuditLog

@@ -1,0 +1,26 @@
+flowchart TB
+  classDef actor fill:#10b981,stroke:#065f46,color:#ffffff,font-weight:bold
+  classDef uc fill:#ecfdf5,stroke:#10b981,color:#065f46
+
+  STU([Student]):::actor
+  LEC([Lecturer]):::actor
+  SAO([Student Affairs Officer]):::actor
+  ADM([Administrator]):::actor
+
+  subgraph Crs["Course Management"]
+    u9(("Manage courses<br/>&amp; plans")):::uc
+    u10(("Attendance, grade,<br/>publish results")):::uc
+    u11(("View results /<br/>raise dispute")):::uc
+  end
+  subgraph Adn["Administration"]
+    u12(("Manage users &amp;<br/>reference data")):::uc
+    u13(("View immutable<br/>audit log")):::uc
+  end
+
+  SAO --> u9
+  LEC --> u9
+  SAO --> u10
+  LEC --> u10
+  STU --> u11
+  ADM --> u12
+  ADM --> u13

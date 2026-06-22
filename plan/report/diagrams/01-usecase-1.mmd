@@ -1,0 +1,33 @@
+flowchart TB
+  classDef actor fill:#10b981,stroke:#065f46,color:#ffffff,font-weight:bold
+  classDef uc fill:#ecfdf5,stroke:#10b981,color:#065f46
+
+  APP([Applicant]):::actor
+  STU([Student]):::actor
+  ACC([Accountant]):::actor
+  SAO([Student Affairs Officer]):::actor
+  PUB([Public Verifier]):::actor
+
+  subgraph Adm["Admissions"]
+    u1(("Submit &amp; track<br/>application")):::uc
+    u2(("Triage / decide<br/>application")):::uc
+  end
+  subgraph Pay["Payments &amp; Receipts"]
+    u3(("Report bank<br/>deposit")):::uc
+    u4(("Validate payment<br/>&amp; issue receipt")):::uc
+    u5(("Verify receipt")):::uc
+  end
+  subgraph Exam["Exam Gating"]
+    u6(("View payment<br/>standing")):::uc
+    u7(("Request deferral")):::uc
+    u8(("Review deferral")):::uc
+  end
+
+  APP --> u1
+  SAO --> u2
+  STU --> u3
+  ACC --> u4
+  PUB --> u5
+  STU --> u6
+  STU --> u7
+  ACC --> u8

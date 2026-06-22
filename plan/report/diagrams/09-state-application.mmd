@@ -1,0 +1,14 @@
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Submitted: applicant submits
+  Submitted --> UnderReview: SAO triage
+  UnderReview --> DocumentsRequested: SAO triage
+  DocumentsRequested --> UnderReview: SAO triage
+  UnderReview --> Admitted: decide (mint student)
+  UnderReview --> Rejected: decide
+  UnderReview --> Waitlisted: decide
+  Submitted --> Withdrawn: merge into prior enrollment
+  Admitted --> [*]
+  Rejected --> [*]
+  Waitlisted --> [*]
+  Withdrawn --> [*]

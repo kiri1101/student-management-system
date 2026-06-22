@@ -1,0 +1,19 @@
+sequenceDiagram
+  actor S as SAO
+  participant C as ApplicationReviewController
+  participant Act as DecideApplicationAction
+  participant DB as MySQL
+  participant Bus as Event Bus
+  S->>C: POST /sao/applications/{id}/decide
+  C->>Act: execute(app, decision, notes, sao)
+  Act->>DB: transaction + lockForUpdate re-fetch
+  Act->>Act: isTerminal()? canTransitionTo()?
+  Act->>DB: saveQuietly status, decided_at, decided_by
+  alt decision = Admitted
+    Act->>DB: create StudentProfile + matricule (locked counter)
+    Act->>DB: assign Student role
+  end
+  Act->>DB: AuditLog ApplicationDecided
+  DB-->>Act: commit
+  Act->>Bus: afterCommit dispatch ApplicationDecided
+  Bus-->>S: queued decision email to applicant

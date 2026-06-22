@@ -1,0 +1,13 @@
+sequenceDiagram
+  actor V as Public Verifier
+  participant C as VerifyReceiptController
+  participant R as SchoolReceipt
+  V->>C: GET /receipts/verify/{number}
+  C->>R: find by receipt_number
+  R->>R: recompute HMAC from CURRENT bound identity
+  R-->>C: hash_equals(stored, expected)
+  alt authentic
+    C-->>V: show matricule, name, amount, academic year
+  else forged / unknown / reused
+    C-->>V: "invalid" (no detail leaked)
+  end

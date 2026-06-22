@@ -1,0 +1,10 @@
+flowchart TD
+  S([Read student standing]) --> SCH{Fee schedule<br/>configured?}
+  SCH -->|No| CL[Cleared]
+  SCH -->|Yes| REQ[required_so_far = sum of installments due on/before today]
+  REQ --> PAID[validated_paid = sum of validated payments]
+  PAID --> SF{shortfall =<br/>required - paid > 0?}
+  SF -->|No| CL
+  SF -->|Yes| DEF{Active approved<br/>deferral?}
+  DEF -->|Yes| DF[Deferred — gate lifted until new deadline]
+  DEF -->|No| BL[Blocked — no exam / facility access]

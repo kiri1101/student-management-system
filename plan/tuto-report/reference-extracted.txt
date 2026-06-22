@@ -1,0 +1,1273 @@
+                 UNIVERSITY OF BAMENDA
+UNIVERSITY INSTITUTE OF THE GULF OF GUINEA
+
+                       P.O Box 12489 Douala-Cameroun Fax: (237) 233 42 89 02
+                                   Tel: (237) 233 42 89 02 / 233 37 50 60
+                                         Website: www.iug-univ.com
+
+                                        School of Bachelors
+                         DEPARTMENT OF INFORMATION AND
+               COMMUNICATION TECHNOLOGIES ENGINEERING
+
+      TOPIC: IMPLEMENNTOALOTGIOIENS OF A REALESTATE
+                  DEPMARATNMEANGTEOMF IENFNOTRMSYATSITOEN MAND
+
+               COMMUNICATION TECHNOLOGIES ENGINEERING
+
+                TOOPPTIICO:NI:MSOPFLTEWMAERNETEANTGIIONNEEORFINAGN
+               EMPLWORYITETEENSACNHDEPRDEUSLENINTEGD SBY:STEM
+
+                   OPTION: SOFTWARE ENGINEERING
+
+                ESLIST OF TGAROBULP:E1S2 TTENLIST
+                         OF FIGTCUHROFEFOSIBVYA:N
+
+                                     MUNTONG PRINCEWILL
+
+               LIST O FSAEIGBNBORU ELAVCKIAO TMIIGOUENLS
+
+                                        ESENTED BY:
+
+                               UNDER THE SUPERVISION OF:
+                                     Mr. NSANKONG BORIS
+                                     Professor of Design Project
+
+                               UNDMERr. TNHSAENSKUOPENRGVBIOSIROINS OF:
+                                      2025-2026 Academic Year
+                                     Professor of Design Project
+
+                                      2025-2026 Academic Year
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                         LIST OF TABLES
+
+Table 1: Historical Timeline of Real Estate Management Systems ................................................ 4
+
+Table 2: Overview ExistinLg RIeSalTEsOtateFMFanIaGgemUeRnt ESySsteLmI..S...T.................................................. 6
+Table 3: Comparison of Proposed SoOlutFionTs..A....B....L....E....S............................................................... 12
+
+Table 4: Characteristics of computer used .................................................................................... 27
+Table 5: Cost of Human Resources............................................................................................... 28
+Table 6: Cost of Hardware Resources........................................................................................... 28
+Table 9: Cost of Software Resources ............................................................................................ 29
+Table 10: Total Cost Estimation .................................................................................................... 29
+
+                                                                                                        ii
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                           LIST OF FIGURES
+
+Figure 1 Use Case Diagram
+....................................................................................................................................................... 20
+Figure 2:Sequence diagram of Add Property by Agent ................................................................ 21
+
+Figure 3:Sequence diagram on Approve ProLprIySbTy AOdmFin. ......................................................... 22
+Figure 4 Activity Diagram AddAPBroBperRtyEbyVAIgeAntT...I..O.....N....S....L....I..S...T........................................... 23
+Figure 5 Activity Diagram approve ProOpeFrty FbyIAGdmUinR...E....S........................................................ 24
+
+Figure 6 class diagram .................................................................................................................. 25
+Figure 7: Login Interface .............................................................................................................. 30
+Figure 8: Administration Dashboard............................................................................................. 31
+Figure 9: Creating New Property..............................................................................31
+Figure 9: Creating New Propertyent
+Dashboard....................................................................................32
+
+                                                                                                        iii
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                       TABLE OF CONTENTS
+
+LIST OF TABLES....................................................................................................................................... ii
+LIST OF FIGURESLIST OF TABLES..................................................................................................... ii
+
+TABLE OF CONTENTS LIST OF FIGURES ................................................................................................................................... iii
+
+TABLE OF CONTENTS ........................................................................................................................... iv
+GENERAL INTRODUCTION .................................................................................................................. 1
+
+   STRUCTURE OF THE WORK IN PARTS ......................................................................................... 2
+CHAPTER 1: STATE OF THE ART OF REAL ESTATE MANAGEMENT SYSTEM...................... 3
+
+   1.1 Introduction....................................................................................................................................... 3
+   1.2 Historical Background & Evolution Of Real Estate Management System. ................................ 3
+   1.3 Existing Systems................................................................................................................................ 6
+   1.4 Conceptualization of the Real Estate Management System .......................................................... 7
+CHAPTER 2: SYSTEM ANALYSIS AND DESIGN ............................................................................... 9
+   2.1 Study of Existing Systems ................................................................................................................ 9
+
+      2.1.1Study of Existing Systems........................................................................................................... 9
+      2.1.2 Limitations of Manual System ................................................................................................ 10
+      2.1.3 Proposed Solutions ................................................................................................................... 10
+      2.1.4 Justification of the Chosen System ......................................................................................... 13
+   2.2 System Requirements ..................................................................................................................... 15
+      2.2.1 Functional Requirements ........................................................................................................ 15
+      2.2.2 Non-Functional Requirements ................................................................................................ 17
+   2.3 System Design(UML Diagrams) .................................................................................................... 20
+      2.3.1 Use Case Diagram .................................................................................................................... 20
+      2.3.2 Sequence Diagram.................................................................................................................... 21
+      2.3.3 Activity Diagram ...................................................................................................................... 23
+      2.3.4 Class Diagram .......................................................................................................................... 25
+   2.4 Needed Resources, Cost Estimation .............................................................................................. 25
+      2.4.1 Needed Resources..................................................................................................................... 27
+      2.4.2 Cost Estimation ........................................................................................................................ 28
+
+                                                                                                        iv
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+CHAPTER 3: RESULTS AND DISCUSSIONS ..................................................................................... 30
+   3.1 Application Interface Screenshots ................................................................................................. 30
+      3.1.1 Login Page ................................................................................................................................ 30
+      3.1.2 Admin Dashboard .................................................................................................................... 31
+      3.1.3 Create Property ........................................................................................................................ 31
+      3.1.4 Agent Dashboard...................................................................................................................... 32
+
+GENERAL CONCLUSION ..................................................................................................................... 33
+REFERENCES.......................................................................................................................................... 34
+
+                                                                                                        v
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                   GENERAL INTRODUCTION
+
+The rapid evolution of information and communication technologies has transformed many
+sectors, including real estate. Traditional real estate operations are often characterized by
+inefficiencies such as poor data management, limited market reach, lack of transparency, and
+slow communication between stakeholders. To address these challenges, this project focuses on
+the design and implementation of a Real Estate Management System, a web-based platform that
+facilitates property listing, management, and communication between administrators, agents, and
+clients.
+This system was developed using Laravel (PHP framework) with a MySQL database, following
+modern software engineering principles and UML-based system modeling.
+
+                                                                                                        1
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+STRUCTURE OF THE WORK IN PARTS
+
+This work has three chapters, with chapter two divided into two parts. Details are as follows.
+     Chapter 1, State of the art of Employee scheduling system. That is, the history,
+         Evolution, Existing Applications to this and conceptualization of the employee
+         scheduling system.
+     Chapter 2 is divided into three parts.
+         - Part, one includes, Preliminary study( Study of existing system), it's limitations,
+             Proposed solutions, Justification of our chosen system.
+         - Part, two includes, System requirements (Functional and non-functional
+             requirements).
+         - Part, three includes, System design(UML diagrams), Needed Resource, Cost
+             estimation.
+     Chapter 3, Results(application Interface screenshots), Conclusion, References.
+
+                                                                                                        2
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+CHAPTER 1: STATE OF ART REAL ESTATE
+MANAGEMENT SYSTEM
+
+1.1 Introduction to Real Estate Management Systems
+
+         The real estate sector is one of the oldest and most important sectors of any economy. It
+plays a critical role in wealth creation, urban development, and social stability by providing
+housing, commercial spaces, and land for development. Traditionally, real estate operations
+relied heavily on manual processes, physical documentation, and face-to-face interactions.
+However, the rapid advancement of Information and Communication Technologies (ICT) has
+significantly transformed how real estate activities are conducted.
+The emergence of Real Estate Management Systems (REMS) represents a major technological
+shift in the industry. These systems automate the processes of property listing, client
+management, agent coordination, communication, and administrative control. This chapter
+presents a comprehensive state-of-the-art review of real estate management systems, tracing their
+historical evolution, technological foundations, existing solutions, current trends, challenges, and
+motivations for developing a customized system.
+
+1.2 Historical Background & Evolution Of Real Estate Management Systems.
+
+Real estate management has its roots in the earliest human civilizations. From the moment
+human beings began to settle permanently, land and property became valuable resources. In
+ancient societies such as Mesopotamia, Egypt, Greece, and Rome, land ownership was directly
+linked to power, wealth, and social status.
+
+In ancient Mesopotamia (around 3000 BC), clay tablets were used to record land ownership,
+lease agreements, and property transactions. These records represent the earliest known form of
+real estate documentation. Similarly, ancient Egyptian civilization maintained land registries for
+taxation and agricultural management along the Nile River.
+
+In ancient Rome, real estate management became more structured. The Romans introduced legal
+concepts such as:
+
+                                                                                                        3
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+ Property ownership rights
+
+ Land leases
+
+ Rental agreement
+
+ Property taxation
+
+Roman law laid the foundation for modern real estate regulations and property management
+principles that are still in use today.
+
+Table 1: Historical Timeline of Real estate management system
+
+Period           Time Frame  Key                     Tools &    Limitations
+
+                             Characteristics Methods Used
+
+Ancient          3000 BC - 500 Land ownership Clay tablets, No standard
+Civiliazations
+                 AD          linked to power papyrus, oral documentation,
+
+                             and wealth; early agreements       limited
+
+                             leasing            and             accessibility
+
+                             taxation systems
+
+Roman Era        500 BC - 476 AD Formal property Written                Manual record
+                                                                legal keeping,
+                             laws,          rental contracts,
+                                                                        centralized
+                             agreements, land codes                     control
+
+                             taxation
+
+Medieval Period  5th - 15th Century Feudal      land Church records, Lack                 of
+
+                             ownership;              oral contracts transparency,
+
+                             landlords                          poor         record
+
+                             controlled                         management
+
+                             property;
+
+                             peasants paid
+
+                             rent
+
+Industrial       18th -      19th Urbanization       Paper      files, Slow               data
+Revolution       Century
+                             increased               ledgers,   land processing, high
+
+                             demand             for registries  error rates
+
+                             housing and
+
+                                                                                                       4
+
+Written and Presented by GROUP 12
+DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                           SYSTEM
+
+                                       commercial
+
+                                       property
+
+Early        20th 1900 - 1960   Organized real Filing cabinets, Data duplication,
+Century
+                                estate agencies; paper forms   risk of loss
+
+                                administrative
+
+                                offices emerged
+
+Early computer 1960 - 1980      Introduction of Standalone     High           cost,
+Era                             computers for computers,
+                                property record spreadsheets   limited access,
+                                storage
+                                                               no networking
+
+Database     1980 - 1995        Use of relational Local databases Required
+Systems Era
+                                databases for (SQL-based)      technical
+
+                                structured data                expertise, limited
+
+                                management                     scalability
+
+Internet &Web 1995 - 2010       Online property Websites, email Security
+Era
+                                listings      and communication concerns, limited
+
+                                global reach                   interactivity
+
+Mordern Digital 2010 - present  Fully integrated Web frameworks Requires stable
+Systems
+                                platforms with (Laravel), cloud internet      and
+
+                                analytic and services          maintenance
+
+                                messaging
+
+Proposed System Present         Secure, scalable, Laravel,     Dependent on
+
+                                role-based real MySQL, MVC hosting            and
+
+                                estate           architecture  technical support
+
+                                management
+
+                                                                                                       5
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+1.3 Existing Systems in Real Estate Management
+
+         Today, numerous real estate management platforms are used globally to facilitate
+property listing, client management, communication, and transaction tracking. These systems
+aim to digitize traditional real estate operations by allowing agents to manage properties, buyers,
+sellers, and inquiries through centralized platforms. Common features include property listing,
+search and filtering, messaging, approval workflows, and reporting dashboards.
+
+         Although these platforms provide valuable services, many are either too complex, too
+expensive, or not well adapted to local real estate markets such as those found in developing
+countries. Some focus heavily on large agencies, while others lack proper role-based access,
+approval mechanisms, or performance tracking for agents.
+
+         Studying existing real estate management systems helps identify strengths, weaknesses,
+and gaps, which guided the design of the proposed Web-Based Real Estate Management System
+developed in this project.
+
+Table 2: Overview Existing Real Estate management system
+
+Application Key Features       Strengths                  Limitations
+
+Zillow    Property listings, search Large user base, Not suitable for
+
+          filters, agent profiles, powerful search engine internal         agency
+
+          messaging                                       management
+
+Realtor.com Listings, property analytics, Accurate market data, Limited customization
+
+          agent communication  trusted platform           for agencies
+
+Propertybase CRM, property listings, Enterprise-grade     High cost, complex
+
+          analytics, lead management features, strong CRM setup
+
+Buildium  Property        management, Property management, High cost, complex
+
+          tenant tracking, payments tenant                tracking, setup
+
+                               payments
+
+AppFolio  Property        accounting, Strong financial tools Expensive     and
+
+          leasing, reporting                              complex for small
+
+                                                          agencies
+
+Zoho Real Lead tracking, workflow Integrates with Zoho Requires
+
+                                                                                                       6
+
+Written and Presented by GROUP 12
+       DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+
+                                  SYSTEM
+
+Estate CRM automation, reporting  ecosystem  customization for full
+
+                                             usability
+
+Local     Paper files, spreadsheets, Low cost, familiar to Data loss risk, poor
+
+Manual    phone calls             users      scalability,
+
+Systems                                      inefficiency
+
+Proposed  Property listing, agent Tailored to local needs, Requires internet and
+
+Systems   dashboard,   messaging, role-based access, cost- basic  technical
+
+          approval workflow       effective  maintenance
+
+1.4 Conceptualization of the Real Estate Manager
+
+         The conceptualization of a Real Estate Management System involves translating the
+operational requirements of property management, sales, and client interaction into a structured
+and efficient software solution. The core idea is to design a centralized digital platform that
+simplifies property listing, client communication, and transaction management while minimizing
+manual errors and administrative overhead.
+
+By analyzing the workflows of administrators, agents, and clients, the system is designed to
+automate repetitive tasks such as property posting, inquiry handling, and approval processes,
+while still allowing human oversight for decision-making processes like property validation and
+negotiations.
+
+The Real Estate Management System is conceptualized around the following key principles:
+
+a. Role-Based Access Control
+
+The system implements role-based access control to ensure that different users have access to
+functionalities appropriate to their responsibilities.
+
+ Administrators manage users, approve properties, and monitor system activity.
+ Agents create and manage property listings, respond to client inquiries, and track
+
+     performance.
+ Clients browse properties and communicate with agents.
+
+                                                                                                       7
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+This approach ensures data security and prevents unauthorized access to sensitive operations
+such as property approval and user management.
+
+b. Property and Listing Management
+
+         Agents can create, update, and delete property listings, including details such as price,
+location, images, and availability status. Administrators validate and approve listings before they
+are made publicly visible. This workflow ensures data accuracy and maintains platform
+credibility while allowing agents to manage their portfolios efficiently.
+
+c. Client Interaction and Messaging
+
+         The system enables seamless communication between clients and agents through an
+integrated messaging module. Clients can send inquiries directly from property listings, and
+agents receive and respond to messages in real time. This reduces communication delays and
+improves customer engagement and satisfaction.
+
+d. Data-Driven Decision Support
+
+         The system generates reports and dashboards that provide insights into property
+performance, agent activity, and client engagement. Metrics such as the number of listed
+properties, approved listings, and received inquiries support managerial decision-making and
+help optimize business operations.
+
+By integrating these core functionalities, the Real Estate Management System aims to deliver a
+secure, scalable, and user-friendly platform that addresses the limitations of traditional property
+management methods. The conceptual design serves as the foundation for the system's
+architecture, database design, UML models, and user interfaces, ensuring that the final
+implementation aligns with real-world operational requirements and user expectations.
+
+                                                                                                        8
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+CHAPTER 2: SYSTEM ANALYSIS AND DESIGN
+
+This chapter focuses on the analysis and design of the Real Estate manager. It is divided into
+three parts:
+
+    1. Part One: Preliminary Study examines the current scheduling systems, their limitations,
+         and justifies the proposed solution.
+
+    2. Part Two: System Requirements outlines both functional and non-functional
+         requirements of the new system.
+
+    3. Part Three: System Design presents models, UML diagrams, and resource estimation
+         for the system.
+
+PART ONE: PRELIMINARY STUDY
+
+2.1 Study of Existing Systems
+
+         The first step in the development of the Real Estate Management System is the analysis
+of existing methods used for managing properties, clients, and real estate transactions. Both
+traditional (manual) and modern (digital) approaches were examined in order to identify their
+strengths, weaknesses, and operational challenges. This study provides a foundation for
+proposing an improved and more efficient system.
+a. Manual Property Management Methods
+
+              In many small and medium-scale real estate agencies, property management is still
+     carried out using manual processes. These methods rely heavily on paperwork and face-to-
+     face communication.
+      Property details are recorded in notebooks, files, or printed documents.
+      Property listings are advertised using physical posters, banners, or word-of-mouth.
+      Client inquiries are handled through phone calls or in-person visits.
+      Property approvals and updates are managed informally without a centralized record.
+
+                                                                                                        9
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+      Tracking agent performance and property status requires manual follow-ups.
+
+2.1.2 Limitations of Manual Methods
+
+           High risk of data loss or damage to physical records.
+           Difficulty in updating property information in real time.
+           Inefficient communication between agents, administrators, and clients.
+           Lack of transparency and accountability.
+           Time-consuming administrative processes.
+
+         The preliminary study shows that manual methods are inefficient, error-prone, and
+difficult to manage, while digital solutions are either too general or too costly for smaller
+organizations. This highlights the need for a specialized Real Estate Management system that is
+cost-effective, user-friendly, and tailored to the organization's needs.
+
+2.1.3 Proposed Solutions
+
+         To address the limitations identified in existing real estate management methods, several
+possible solutions were examined. The primary objective is to design an efficient, secure, and
+user-friendly system that simplifies property management, enhances communication between
+agents and clients, and supports administrators in monitoring and approving activities. Three
+potential approaches were evaluated as follows:
+
+Solution 1: Improved Manual Real Estate Management
+
+         This approach focuses on optimizing traditional paper-based or spreadsheet-based
+property management methods. Standardized forms and templates can be introduced to record
+property details, client information, and transaction records. Property listings may be shared
+through printed brochures, emails, or simple online advertisements.
+
+Advantages:
+      Low implementation cost.
+      No need for advanced technical infrastructure.
+      Familiar to staff with limited technical skills.
+
+                                                                                                       10
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+Limitations:
+      Still highly prone to human error and data inconsistency.
+      No real-time updates for property availability or inquiries.
+      Inefficient communication between agents, administrators, and clients.
+      Difficult to scale as the number of properties and clients increases.
+
+Solution 2: Commercial Real Estate Platforms
+This solution involves adopting existing online real estate platforms or commercial property
+management software. These platforms typically offer features such as online property listings,
+basic messaging, analytic, and sometimes customer relationship management tools.
+Advantages:
+
+      Ready-made and reliable solutions.
+      Provide automation for property listings and inquiries.
+      Often accessible via web and mobile applications.
+Limitations:
+      Subscription and service costs can be high, especially for small agencies.
+      Limited customization to match specific organizational workflows.
+      Some features may be unnecessary or overly complex.
+      Dependency on third-party platforms for data and system availability.
+Solution 3: Custom Real Estate Management System (Our Project)
+
+         The proposed solution is the development of a custom Real Estate Management System
+tailored specifically to the needs of small to medium-scale real estate agencies. This system
+integrates essential functionalities such as role-based access control, property listing and
+approval workflows, client-agent messaging, automated notifications, and performance
+dashboards.
+
+                                                                                                       11
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+Administrators can manage users and approve property listings, agents can create and manage
+
+properties while interacting with clients, and clients can browse listings and make inquiries
+
+seamlessly. By focusing on real operational requirements, the system ensures simplicity,
+
+efficiency, and scalability.
+
+Advantages:
+
+ Custom-built to match organizational workflows.
+
+ Cost-effective in the long term.
+
+ Secure role-based access control.
+
+ Improved communication and transparency.
+
+ Supports data-driven decision-making through reports and dashboards.
+
+Limitations:
+
+ Requires initial development, testing, and deployment time.
+
+ Maintenance and updates must be managed internally.
+
+Table 3: Comparison of Proposed Solutions for Real Estate Management
+
+Solution           Key Features               Advantages                Limitations
+
+Manual Real        Paper          records,    Low cost, easy to         Prone to human error,
+Estate                                        implement, no technical
+Management         spreadsheets,              dependency                data inconsistency, no
+
+                   phone/email                                          real-time  updates,
+
+                   communication                                        difficult to scale
+
+Commercial         Online property listings,  Feature-rich, automated   Subscription costs,
+                                              workflows, web and        limited customization,
+Real       Estate  basic          messaging,  mobile access             unnecessary features
+                                                                        for small agencies
+Platforms          analytic s dashboards
+
+Proposed Real      Role-based access,         Customization, cost-      Requires development
+Estate             property listing &         effective, secure, user-  time, testing, and
+Management         approval, client-agent     friendly, tailored to     maintenance
+System             messaging, automated       organizational
+                   notifications,             workflow
+                   dashboards
+
+                                                                                                      12
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+2.1.4 Justification of the Chosen System
+
+         The selection of the Real Estate Management System as the preferred solution was
+guided by a detailed analysis of existing property management approaches, organizational needs,
+and long-term sustainability. While manual methods and commercial real estate platforms
+provide certain benefits, they do not fully address the specific requirements of small-to-medium
+real estate agencies seeking efficiency, flexibility, and cost control.
+The key reasons for choosing the proposed Real Estate Management System include the
+following:
+a. Tailored Functionality
+
+         The proposed system is specifically designed to address the core operations of real estate
+agencies. Unlike generic commercial platforms, it focuses on essential features such as property
+listing and approval, agent management, client inquiries, messaging, and performance
+dashboards. This targeted approach eliminates unnecessary complexity and ensures that every
+function directly supports business operations.
+b. Cost-Effectiveness
+
+         Commercial real estate platforms often require recurring subscription fees and charge
+extra for advanced features. Developing a custom Real Estate Management System eliminates
+these recurring costs, making it a financially sustainable solution for small-to-medium agencies.
+The organization only invests in development and maintenance, resulting in long-term cost
+savings.
+c. User-Friendly Interface
+
+         The system emphasizes ease of use through a clean and intuitive interface. Role-based
+access control ensures that administrators, agents, and clients interact only with features relevant
+to their roles. This reduces the learning curve, minimizes user errors, and improves overall
+productivity.
+
+                                                                                                       13
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+d. Flexibility and Scalability
+         The proposed system is flexible and can be easily extended to support future business
+
+needs. New features such as payment integration, advanced analytic, or mobile access can be
+added without redesigning the entire system. This scalability ensures that the application remains
+relevant as the organization grows.
+e. Improved Communication and Data Accuracy
+
+         Integrated messaging and automated notifications enhance communication between
+agents and clients, reducing delays and misunderstandings. Property approval workflows and
+centralized data storage improve data accuracy, reduce duplication, and ensure that only verified
+listings are published. This leads to improved trust, better customer experience, and efficient
+administrative control
+
+                                                                                                       14
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+      PART TWO: SYSTEM REQUIREMENTS
+
+2.2 System Requirements
+
+                  System requirements define what the Real Estate Management System (REMS)
+         must accomplish and the conditions under which it must operate. They form the
+         foundation for system design, development, and evaluation. These requirements were
+         identified based on system analysis, stakeholder needs, and project objectives.
+         The system requirements are categorized into two main groups:
+         a. Functional Requirements
+
+                  These describe the specific services, behaviors, and operations the system must
+         provide. They answer the question:
+         "What must the system do?"
+         b. Non-Functional Requirements
+
+                  These define the quality attributes and constraints of the system, such as security,
+         performance, usability, and reliability. They answer the question:
+         "How should the system perform?"
+         The following sections present the detailed functional and non-functional requirements of
+         the Real Estate Management System.
+
+2.2.1 Functional Requirements
+
+                  The functional requirements describe the core operations that the Real Estate
+         Management System (REMS) is expected to perform. These requirements were derived
+         from the analysis of real estate workflows involving administrators, agents, and clients.
+A. User Authentication and Account Management
+           The system allows users (Administrator, Agent, Client) to register and log in using
+
+               valid credentials.
+           The system validates user roles and assigns appropriate access permissions upon
+
+               login.
+           Administrators are able to create, edit, deactivate, or delete user accounts.
+           Passwords are securely stored using hashing and encryption techniques.
+           The system allows users to update their personal profile information.
+
+                                                                                                       15
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+B. Role-Based Access Control
+         The system restricts access to features based on user roles:
+
+      Administrator
+                  Full access to user management, property approval, system monitoring, and report
+
+          generation.
+      Agent
+
+                  Access to create and manage property listings, respond to client inquiries, and
+          view performance data.
+      Client
+
+                  Access to browse properties, view details, and communicate with agents.
+         The system ensures that sensitive actions such as property approval and user management
+         are restricted to administrators only.
+C. Property and Listing Management
+           Agents are able to create, edit, and delete property listings.
+           Each property includes details such as:
+
+                Title
+                Description
+                Location
+                Price
+                Images
+           Availability status
+           Administrators must approve property listings before they become publicly visible.
+           The system prevents the publication of unapproved or incomplete listings.
+D. Property Browsing and Search
+           Clients are able to browse available properties.
+           The system provides search and filtering options based on:
+           Location
+           Price range
+           Property type
+           Availability
+           Property details are displayed clearly with images and agent contact information.
+
+                                                                                                       16
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+E. Client Inquiry and Messaging System
+           Clients are able to send inquiries directly from property listings.
+           Agents receive and respond to inquiries through the system.
+           The system maintains a message history between clients and agents.
+           Messaging improves communication efficiency and customer engagement.
+
+F. Property Approval Workflow
+           The system allows administrators to review submitted property listings.
+           Administrators can approve or reject listings.
+           Rejected listings may include feedback for agents to make corrections.
+           Only approved listings are displayed to clients.
+
+G. Notifications and Alerts
+           The system sends automated notifications for key events such as:
+           Property approval or rejection
+           New client inquiries
+           Message replies
+           Profile updates
+           Notifications ensure transparency and timely communication among users.
+
+H. Reporting and Dashboard Management
+           The system generates reports such as:
+           Number of listed and approved properties
+           Agent activity and performance
+           Client inquiries statistics
+           Administrators have access to global system reports.
+           Agents have access to their individual performance summaries.
+
+I. Logging and Audit Trail
+           The system logs important activities such as:
+           User registration and deactivation
+           Property creation and approval
+           Listing updates
+
+          Audit logs are accessible to administrators for monitoring and accountability
+
+                                                                                                       17
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+2.2.2 Non-Functional Requirements
+
+         The non-functional requirements define the quality standards and technical constraints
+         that guide the development and deployment of the Real Estate Management System.
+A. Performance Requirements
+           The system must load pages and process requests within a reasonable response
+
+               time.
+           Property searches and listing retrieval should execute efficiently.
+           The system must support multiple concurrent users without performance
+
+               degradation.
+B. Security Requirements
+
+           User authentication must use encrypted passwords.
+           Role-based access control must prevent unauthorized actions.
+           Sensitive operations such as property approval and user management must be
+
+               restricted and logged.
+           Input validation must be implemented to prevent SQL injection and other attacks.
+C. Reliability and Availability
+           The system must operate reliably with minimal downtime.
+           Error-handling mechanisms must prevent system crashes.
+           Regular backups should be implemented to protect property and user data.
+D. Usability Requirements
+           The user interface must be intuitive and easy to navigate.
+           Clear forms, buttons, and layouts must be used to reduce user errors.
+           Users should be able to perform tasks without requiring extensive training.
+E. Scalability Requirements
+           The system architecture must support future growth in:
+           Number of users
+           Property listings
+           Client inquiries
+           Additional features such as online payments or mobile apps can be integrated in the
+
+               future.
+F. Maintainability Requirements
+
+                                                                                                       18
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+           The system must be modular and well-structured to allow easy updates.
+           Code documentation and comments must be provided for future maintenance.
+           New modules can be added with minimal impact on existing functionality.
+G. Compatibility Requirements
+           The system must function across major web browsers (Chrome, Firefox, Edge).
+           The interface must be responsive and accessible on desktops, laptops, and mobile
+
+               devices.
+H. Data Integrity Requirements
+
+           All user and property data must be validated before storage.
+           The system must prevent data duplication and inconsistencies.
+           Audit logs ensure that changes can be traced to responsible users.
+
+                                                                                                       19
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+PART THREE: SYSTEM DESIGN & COST ESTIMATION
+
+2.3 System Design(UML Diagrams)
+
+2.3.1 Use Case Diagram
+
+The Use Case Diagram below presents an overview of how users interact with the Real
+
+Estate Management System. It illustrates the major actors involved in the system, namely the
+
+Administrator (Manager), Agent, and Client (User), and the various functions each actor
+
+performs  within        the      completed  application.
+
+                                        Figure 1 Use Case Diagram
+
+                                                                                                      20
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+2.3.2 Sequence Diagram
+
+         The Sequence Diagram illustrates the interaction flow that occurs when an Agent creates
+a new property listing in the Real Estate Management System. It presents the step-by-step
+communication between the Agent, the System Interface, the Property Management Module, the
+Database, and the Notification Service.
+
+                               Figure 2 diagram of Add Property by Agent
+            The Sequence Diagram here illustrates the interaction flow that occurs when an Admin
+approve a new created property listing in the Real Estate Management System. It presents the
+
+                                                                                                       21
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+step-by-step communication between the Admin, the System Interface, the Property Management
+Module, the Database.
+
+                     Figure 3: Sequence diagram on Approve Property by Admin
+
+                                                                                                       22
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+2.3.3 Activity Diagram
+
+         The Activity Diagram illustrates the property listing and management process within the
+Real Estate Management System using three swim lanes: Administrator/Manager, System, and
+Agent. The diagram provides a clear representation of how activities flow across different actors
+and how responsibilities are distributed throughout the process.
+
+         In the Agent swim lane, the process begins when an agent logs into the system and
+initiates a request to create a property. The agent enters relevant property details such as location,
+price, property type, images, and availability status (sale or rent). Once completed, the agent
+submits the request for approvals
+
+                            Figure 4Activity Diagram Add property by Agent
+
+                                                                                                       23
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+         In the Agent swim lane, the process begins when an agent logs into the system and
+initiates a request to create or update a property listing. The agent enters relevant property details
+such as location, price, property type, images, and availability status (sale or rent). Once
+completed, the agent submits the request for approval
+
+                         Figure 5 Activity Diagram approve Property by admin
+
+                                                                                                       24
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+   2.3.4 Class Diagram
+
+Class diagram showing the main system classes(entities), their attributes, and relationships within the
+Real Estate Management System.
+
+                                            Figure 6 class diagram
+
+                                                                                                       25
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+2.4 Needed Resources, Cost Estimation
+
+The successful development and deployment of the Real Estate Management System required
+the availability of adequate resources. These resources are categorized into human resources,
+hardware resources, and software resources. Proper planning and allocation of these resources
+ensured efficient system design, implementation, testing, and documentation.
+
+2.4.1 Needed Resources
+
+ Human Resources
+         Human resources represent the backbone of the system development process. Each role
+
+contributed specific expertise to ensure the system met both functional and non-functional
+requirements.
+ Graphic Designer (01):
+
+     Responsible for creating visual elements such as the system logo, banners, icons, and other
+     graphical assets used in the real estate platform. These visuals enhance the system's
+     appearance and user engagement.
+ System Analyst (01):
+     Responsible for analyzing the project requirements and transforming them into detailed
+     system specifications. The analyst defined functional and non-functional requirements and
+     ensured alignment with user needs.
+ UI/UX Designer (01):
+     Designed the user interfaces and user experience workflows of the system. This role
+     involved modeling system diagrams and creating intuitive layouts for administrators, agents,
+     and clients.
+ Front-End Developer (01):
+     Responsible for implementing the visual components of the system that users interact with,
+     including dashboards, property listings, forms, and navigation elements.
+ Back-End Developer (01):
+     Responsible for server-side logic, database integration, authentication, property management
+     modules, notifications, and role-based access control.
+ Tester (01):
+     Ensured the quality and reliability of the system by conducting manual and automated
+
+                                                                                                       26
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+     testing. The tester verified system functionality, security, and performance before
+
+     deployment.
+ Project Manager (01):
+
+     Coordinated the project activities, assigned tasks to team members, monitored progress, and
+
+     ensured that project milestones were met within the specified timeframe.
+
+ Hardware Resources
+    The hardware requirements were as follows:
+
+- A Computer, having the following characteristics.
+
+Table 4: Characteristics of computer used
+
+Processor  AMD Ryzen 7PRO 2700U w/ Radeon Vega Mobile Gfx (8CPUs),
+
+           ~2.2GHz
+
+Installed RAM 16.0 GB (15.8 GB usable)
+
+Operating system: Windows 11 Pro 64-bits
+
+Memory     128MB
+
+- An external hard drive to store the backup of our application.
+- A modem to provide internet connection for research.
+
+ Software Resources
+The software's used for the development of this application are as follows.
+ Laravel Framework:
+
+     Laravel is a PHP-based web application framework that follows the Model­View­Controller
+     (MVC) architectural pattern. It was used to implement the core logic of the Real Estate
+     Management System, including user authentication, role management (admin, agent, client),
+     property listing workflows, messaging, activity logging, and notification services.
+ Microsoft Office: Such as Word, PowerPoint for typing the internship report and designing
+     the power point.
+ StarUML: It is a modelling application that fully supports UML. It was used to design the
+     system blueprints for the use case, class, activity, state, and sequence diagrams.
+
+                                                                                                      27
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+ Visual Studio Code: Best IDE to build rich, beautiful, web platform applications. Used for
+
+     the development of the project.
+
+ XAMPP/MYSQL: Used to implement the database design of the website.
+
+2.4.2 Cost Estimation
+
+The cost estimation is the prediction of cost and prices of resources required by the scope of our
+project.
+ Human Resources
+Table 5: Cost of Human Resources
+
+Designation            Price per day Number of days Total(cfa)
+
+Project Manager           3000        7         21,000
+
+Graphist                  1000        7         7,000
+
+Analyst and System        3000        10        30,000
+Designer                  5500
+Front-end                             15        82,500
+
+Back-end                  6500        13        84,500
+
+Tester                    3500        12        42,000
+
+                       Total 1                  267,000
+
+     Hardware Resources
+Table 6: Cost of Hardware Resources
+
+          Designation     Price(cfa)  Quantity  Total(cfa)
+                                          01     400,000
+          Laptop          400,000         01      35000
+                                           2      60000
+          RAM 16GB        35000           01      60000
+
+Hard Disk Drive 500GB to  30000
+          1terabyte       60000
+
+   Modem with internet
+
+         connection
+
+                                                                                                      28
+
+Written and Presented by GROUP 12
+DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+
+                             SYSTEM
+
+                    Total 2                        580,000
+
+ Software Resources
+
+Table 2: Cost of Software Resources
+
+Designation          Price (cfa)/month Duration Total(cfa)
+
+Microsoft Office               5965   3 weeks      11950
+StarUMl                      Pending      -           -
+Visual studio code                        -           -
+                               Free
+
+Xampp/PhpMyAdmin             Free               -  -
+
+                     Total 3                       11950
+
+ Summarized Cost Estimation of above Resources
+Table 3: Total Cost Estimation
+
+Total 1                               267000cfa
+Total 2                               580000cfa
+Total 3                               11950cfa
+SumTotal                              858,650frs
+
+                                                                                                      29
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+CHAPTER 3: RESULTS AND DISCUSSIONS
+
+    This chapter presents the practical outcomes of the Real Estate Management System It
+    includes screenshots of the major application interfaces and discusses how each implemented
+    feature aligns with the system objectives defined in earlier chapters.
+
+3.1 Application Interface Screenshots
+   3.1.1 Login Page
+
+    This interface allows both Client(user), Agent and Admin to securely authenticate into the
+    system. It includes fields for email and password, as well as validation and access control.
+
+                                          Figure 7: Login Interface
+
+                                                                                                       30
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+3.1.2 Admin Dashboard
+
+Displays an overview of total e users, total Agent, total properties, and quick-access navigation
+to core features.
+
+                                   Figure 8: Administrator Dashboard
+
+3.1.3 Create Property Interface
+
+This page enables Agent to create new property, title, price, type, category, location, description
+
+                                      Figure 9: Creating New Property
+
+                                                                                                       31
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+   3.1.4 Agent Dashboard
+
+Shows the agent dashboard shows the total number of all activities carry by the agent like the
+number of properties added.
+
+                                             Figure 10: Agent Dashboard
+
+                                                                                                       32
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                     GENERAL CONCLUSION
+
+         The Real Estate Management System developed in this project successfully addresses the
+major challenges associated with traditional property management practices, which are often
+manual, fragmented, and prone to errors. By digitizing and automating key operations such as
+property listing, approval workflows, client inquiries, sales and rental tracking, agent
+performance monitoring, and administrative control, the system significantly improves
+efficiency, transparency, and operational accuracy.
+
+         The application provides a secure and user-friendly platform that supports role-based
+access for administrators, agents, and clients. Administrators are empowered to manage users,
+monitor agent progress, approve or deactivate property listings, and receive real-time
+notifications when properties are sold or rented. Agents can efficiently manage property
+portfolios, communicate with clients, and record transactions, while clients benefit from easy
+property browsing and direct interaction with agents.
+
+         Through the use of a robust database structure and modern web technologies, the system
+ensures reliable data storage, real-time updates, and accurate record keeping of all activities
+within the platform. The integration of notifications, activity logs, and reporting tools enhances
+accountability and supports data-driven decision-making for management.
+
+         Overall, the project successfully achieved its objectives by delivering a fully functional,
+scalable, and reliable Real Estate Management System tailored to the needs of modern real estate
+operations. The system demonstrates how technology-driven solutions can transform property
+management processes, improve service delivery, and support sustainable growth in the real
+estate sector.
+
+                                                                                                       33
+
+Written and Presented by GROUP 12
+        DESIGN AND IMPLEMENTATION OF A REAL ESTATE MANAGEMENT
+                                                    SYSTEM
+
+                             REFERENCES
+
+https://www.youtube.com/watch?v=JXacyxwptF8 11-10-2025, 14:50pm
+https://www.deputy.com/blog/what-is-real-estate 15-10-2025, 09:10am
+https://www.youtube.com/watch?v=GxmfcnU3feo&pp=ugUEEgJlbg%3D%3D 17-10-2025 at
+
+         12pm
+https://www.when2work.com/real estate guid 19-10-2025, 19:30pm
+https://www.zillow.com/?msockid=38d159cf18b2659a35b34f06195664b4 22-10-2025
+https://youtube/8Gf2zPjvHkE?feature=shared 28-10-2025, 10:48am
+https://youtube/kR2Jh6lXk2A?feature=shared 30-10-2025, 13:22pm
+https://www.youtube.com/cq-wgXf6IGY?list=PLhoM_4Up3F_e3dKLn9zzL3ZGb5LyRW65O
+
+         2-11-2025 at 4:30pm
+https://www.youtube.com/watch?v=Pc7Dmet5RGw&t=215s&pp=ygUtcmVhbCBlc3RhdGUgd2
+
+         l0aCBsYXJhdmVsIGFuZCBwaHAgZnVsbCBwcm9qZWN0 10-11-2025
+
+                                                                                                       34
+
+Written and Presented by GROUP 12
+
