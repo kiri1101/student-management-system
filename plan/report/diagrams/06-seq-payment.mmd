@@ -1,0 +1,16 @@
+sequenceDiagram
+  actor Acc as Accountant
+  participant C as PaymentController
+  participant Act as ReviewPaymentAction
+  participant DB as MySQL
+  Acc->>C: POST /accountant/payments/{id}/validate
+  C->>Act: execute(submission, Validated)
+  Act->>DB: transaction + lockForUpdate re-fetch
+  Act->>Act: isTerminal()? (re-guard)
+  Act->>DB: saveQuietly status = validated
+  Act->>DB: next receipt number (locked counter)
+  Act->>Act: signature = HMAC-SHA256(number|matricule|amount|year, APP_KEY)
+  Act->>DB: create SchoolReceipt (immutable)
+  Act->>DB: AuditLog ReceiptIssued
+  DB-->>Act: commit
+  Act-->>Acc: receipt issued (queued email to student)

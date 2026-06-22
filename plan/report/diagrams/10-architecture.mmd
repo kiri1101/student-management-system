@@ -1,0 +1,31 @@
+flowchart TD
+  classDef client fill:#d1fae5,stroke:#065f46,color:#065f46
+  classDef server fill:#ecfdf5,stroke:#10b981,color:#065f46
+  classDef data fill:#fef3c7,stroke:#b45309,color:#7c2d12
+
+  subgraph Client["Client (Browser)"]
+    V[Vue 3 + TypeScript pages<br/>PrimeVue / Tailwind]:::client
+    I[Inertia.js v3 client]:::client
+  end
+  subgraph Server["Server (Laravel 13 / PHP 8.4)"]
+    RT[Routes + Middleware<br/>auth, verified, role:*]:::server
+    CT[Controllers]:::server
+    AC[Action classes<br/>transaction + lock + audit]:::server
+    MD[Eloquent Models]:::server
+  end
+  subgraph Data["Persistence & async"]
+    DB[(MySQL)]:::data
+    AL[(Immutable audit_logs)]:::data
+    Q[Queue: mail + notifications]:::data
+  end
+
+  V <--> I
+  I -->|XHR visit| RT
+  RT --> CT
+  CT -->|reads render| MD
+  CT -->|writes| AC
+  AC --> MD
+  MD --> DB
+  AC --> AL
+  AC -->|afterCommit| Q
+  CT -->|Inertia::render| I

@@ -1,0 +1,12 @@
+flowchart TD
+  S([Start]) --> R[Register / log in]
+  R --> F[Select degree programme]
+  F --> D[Select department & level]
+  D --> U[Upload required documents<br/>NID, birth certificate, credentials]
+  U --> SUB[Submit application]
+  SUB --> CK{Open application<br/>already exists?}
+  CK -->|Yes| ERR[Reject: one open application at a time]
+  CK -->|No| ST[Store files, create application<br/>status = Submitted]
+  ST --> RO[Auto-assign Applicant role + audit]
+  RO --> E([Await SAO decision])
+  ERR --> E2([End])
