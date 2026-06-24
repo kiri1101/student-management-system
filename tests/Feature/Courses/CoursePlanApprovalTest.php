@@ -66,6 +66,24 @@ it('forbids a non-assigned lecturer from editing or submitting a plan', function
         ->and($fresh->plan_status)->toBe(CoursePlanStatus::Draft);
 });
 
+it('surfaces the plan content and review notes to the SAO course list', function () {
+    $sao = userWithRole(RoleName::Sao);
+    $course = Course::factory()->create([
+        'description' => 'Week-by-week breakdown of the syllabus.',
+        'plan_status' => CoursePlanStatus::Rejected->value,
+        'plan_review_notes' => 'Add the assessment weighting.',
+    ]);
+
+    $this->actingAs($sao)
+        ->get(route('sao.courses.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('sao/courses/Index')
+            ->where('courses.0.id', $course->id)
+            ->where('courses.0.description', 'Week-by-week breakdown of the syllabus.')
+            ->where('courses.0.plan_review_notes', 'Add the assessment weighting.'));
+});
+
 it('lets an SAO approve a submitted course plan', function () {
     $sao = userWithRole(RoleName::Sao);
     $course = Course::factory()->submitted()->create();

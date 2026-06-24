@@ -47,7 +47,7 @@ function formatDateTime(value: string): string {
 <template>
     <Head title="My attendance" />
 
-    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
         <section>
             <p
                 class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"

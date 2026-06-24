@@ -128,7 +128,7 @@ function submitGrade(): void {
 <template>
     <Head :title="`Submissions · ${assignment.title}`" />
 
-    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
         <Link
             :href="lecturer.courses.assignments.index(course.id).url"
             class="inline-block"

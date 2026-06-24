@@ -221,28 +221,24 @@ The dialog closes and the course row shows the lecturer's name.
 
 ---
 
-### 6. Approve or reject a course plan
+### 6. Review a course plan (approve or reject)
 
-Once a lecturer has prepared a course plan and submitted it for review, it's your job to approve or reject it. You can tell which plans are waiting because their **Plan** column reads **Submitted**.
+Once a lecturer has prepared a course plan and submitted it for review, it's your job to read it and then approve or reject it. You can tell which plans are waiting because their **Plan** column reads **Submitted**.
+
+1. On the **Courses** screen, find the course and click **Review plan** (rows that aren't awaiting a decision show **View plan** instead). A dialog opens showing the lecturer's plan content. If the lecturer hasn't written anything yet, the dialog tells you so.
+2. For a **Submitted** plan, the dialog gives you two actions:
 
 **To approve**
 
-1. On the **Courses** screen, find a course whose **Plan** is **Submitted**.
-2. Click **Approve** on that row.
-
-The plan is approved. Approval is what unlocks the rest of the course for the lecturer — they can now schedule sessions, mark attendance, set assignments, and record marks.
+- Click **Approve**. The plan is approved, which unlocks the rest of the course for the lecturer — they can now schedule sessions, mark attendance, set assignments, and record marks.
 
 **To reject (send it back for changes)**
 
-1. On a **Submitted** course, click **Reject**. A **Reject course plan** dialog opens.
-2. In **Review notes**, explain what needs to change (this is required).
-3. Click **Reject plan**.
-
-The plan goes back to the lecturer with your notes so they can revise and resubmit.
+- Click **Reject**, type what needs to change in **Review notes** (required), then click **Reject plan**. The plan goes back to the lecturer with your notes so they can revise and resubmit. When you reopen a previously rejected plan, the dialog also shows your earlier notes.
 
 **Things to know**
 
-- **Approve** and **Reject** only appear while the plan's status is **Submitted**. A draft plan the lecturer hasn't submitted yet, or one already approved, won't show these buttons.
+- **Approve** and **Reject** appear inside the review dialog only while the plan's status is **Submitted**. A draft the lecturer hasn't submitted yet, or one already approved, opens read-only.
 - An **approved** plan is final — it isn't reviewed again. If something's wrong after approval, work with the lecturer and your administrator.
 
 ---
@@ -338,8 +334,8 @@ Decisions are final and can't be undone from your screen. Contact your administr
 **The applicant says they uploaded a document but I can't find it.**
 Check the **Documents** card on the Review page. If a required document is genuinely missing, set the application's status to **Documents requested** with a note explaining what's needed — the applicant will be prompted to supply it.
 
-**A course plan has no Approve/Reject buttons.**
-Those buttons only show while the plan's status is **Submitted**. If it reads **Draft**, the lecturer hasn't submitted it yet; if it reads **Approved** or **Rejected**, it's already been decided.
+**A course plan's review dialog has no Approve/Reject buttons.**
+Open the plan with **Review plan** / **View plan**. Those actions appear only while the plan's status is **Submitted**. If it reads **Draft**, the lecturer hasn't submitted it yet; if it reads **Approved** or **Rejected**, it's already been decided and the dialog opens read-only.
 
 **Publishing results did nothing.**
 Only results with **both** a CA mark and an exam mark get published. If a lecturer hasn't finished entering marks, those results stay as drafts. Ask them to complete the marks, then publish again.

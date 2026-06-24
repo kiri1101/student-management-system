@@ -156,7 +156,7 @@ function reset(): void {
 <template>
     <Head title="Import users" />
 
-    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
         <Link :href="usersRoutes.index().url" class="inline-block">
             <Button
                 label="Back to users"

@@ -43,7 +43,7 @@ function formatDate(value: string | null): string {
 <template>
     <Head title="Lecturer Dashboard" />
 
-    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
         <!-- Hero -->
         <section
             class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"

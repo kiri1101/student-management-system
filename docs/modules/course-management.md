@@ -134,7 +134,7 @@ Grouped by role. SAO routes are in `routes/sao.php` (`role:sao,admin`); lecturer
 | Method · URI | Name | Renders / does |
 |---|---|---|
 | GET `lecturer/courses` | `lecturer.courses.index` | `lecturer/courses/Index.vue` — own assigned courses |
-| GET `lecturer/courses/{course}/edit` · PATCH `.../plan` · POST `.../submit` | `.edit` / `.update` / `.submit` | `lecturer/courses/Plan.vue` — edit description, submit for approval |
+| GET `lecturer/courses/{course}/edit` · PATCH `.../plan` · POST `.../submit` | `.edit` / `.update` / `.submit` | `lecturer/courses/Plan.vue` — edit the course plan (the `description` field, labelled "Course plan"), submit for approval |
 | GET/POST `.../sessions`, PATCH/DELETE `.../sessions/{session}` | `.sessions.index/store/update/destroy` | `lecturer/courses/Sessions.vue` |
 | GET/POST `.../sessions/{session}/attendance` | `.sessions.attendance` / `.markAttendance` | `lecturer/courses/Attendance.vue` — cohort grid |
 | GET/POST `.../assignments`, PATCH/DELETE `.../assignments/{assignment}` | `.assignments.index/store/update/destroy` | `lecturer/courses/Assignments.vue` |

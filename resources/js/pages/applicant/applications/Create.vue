@@ -341,7 +341,7 @@ function submit(): void {
 <template>
     <Head title="New application" />
 
-    <div class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
         <div>
             <h1 class="text-2xl font-bold tracking-tight">New application</h1>
             <p class="mt-1 text-sm text-muted-foreground">

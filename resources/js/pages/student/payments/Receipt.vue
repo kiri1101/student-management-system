@@ -53,7 +53,7 @@ function print(): void {
 <template>
     <Head :title="`Receipt ${receipt.receipt_number}`" />
 
-    <div class="mx-auto max-w-2xl space-y-4 p-4">
+    <div class="mx-auto w-full max-w-2xl space-y-4 p-4">
         <div class="flex items-center justify-between print:hidden">
             <Link :href="student.payments.index().url">
                 <Button label="Back" severity="secondary" text size="small">
