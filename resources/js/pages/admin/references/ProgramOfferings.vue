@@ -140,7 +140,7 @@ function restore(row: Offering): void {
 <template>
     <Head title="Program offerings" />
 
-    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
         <section
             class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >

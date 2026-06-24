@@ -72,7 +72,7 @@ function search(): void {
 <template>
     <Head title="Standing check" />
 
-    <div class="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6">
         <section>
             <p
                 class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"

@@ -84,7 +84,7 @@ function saveResults(): void {
 <template>
     <Head title="Lecturer · Results" />
 
-    <div class="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
         <Link :href="lecturer.courses.index().url" class="inline-block">
             <Button
                 label="Back to courses"

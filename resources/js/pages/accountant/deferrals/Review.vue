@@ -115,7 +115,7 @@ function submitReject(): void {
 <template>
     <Head :title="`Deferral #${deferral.id}`" />
 
-    <div class="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+    <div class="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
         <Link :href="accountant.deferrals.index().url" class="inline-block">
             <Button
                 label="Back to queue"
