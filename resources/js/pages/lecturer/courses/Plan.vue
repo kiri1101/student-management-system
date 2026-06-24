@@ -138,7 +138,7 @@ function submitForApproval(): void {
                             for="plan-description"
                             class="text-sm font-medium"
                         >
-                            Description
+                            Course plan
                         </label>
                         <Textarea
                             id="plan-description"

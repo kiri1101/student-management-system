@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { Check, Plus, Send, UserCog, X } from 'lucide-vue-next';
+import { Check, FileText, Plus, Send, UserCog, X } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
@@ -26,7 +26,9 @@ type CourseRow = {
     semester: number;
     level: number;
     academic_year: string;
+    description: string | null;
     plan_status: string;
+    plan_review_notes: string | null;
     offering_label: string;
     lecturer_name: string | null;
 };
@@ -49,13 +51,14 @@ defineOptions({
 });
 
 const assignDialogVisible = ref(false);
-const rejectDialogVisible = ref(false);
+const planDialogVisible = ref(false);
+const rejectMode = ref(false);
 const activeCourse = ref<CourseRow | null>(null);
 
 const assignForm = useForm<{ lecturer_profile_id: number | null }>({
     lecturer_profile_id: null,
 });
-const rejectForm = useForm({ plan_review_notes: '' });
+const rejectForm = useForm({ notes: '' });
 const approveForm = useForm({});
 
 function openAssign(course: CourseRow): void {
@@ -81,17 +84,26 @@ function submitAssign(): void {
     );
 }
 
-function approve(course: CourseRow): void {
-    approveForm.post(CourseController.approve(course.id).url, {
-        preserveScroll: true,
-    });
-}
-
-function openReject(course: CourseRow): void {
+function openPlan(course: CourseRow): void {
     activeCourse.value = course;
+    rejectMode.value = false;
     rejectForm.reset();
     rejectForm.clearErrors();
-    rejectDialogVisible.value = true;
+    approveForm.clearErrors();
+    planDialogVisible.value = true;
+}
+
+function approve(): void {
+    if (!activeCourse.value) {
+        return;
+    }
+
+    approveForm.post(CourseController.approve(activeCourse.value.id).url, {
+        preserveScroll: true,
+        onSuccess: () => {
+            planDialogVisible.value = false;
+        },
+    });
 }
 
 function submitReject(): void {
@@ -102,7 +114,7 @@ function submitReject(): void {
     rejectForm.post(CourseController.reject(activeCourse.value.id).url, {
         preserveScroll: true,
         onSuccess: () => {
-            rejectDialogVisible.value = false;
+            planDialogVisible.value = false;
         },
     });
 }
@@ -246,32 +258,25 @@ function submitPublish(): void {
                                         <UserCog class="size-4" />
                                     </template>
                                 </Button>
-                                <template
-                                    v-if="data.plan_status === 'submitted'"
+                                <Button
+                                    :label="
+                                        data.plan_status === 'submitted'
+                                            ? 'Review plan'
+                                            : 'View plan'
+                                    "
+                                    :severity="
+                                        data.plan_status === 'submitted'
+                                            ? 'primary'
+                                            : 'secondary'
+                                    "
+                                    text
+                                    size="small"
+                                    @click="openPlan(data)"
                                 >
-                                    <Button
-                                        label="Approve"
-                                        severity="success"
-                                        text
-                                        size="small"
-                                        @click="approve(data)"
-                                    >
-                                        <template #icon>
-                                            <Check class="size-4" />
-                                        </template>
-                                    </Button>
-                                    <Button
-                                        label="Reject"
-                                        severity="danger"
-                                        text
-                                        size="small"
-                                        @click="openReject(data)"
-                                    >
-                                        <template #icon>
-                                            <X class="size-4" />
-                                        </template>
-                                    </Button>
-                                </template>
+                                    <template #icon>
+                                        <FileText class="size-4" />
+                                    </template>
+                                </Button>
                                 <Button
                                     v-if="data.plan_status === 'approved'"
                                     label="Publish results"
@@ -355,51 +360,140 @@ function submitPublish(): void {
         </Dialog>
 
         <Dialog
-            v-model:visible="rejectDialogVisible"
-            header="Reject course plan"
+            v-model:visible="planDialogVisible"
+            :header="
+                activeCourse
+                    ? `Course plan · ${activeCourse.code}`
+                    : 'Course plan'
+            "
             modal
-            :style="{ width: '32rem' }"
-            :dismissable-mask="!rejectForm.processing"
-            :closable="!rejectForm.processing"
+            :style="{ width: '40rem' }"
+            :dismissable-mask="
+                !approveForm.processing && !rejectForm.processing
+            "
+            :closable="!approveForm.processing && !rejectForm.processing"
         >
-            <form class="space-y-3" @submit.prevent="submitReject">
+            <div class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-muted-foreground">
+                        {{ activeCourse?.title }}
+                    </span>
+                    <Tag
+                        v-if="activeCourse"
+                        :value="coursePlanStatusLabel(activeCourse.plan_status)"
+                        :severity="
+                            coursePlanStatusSeverity(activeCourse.plan_status)
+                        "
+                    />
+                </div>
+
                 <div class="space-y-1">
+                    <p class="text-sm font-medium">Plan content</p>
+                    <div
+                        v-if="activeCourse?.description"
+                        class="max-h-72 overflow-y-auto rounded-md border border-border bg-muted/50 p-3 text-sm whitespace-pre-wrap"
+                    >
+                        {{ activeCourse.description }}
+                    </div>
+                    <Message v-else severity="warn" :closable="false" size="small">
+                        The lecturer has not written a plan yet.
+                    </Message>
+                </div>
+
+                <Message
+                    v-if="
+                        !rejectMode &&
+                        activeCourse?.plan_status === 'rejected' &&
+                        activeCourse?.plan_review_notes
+                    "
+                    severity="error"
+                    :closable="false"
+                    size="small"
+                >
+                    <span class="font-medium">Previous review notes:</span>
+                    {{ activeCourse.plan_review_notes }}
+                </Message>
+
+                <div v-if="rejectMode" class="space-y-1">
                     <label for="reject-notes" class="text-sm font-medium">
                         Review notes
                     </label>
                     <Textarea
                         id="reject-notes"
-                        v-model="rejectForm.plan_review_notes"
+                        v-model="rejectForm.notes"
                         rows="3"
                         class="w-full"
-                        :invalid="!!rejectForm.errors.plan_review_notes"
+                        :invalid="!!rejectForm.errors.notes"
                     />
                     <Message
-                        v-if="rejectForm.errors.plan_review_notes"
+                        v-if="rejectForm.errors.notes"
                         severity="error"
                         :closable="false"
                         size="small"
                     >
-                        {{ rejectForm.errors.plan_review_notes }}
+                        {{ rejectForm.errors.notes }}
                     </Message>
                 </div>
-                <div class="flex items-center justify-end gap-2 pt-2">
-                    <Button
-                        type="button"
-                        label="Cancel"
-                        severity="secondary"
-                        text
-                        :disabled="rejectForm.processing"
-                        @click="rejectDialogVisible = false"
-                    />
-                    <Button
-                        type="submit"
-                        label="Reject plan"
-                        severity="danger"
-                        :loading="rejectForm.processing"
-                    />
-                </div>
-            </form>
+            </div>
+
+            <template #footer>
+                <template v-if="activeCourse?.plan_status === 'submitted'">
+                    <template v-if="rejectMode">
+                        <Button
+                            type="button"
+                            label="Back"
+                            severity="secondary"
+                            text
+                            :disabled="rejectForm.processing"
+                            @click="rejectMode = false"
+                        />
+                        <Button
+                            type="button"
+                            label="Reject plan"
+                            severity="danger"
+                            :loading="rejectForm.processing"
+                            @click="submitReject"
+                        >
+                            <template #icon>
+                                <X class="size-4" />
+                            </template>
+                        </Button>
+                    </template>
+                    <template v-else>
+                        <Button
+                            type="button"
+                            label="Reject"
+                            severity="danger"
+                            text
+                            :disabled="approveForm.processing"
+                            @click="rejectMode = true"
+                        >
+                            <template #icon>
+                                <X class="size-4" />
+                            </template>
+                        </Button>
+                        <Button
+                            type="button"
+                            label="Approve"
+                            severity="success"
+                            :loading="approveForm.processing"
+                            @click="approve"
+                        >
+                            <template #icon>
+                                <Check class="size-4" />
+                            </template>
+                        </Button>
+                    </template>
+                </template>
+                <Button
+                    v-else
+                    type="button"
+                    label="Close"
+                    severity="secondary"
+                    text
+                    @click="planDialogVisible = false"
+                />
+            </template>
         </Dialog>
 
         <Dialog

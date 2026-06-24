@@ -57,7 +57,9 @@ class CourseController extends Controller
                 'semester' => $course->semester,
                 'level' => $course->level,
                 'academic_year' => $course->academic_year,
+                'description' => $course->description,
                 'plan_status' => $course->plan_status->value,
+                'plan_review_notes' => $course->plan_review_notes,
                 'offering_label' => $this->offeringLabel($course->programOffering),
                 'lecturer_name' => $course->lecturer?->user?->name,
             ])
