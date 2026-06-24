@@ -1154,3 +1154,4 @@ New feature backlog item filed from an owner request: generate an **official, pr
 - **Still OPEN (resolve at kickoff):** **GPA scale** — add grade points + credit-weighted GPA/CGPA (recommended, e.g. A=4…F=0) vs percentages + letter grades only; likely settled by the reference image.
 - **New deps (approved in principle):** `mpdf/mpdf`, `simplesoftwareio/simple-qrcode` — both pure-PHP, fine on Windows/Laragon + Laravel Cloud.
 - **BLOCKED on:** the owner supplying a real transcript image (drives the T2 template) + the GPA-scale decision, before implementation starts. Live state in memory [[project-implementation-progress]].
+- **Log status:** this §21 scope shipped to `main` via PR #72 (squash `0b0730b`, 2026-06-22, bundled with the §20 academic-report deliverable). #22 (shadcn→PrimeVue) was **closed not-planned** the same day, logged in §17/§18 via PR #73 (squash `a34ac45`) — `main` now at `a34ac45`. #71/B16 is the only open backlog issue.
