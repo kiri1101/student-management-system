@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust a loopback reverse proxy (e.g. a local Cloudflare Tunnel) so that
+        // redirects, CSRF and absolute URLs use the public forwarded host/scheme
+        // instead of the local origin. Only loopback is trusted, so this is safe.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
