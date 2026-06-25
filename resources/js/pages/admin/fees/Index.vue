@@ -378,6 +378,7 @@ function restore(row: Schedule): void {
             :header="editing ? 'Edit fee schedule' : 'New fee schedule'"
             modal
             :style="{ width: '46rem' }"
+            :breakpoints="{ '768px': '92vw' }"
             :dismissable-mask="!form.processing"
             :closable="!form.processing"
         >
@@ -511,65 +512,80 @@ function restore(row: Schedule): void {
                     <div
                         v-for="(row, index) in form.installments"
                         :key="index"
-                        class="grid items-end gap-2 sm:grid-cols-[4rem_1fr_8rem_9rem_2rem]"
+                        class="rounded-lg border border-border bg-muted/30 p-3"
                     >
-                        <div class="space-y-1">
-                            <label class="text-xs text-muted-foreground"
-                                >#</label
+                        <div class="mb-3 flex items-center justify-between">
+                            <span
+                                class="text-xs font-semibold text-muted-foreground"
                             >
-                            <InputNumber
-                                v-model="row.sequence"
-                                :min="1"
-                                :max="20"
-                                class="w-full"
-                            />
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-muted-foreground"
-                                >Label</label
+                                Installment {{ index + 1 }}
+                            </span>
+                            <Button
+                                type="button"
+                                severity="danger"
+                                text
+                                rounded
+                                size="small"
+                                aria-label="Remove installment"
+                                @click="removeInstallment(index)"
                             >
-                            <InputText
-                                v-model="row.label"
-                                placeholder="First installment"
-                                class="w-full"
-                            />
+                                <template #icon>
+                                    <X class="size-4" />
+                                </template>
+                            </Button>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-muted-foreground"
-                                >Amount</label
-                            >
-                            <InputNumber
-                                v-model="row.amount_xaf"
-                                mode="currency"
-                                currency="XAF"
-                                :min="0"
-                                class="w-full"
-                            />
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-xs text-muted-foreground"
-                                >Due date</label
-                            >
-                            <DatePicker
-                                v-model="row.due_date"
-                                date-format="yy-mm-dd"
-                                show-icon
-                                fluid
-                                class="w-full"
-                            />
-                        </div>
-                        <Button
-                            type="button"
-                            severity="danger"
-                            text
-                            rounded
-                            aria-label="Remove installment"
-                            @click="removeInstallment(index)"
+                        <div
+                            class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[5rem_minmax(0,1fr)_10rem_11rem]"
                         >
-                            <template #icon>
-                                <X class="size-4" />
-                            </template>
-                        </Button>
+                            <div class="space-y-1">
+                                <label class="text-xs text-muted-foreground"
+                                    >Sequence</label
+                                >
+                                <InputNumber
+                                    v-model="row.sequence"
+                                    :min="1"
+                                    :max="20"
+                                    fluid
+                                    class="w-full"
+                                />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-muted-foreground"
+                                    >Label</label
+                                >
+                                <InputText
+                                    v-model="row.label"
+                                    placeholder="First installment"
+                                    fluid
+                                    class="w-full"
+                                />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-muted-foreground"
+                                    >Amount</label
+                                >
+                                <InputNumber
+                                    v-model="row.amount_xaf"
+                                    mode="currency"
+                                    currency="XAF"
+                                    :min="0"
+                                    fluid
+                                    class="w-full"
+                                />
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-muted-foreground"
+                                    >Due date</label
+                                >
+                                <DatePicker
+                                    v-model="row.due_date"
+                                    date-format="yy-mm-dd"
+                                    show-icon
+                                    fluid
+                                    class="w-full"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <p
