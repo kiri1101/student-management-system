@@ -30,7 +30,7 @@ StudentProfile::query()
 ```
 
 Every cohort-scoped surface re-derives this same tuple — the lecturer attendance grid, results sheet,
-and the three student read screens (`AttendanceController`, `AssignmentController`,
+and the four student read screens (`CourseController`, `AttendanceController`, `AssignmentController`,
 `CourseResultController`) inline the exact `program_offering_id` + `level` + `academic_year` filter and
 additionally require `plan_status = approved`. The write actions (`MarkAttendance`,
 `RecordCourseResults`) defence-in-depth by skipping any `student_profile_id` not returned by
@@ -53,7 +53,7 @@ another; nothing is migrated.
 | Edit own course plan, submit for approval | Lecturer | `role:lecturer` + per-course ownership (`lecturer_profile_id`) |
 | Schedule/update/cancel sessions; create/grade assignments; record marks | Lecturer | `role:lecturer` + ownership |
 | Mark attendance | Lecturer, Admin | `Gate::authorize('mark-attendance')` + ownership |
-| View own attendance / assignments / published results; submit assignment; raise dispute | Student | `role:student,admin` + cohort match |
+| View own courses / attendance / assignments / published results; submit assignment; raise dispute | Student | `role:student,admin` + cohort match |
 | View any submission file inline / download | submitting student, course lecturer, Admin | per-resource check in the view/download controllers |
 
 The three gates (`approve-course-plan`, `mark-attendance`, `publish-results`) are defined from the
@@ -144,6 +144,7 @@ Grouped by role. SAO routes are in `routes/sao.php` (`role:sao,admin`); lecturer
 ### Student — `student.*`
 | Method · URI | Name | Renders / does |
 |---|---|---|
+| GET `student/courses` | `student.courses.index` | `student/courses/Index.vue` — approved cohort courses grouped per semester (credits, lecturer, session/assignment counts) |
 | GET `student/attendance` | `student.attendance.index` | `student/Attendance.vue` — own marks only |
 | GET `student/assignments` · POST `student/assignments/{assignment}/submit` | `student.assignments.index` / `.submit` | `student/assignments/Index.vue` |
 | GET `student/results` · POST `student/results/{result}/dispute` | `student.results.index` / `.dispute` | `student/results/Index.vue` — **published only** + dispute dialog |
@@ -365,6 +366,7 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `CourseSessionNotificationTest.php` | reschedule/cancel notification gate (future-scheduled only) |
 | `MarkAttendanceTest.php` | upsert idempotency; cohort-only application; `mark-attendance` gate |
 | `StudentAttendanceTest.php` | student sees only own marks, only approved courses |
+| `StudentCoursesTest.php` | semester-ordered cohort list with lecturer + counts; unapproved/out-of-cohort excluded; profile-less empty state; role gate |
 | `AssignmentManagementTest.php` | assignment CRUD gated on approved + ownership |
 | `AssignmentSubmissionTest.php` | upload mime/size validation; cohort-only; one-per-student replace + old-file cleanup; `is_late` |
 | `GradeSubmissionTest.php` | grade ≤ `max_score`; cross-assignment `404`; audit |
@@ -393,7 +395,7 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `app/Actions/ReviewResultDispute.php` | Resolve a dispute (SAO/Admin; lock + terminal re-guard) |
 | `app/Http/Controllers/Sao/{CourseController,ResultDisputeController}.php` | SAO catalogue, plan review, publish, dispute queue |
 | `app/Http/Controllers/Lecturer/{CourseController,CourseSessionController,AssignmentController,CourseResultController}.php` | Lecturer plan, sessions/attendance, assignments/grading, marks |
-| `app/Http/Controllers/Student/{AttendanceController,AssignmentController,CourseResultController}.php` | Student read screens + submit + dispute |
+| `app/Http/Controllers/Student/{CourseController,AttendanceController,AssignmentController,CourseResultController}.php` | Student read screens + submit + dispute |
 | `app/Http/Controllers/Assignments/{SubmissionViewController,SubmissionDownloadController}.php` | Inline-viewer + download for submission files |
 | `app/Http/Requests/Student/StoreAssignmentSubmissionRequest.php` | Upload allowlist (`pdf,jpg,jpeg,png`, 8 MB) |
 | `app/Http/Requests/Lecturer/{StoreAssignmentRequest,UpdateAssignmentRequest,GradeSubmissionRequest,RecordCourseResultsRequest,StoreCourseSessionRequest,UpdateCourseSessionRequest,CancelCourseSessionRequest,MarkAttendanceRequest,UpdateCoursePlanRequest}.php` | Lecturer validation (grade bound = `max_score`) |
@@ -402,7 +404,7 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `routes/{sao,lecturer,student}.php`, `routes/web.php` (file routes) | Route definitions |
 | `resources/js/pages/sao/courses/{Index,Form}.vue`, `sao/disputes/Index.vue` | SAO screens |
 | `resources/js/pages/lecturer/courses/{Index,Plan,Sessions,Attendance,Assignments,Submissions,Results}.vue` | Lecturer screens |
-| `resources/js/pages/student/{Attendance.vue,assignments/Index.vue,results/Index.vue}` | Student screens |
+| `resources/js/pages/student/{courses/Index.vue,Attendance.vue,assignments/Index.vue,results/Index.vue}` | Student screens |
 | `resources/js/components/FileViewerDialog.vue` | Shared inline file-viewer dialog |
 | `database/factories/{Course,CourseSession,AttendanceRecord,Assignment,AssignmentSubmission,CourseResult,ResultDispute}Factory.php` | Test factories |
 

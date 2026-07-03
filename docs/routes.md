@@ -1,7 +1,7 @@
 # Routes & endpoints
 
 Route reference for SchuLyf, extracted from the route files under `routes/` and reconciled against
-`php artisan route:list --except-vendor` (121 app routes). This page is **structure only** — for the
+`php artisan route:list --except-vendor` (122 app routes). This page is **structure only** — for the
 behaviour behind each action, follow the linked module docs.
 
 - **No `routes/api.php`.** Everything is a session-authenticated **web** route. The cross-cutting
@@ -242,6 +242,7 @@ Group: prefix `student`, name `student.`, `auth` + `verified` + **`role:student,
 | POST | `student/payments` | `student.payments.store` | `Student\PaymentController@store` | `role:student,admin` |
 | GET | `student/payments/{payment}/receipt` | `student.payments.receipt` | `Student\PaymentController@receipt` | `role:student,admin` |
 | POST | `student/deferrals` | `student.deferrals.store` | `Student\DeferralController@store` | `role:student,admin` |
+| GET | `student/courses` | `student.courses.index` | `Student\CourseController@index` | `role:student,admin` |
 | GET | `student/attendance` | `student.attendance.index` | `Student\AttendanceController@index` | `role:student,admin` |
 | GET | `student/assignments` | `student.assignments.index` | `Student\AssignmentController@index` | `role:student,admin` |
 | POST | `student/assignments/{assignment}/submit` | `student.assignments.submit` | `Student\AssignmentController@submit` | `role:student,admin` |
@@ -250,7 +251,7 @@ Group: prefix `student`, name `student.`, `auth` + `verified` + **`role:student,
 | POST | `student/notifications/{notification}/read` | `student.notifications.read` | `Student\NotificationController@markAsRead` | `role:student,admin` |
 | POST | `student/notifications/read-all` | `student.notifications.read-all` | `Student\NotificationController@markAllAsRead` | `role:student,admin` |
 
-Behaviour: payments/deferrals → [Payments](modules/payments.md) / [Exam gating](modules/exam-gating.md); attendance/assignments/results → [Course management](modules/course-management.md); notifications → [Notifications](modules/notifications.md).
+Behaviour: payments/deferrals → [Payments](modules/payments.md) / [Exam gating](modules/exam-gating.md); courses/attendance/assignments/results → [Course management](modules/course-management.md); notifications → [Notifications](modules/notifications.md).
 
 ---
 

@@ -14,6 +14,7 @@ enrolled, your account becomes a *student* account. From it you can:
 - View and print your **official school receipt** once a payment is validated.
 - Check whether you are *cleared* to sit exams and use campus facilities — and ask for more time if
   you are short on tuition.
+- See the courses you'll be taking each semester.
 - Follow your course attendance.
 - Submit assignments and see your grades and feedback.
 - Read your CA and exam results, and raise a dispute if a score looks wrong.
@@ -65,8 +66,8 @@ After signing in you land on the **Student Dashboard** (the welcome screen). It 
 
 - A greeting (**"Welcome back, …"**) and a coloured status tag showing your enrollment status
   (for example **Active**).
-- **Quick links** — four shortcut tiles: **My payments**, **My attendance**, **My assignments**,
-  **My results**. Click any tile to jump to that section.
+- **Quick links** — five shortcut tiles: **My payments**, **My courses**, **My attendance**,
+  **My assignments**, **My results**. Click any tile to jump to that section.
 - **Notifications** — your latest in-app messages (for example, a cancelled or rescheduled class),
   with an unread count and a **Mark all read** button.
 - **My enrollment** — your **Matricule**, **Programme**, **Level** and **Academic year**.
@@ -218,7 +219,24 @@ Each request shows a status:
 shown in your standing box. You'll be emailed about the decision, and you may submit a fresh deferral
 request afterwards if your situation has changed.
 
-### 6. View your course attendance
+### 6. See the courses you'll be taking each semester
+
+**Where:** Quick link **My courses** (the **My courses** page).
+
+At the top you'll see your programme, level and academic year. Below, your courses are grouped
+into a card per **semester** (with the course count and total credits for that semester). Each
+course row shows:
+
+- **Code** and **Course** — the course code, title and a short description.
+- **Credits** — the course's credit value.
+- **Lecturer** — who teaches it (or *"Not yet assigned"*).
+- **Sessions** and **Assignments** — how many class sessions and assignments the course has so far.
+
+Only courses whose plan has been **approved** for your programme, level and academic year appear
+here. If the page says no courses have been published yet, your department hasn't finalised the
+course plans — check back later.
+
+### 7. View your course attendance
 
 **Where:** Quick link **My attendance** (the **My attendance** page).
 
@@ -235,7 +253,7 @@ If you aren't enrolled in any courses yet, the page says so.
 > Attendance is recorded by your lecturers; this page is read-only. See the
 > [Course management module](../modules/course-management.md).
 
-### 7. Submit an assignment
+### 8. Submit an assignment
 
 **Where:** Quick link **My assignments** (the **My assignments** page).
 
@@ -264,7 +282,7 @@ example **14/20**), with any **feedback** from the lecturer beneath it.
 - **A red message about the file** — the file is the wrong type or too large. Use a PDF, JPG or PNG
   under 8 MB.
 
-### 8. View your CA and exam results
+### 9. View your CA and exam results
 
 **Where:** Quick link **My results** (the **My results** page).
 
@@ -278,7 +296,7 @@ Results appear here once they have been **published**. You'll see a card per cou
 A dash (—) means that figure isn't available. If nothing has been published yet, the page tells you
 your results will appear here once published.
 
-### 9. Raise a dispute on a result
+### 10. Raise a dispute on a result
 
 If a published score looks wrong, you can flag it for review.
 

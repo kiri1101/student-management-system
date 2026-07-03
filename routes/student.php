@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Student\AssignmentController;
 use App\Http\Controllers\Student\AttendanceController;
+use App\Http\Controllers\Student\CourseController;
 use App\Http\Controllers\Student\CourseResultController;
 use App\Http\Controllers\Student\DeferralController;
 use App\Http\Controllers\Student\NotificationController;
@@ -17,6 +18,8 @@ Route::middleware(['auth', 'verified', 'role:student,admin'])
         Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
 
         Route::post('deferrals', [DeferralController::class, 'store'])->name('deferrals.store');
+
+        Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
 
         Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
 
