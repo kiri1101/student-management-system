@@ -2,6 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
     Bell,
+    BookOpen,
     CalendarCheck,
     CalendarClock,
     CalendarX,
@@ -30,6 +31,7 @@ import {
 import student from '@/routes/student';
 import { index as studentAssignmentsIndex } from '@/routes/student/assignments';
 import { index as studentAttendanceIndex } from '@/routes/student/attendance';
+import { index as studentCoursesIndex } from '@/routes/student/courses';
 import { index as studentPaymentsIndex } from '@/routes/student/payments';
 import { index as studentResultsIndex } from '@/routes/student/results';
 
@@ -101,6 +103,11 @@ const firstName = computed<string>(
 
 const quickLinks = computed(() => [
     { label: 'My payments', icon: Wallet, href: studentPaymentsIndex().url },
+    {
+        label: 'My courses',
+        icon: BookOpen,
+        href: studentCoursesIndex().url,
+    },
     {
         label: 'My attendance',
         icon: CalendarCheck,
