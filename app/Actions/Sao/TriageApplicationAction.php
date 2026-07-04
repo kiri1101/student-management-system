@@ -5,6 +5,7 @@ namespace App\Actions\Sao;
 use App\Enums\ApplicationDocumentStatus;
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
+use App\Events\ApplicationDocumentsRequested;
 use App\Models\Application;
 use App\Models\AuditLog;
 use App\Models\User;
@@ -61,6 +62,12 @@ class TriageApplicationAction
                 ['before' => $previous->value, 'after' => $next->value],
                 userId: $sao->id,
             );
+
+            if ($next === ApplicationStatus::DocumentsRequested) {
+                DB::afterCommit(function () use ($application): void {
+                    event(new ApplicationDocumentsRequested($application->fresh()));
+                });
+            }
 
             return $application;
         });
