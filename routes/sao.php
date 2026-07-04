@@ -16,6 +16,12 @@ Route::middleware(['auth', 'verified', 'role:sao,admin'])
         Route::post('applications/{application}/triage', [ApplicationReviewController::class, 'triage'])->name('applications.triage');
         Route::post('applications/{application}/decide', [ApplicationReviewController::class, 'decide'])->name('applications.decide');
         Route::post('applications/{application}/restore-prior', [ApplicationReviewController::class, 'restorePrior'])->name('applications.restorePrior');
+        Route::post('applications/{application}/documents/{document}/accept', [ApplicationReviewController::class, 'acceptDocument'])
+            ->scopeBindings()
+            ->name('applications.documents.accept');
+        Route::post('applications/{application}/documents/{document}/reject', [ApplicationReviewController::class, 'rejectDocument'])
+            ->scopeBindings()
+            ->name('applications.documents.reject');
 
         Route::get('courses', [CourseController::class, 'index'])->name('courses.index');
         Route::get('courses/create', [CourseController::class, 'create'])->name('courses.create');
