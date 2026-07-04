@@ -4,6 +4,7 @@ use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
 use App\Enums\RoleName;
 use App\Models\Application;
+use App\Models\ApplicationDocument;
 use App\Models\AuditLog;
 
 it('moves a Submitted application to UnderReview and writes a StatusChanged audit', function () {
@@ -27,7 +28,7 @@ it('moves a Submitted application to UnderReview and writes a StatusChanged audi
         ->and($log->user_id)->toBe($sao->id);
 });
 
-it('requires notes when triaging into DocumentsRequested', function () {
+it('refuses DocumentsRequested when no document is rejected', function () {
     $application = Application::factory()->submitted()->create();
     $sao = userWithRole(RoleName::Sao);
 
@@ -35,12 +36,13 @@ it('requires notes when triaging into DocumentsRequested', function () {
         'status' => 'documents_requested',
     ]);
 
-    $response->assertSessionHasErrors('notes');
+    $response->assertSessionHasErrors('status');
     expect($application->fresh()->status)->toBe(ApplicationStatus::Submitted);
 });
 
 it('persists notes alongside the status change', function () {
     $application = Application::factory()->submitted()->create();
+    ApplicationDocument::factory()->rejected()->create(['application_id' => $application->id]);
     $sao = userWithRole(RoleName::Sao);
 
     $this->actingAs($sao)->post(route('sao.applications.triage', $application), [
@@ -91,4 +93,27 @@ it('rejects a terminal status submitted to triage', function () {
 
     $response->assertSessionHasErrors('status');
     expect($application->fresh()->status)->toBe(ApplicationStatus::Submitted);
+});
+
+it('allows DocumentsRequested without notes once a document is rejected', function () {
+    $application = Application::factory()->submitted()->create();
+    ApplicationDocument::factory()->rejected()->create(['application_id' => $application->id]);
+    $sao = userWithRole(RoleName::Sao);
+
+    $this->actingAs($sao)->post(route('sao.applications.triage', $application), [
+        'status' => 'documents_requested',
+    ])->assertRedirect()->assertSessionDoesntHaveErrors();
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::DocumentsRequested);
+});
+
+it('still allows other interim transitions when no document is rejected', function () {
+    $application = Application::factory()->submitted()->create();
+    $sao = userWithRole(RoleName::Sao);
+
+    $this->actingAs($sao)->post(route('sao.applications.triage', $application), [
+        'status' => 'under_review',
+    ])->assertRedirect()->assertSessionDoesntHaveErrors();
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::UnderReview);
 });

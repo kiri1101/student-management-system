@@ -2,6 +2,7 @@
 
 namespace App\Actions\Sao;
 
+use App\Enums\ApplicationDocumentStatus;
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
 use App\Models\Application;
@@ -33,6 +34,18 @@ class TriageApplicationAction
                 throw ValidationException::withMessages([
                     'status' => __('This application cannot transition to the requested status.'),
                 ]);
+            }
+
+            if ($next === ApplicationStatus::DocumentsRequested) {
+                $hasRejected = $application->documents()
+                    ->where('status', ApplicationDocumentStatus::Rejected->value)
+                    ->exists();
+
+                if (! $hasRejected) {
+                    throw ValidationException::withMessages([
+                        'status' => __('Reject at least one document before requesting documents.'),
+                    ]);
+                }
             }
 
             $previous = $application->status;

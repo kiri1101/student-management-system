@@ -22,10 +22,7 @@ class TriageApplicationRequest extends FormRequest
 
         return [
             'status' => ['required', 'string', Rule::in($allowed)],
-            'notes' => [
-                Rule::requiredIf(fn (): bool => $this->input('status') === ApplicationStatus::DocumentsRequested->value),
-                'nullable', 'string', 'max:5000',
-            ],
+            'notes' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
