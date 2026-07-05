@@ -120,8 +120,9 @@ are the one exception, wired explicitly in `AppServiceProvider::configureAuditLi
 
 ### 5.1 The multi-channel path — `CourseSessionChangedNotification`
 
-The first and (today) only multi-channel notification. Fired when a lecturer **cancels** or
-**reschedules** a future, currently-scheduled `CourseSession`.
+The original multi-channel notification (three exist today — the two results/dispute ones in §5.1.1
+follow this exact pattern). Fired when a lecturer **cancels** or **reschedules** a future,
+currently-scheduled `CourseSession`.
 
 ```mermaid
 sequenceDiagram
@@ -171,6 +172,23 @@ sequenceDiagram
 `SessionChangeType` (string enum) has two cases: `Cancelled = 'cancelled'`, `Rescheduled =
 'rescheduled'` — lowercase values, matching the course-management status convention.
 
+### 5.1.1 Results & dispute notifications (#81)
+
+Two more multi-channel notifications, built on the identical Action → `DB::afterCommit` Event →
+queued Listener → `Notification::send` chain (both `implements ShouldQueue`, `via() => ['mail',
+'database']`). Both are **nudge-only** — they announce an outcome and link to **My results**, and
+carry **no** scores or grades (privacy + no staleness if a later dispute changes a mark). Wired by
+Laravel's automatic event–listener discovery, like every other domain event here.
+
+| Notification | Dispatched by | Trigger → recipients | `toArray()` `type` |
+|---|---|---|---|
+| `CourseResultsPublishedNotification` | `SendCourseResultsPublishedNotification` ← `CourseResultsPublished` | `PublishCourseResults` (`afterCommit`) → **only the students whose results were just published** — the `student_profile_id`s captured at publish time, so a re-publish for late marks notifies only the newly-published set | `course_results_published` (`+ course_id/code/title`) |
+| `ResultDisputeReviewedNotification` | `SendResultDisputeReviewedNotification` ← `ResultDisputeReviewed` | `ReviewResultDispute` (`afterCommit`, **terminal outcomes only** — `Resolved`/`Rejected`, never `UnderReview`) → the single disputing student | `result_dispute_reviewed` (`+ course_id/code/title, dispute_id, status, resolution_notes`) |
+
+The dispute mail/payload carries the qualitative outcome (`status`) and the reviewer's
+`resolution_notes` (written for the student), but no numeric result. The student dashboard feed
+(`resources/js/pages/dashboards/Student.vue`) renders both `type`s alongside the session ones.
+
 ### 5.2 The email-only paths — the five transactional Mailables
 
 These predate Laravel Notifications and remain the **email** channel for 1:1 outcomes. Each is sent by
@@ -205,6 +223,9 @@ suppressed** by a guard.
 | Session cancelled (past or already-cancelled) | `CourseSessionCancelled` | **No** |
 | Session rescheduled (time moved, future) | `CourseSessionRescheduled` | Yes — `CourseSessionChangedNotification` (mail + database) to cohort |
 | Session edited (topic/duration only) | none (no audit, no notify) | **No** |
+| Course results published | `ResultsPublished` (via course management) | Yes — `CourseResultsPublishedNotification` (mail + database) to the just-published students |
+| Dispute resolved/rejected (terminal) | `DisputeResolved` (via course management) | Yes — `ResultDisputeReviewedNotification` (mail + database) to the disputing student |
+| Dispute moved to under review (interim) | none | **No** |
 | Application decided | `ApplicationDecided` (via the admissions module) | Yes — `ApplicationDecisionMail` (email) |
 | Application triaged into Documents requested | `StatusChanged` (via the admissions module) | Yes — `ApplicationDocumentsRequestedMail` (email) |
 | Payment validated/rejected | `PaymentValidated` / `PaymentRejected` | Yes — `PaymentReviewedMail` (email) |
@@ -242,6 +263,8 @@ page. Today the in-app feed is the student dashboard's 10-row list only.
 | `tests/Feature/Notifications/StudentNotificationTest.php` | The in-app feed routes: `markAsRead` flips `read_at` for the owner; `markAllAsRead` clears all unread; an intruder marking another student's notification gets `403` and the row stays unread. |
 | `tests/Feature/Sao/ApplicationDecisionNotificationTest.php` | The `ApplicationDecisionMail` (email channel) decision path. |
 | `tests/Feature/Sao/TriageApplicationTest.php` | Entry into `DocumentsRequested` sends `ApplicationDocumentsRequestedMail` to the `contact_email` (`Mail::assertSent`); no mail for the other triage moves. |
+| `tests/Feature/Courses/CourseResultsPublishedNotificationTest.php` | Publishing notifies only the just-published students on **mail + database**; unscored cohort students get nothing; a re-publish notifies only the newly-published; `ResultsPublished` audit still written. |
+| `tests/Feature/Courses/ResultDisputeReviewedNotificationTest.php` | A **Resolved** or **Rejected** dispute notifies the disputing student on **mail + database** (payload carries `status`); **UnderReview sends nothing**. |
 
 The session test uses `Notification::fake()`; the feed test uses `Mail::fake()` so `notify()` still
 persists the database row synchronously under `QUEUE_CONNECTION=sync`. See [testing.md](../testing.md).

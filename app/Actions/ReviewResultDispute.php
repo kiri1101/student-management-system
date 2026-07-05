@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Enums\AuditAction;
 use App\Enums\DisputeStatus;
+use App\Events\ResultDisputeReviewed;
 use App\Models\AuditLog;
 use App\Models\ResultDispute;
 use App\Models\User;
@@ -58,6 +59,10 @@ class ReviewResultDispute
                     ['status' => $status->value],
                     userId: $reviewer->id,
                 );
+
+                DB::afterCommit(function () use ($dispute): void {
+                    event(new ResultDisputeReviewed($dispute));
+                });
             }
 
             return $dispute;

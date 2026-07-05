@@ -316,6 +316,8 @@ Your dispute status can be:
 - **Resolved** — a decision has been made; any explanation shows beneath your dispute.
 - **Rejected** — declined; any explanation shows beneath your dispute.
 
+You don't need to keep checking back — SchuLyf notifies you (in-app and by email) the moment a decision is reached, with the reviewer's explanation.
+
 **Common problem:** if you see *"You already have an open dispute for this result,"* you can only have
 one active dispute per result. Wait for the current one to be resolved or rejected before raising
 another.
@@ -326,18 +328,22 @@ another.
 
 SchuLyf reaches you two ways.
 
-**In-app (on your dashboard).** When a lecturer **cancels** or **reschedules** one of your upcoming
-classes, a message appears in the **Notifications** card on your dashboard, showing the course, the
-date/time, and any reason given. The most recent messages are listed there.
+**In-app (on your dashboard).** Messages appear in the **Notifications** card on your dashboard. You'll see one when:
+
+- a lecturer **cancels** or **reschedules** one of your upcoming classes (showing the course, date/time, and any reason);
+- your **results for a course are published** — open **My results** to see your marks;
+- a **dispute you raised is resolved or rejected** — the reviewer's explanation is included.
 
 - Click a message (or its **Mark read** button) to mark it read.
 - Click **Mark all read** to clear the unread count for everything at once.
 
-**Email.** Some outcomes are emailed to the address on your account:
+**Email.** The same moments are also emailed to the address on your account:
 
+- When your **course results are published** (a nudge to go and view them — the marks themselves stay in **My results**, not the email).
+- When a **dispute you raised is resolved or rejected** (with the reviewer's notes).
 - When a tuition payment you reported is **validated** or **rejected**.
 - When a deferral request is **approved** or **rejected**.
-- (Cancelled/rescheduled classes are emailed too, in addition to the in-app message.)
+- When a class is **cancelled or rescheduled** (in addition to the in-app message).
 
 > Keep your email address current under **Settings → Profile** so you don't miss these. More on how
 > notifications work: [Notifications module](../modules/notifications.md).

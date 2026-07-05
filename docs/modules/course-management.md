@@ -267,7 +267,9 @@ sequenceDiagram
   `lockForUpdate`; throws `ValidationException` *"There are no fully-scored draft results…"* if none.
   Partial drafts are left untouched. Stamps each Published with publisher + timestamp; audits
   `ResultsPublished` with the count. The lecturer's marks sheet surfaces a `publishable_count` so SAO
-  knows what will publish.
+  knows what will publish. After commit, dispatches **`App\Events\CourseResultsPublished`** (carrying
+  the just-published `student_profile_id`s) → the queued `SendCourseResultsPublishedNotification`
+  emails + in-app-notifies **only those students** (#81, §7.2).
 
 ### 5.5 Disputes
 
@@ -291,8 +293,10 @@ stateDiagram-v2
   lecturer surface) — `ReviewResultDisputeRequest` accepts only `under_review` / `resolved` /
   `rejected`. Transaction; re-fetch `lockForUpdate`; throws if the dispute is already terminal
   (`isTerminal()` = resolved|rejected). A terminal outcome stamps `reviewer` + `reviewed_at` + notes
-  and audits `DisputeResolved`; moving to `under_review` only records the (optional) notes and writes
-  **no** audit row.
+  and audits `DisputeResolved`, then after commit dispatches **`App\Events\ResultDisputeReviewed`** →
+  the queued `SendResultDisputeReviewedNotification` emails + in-app-notifies the disputing student
+  (#81, §7.2); moving to `under_review` only records the (optional) notes and writes **no** audit row
+  and **sends nothing**.
 
 ---
 
@@ -344,13 +348,18 @@ this module (e.g. soft-deleting an assignment writes a `Deleted` row by itself).
 
 ### 7.2 Events & notifications
 
-`CourseSessionController` dispatches **`App\Events\CourseSessionChanged`** on a notifiable cancel or
-reschedule (see §5.2 for the exact gate). The queued listener
-`App\Listeners\SendCourseSessionChangedNotification` fans the change out to the course cohort (email +
-in-app). The change type is `App\Enums\SessionChangeType`. Full mechanics — channels, the notification
-class, the in-app store — are documented in [modules/notifications.md](notifications.md). **No other
-flow in this module sends mail or notifications** (publish/dispute-resolve mail was scoped as optional
-in the plan and was not shipped — see §9).
+This module sends three multi-channel (email + in-app) notifications, all on the same Action →
+`DB::afterCommit` Event → queued Listener → `Notification::send` chain. Full mechanics — channels, the
+notification classes, the in-app store — are documented in [modules/notifications.md](notifications.md).
+
+| Event | Dispatched by | Listener → notification | Recipients |
+|---|---|---|---|
+| `CourseSessionChanged` (type `App\Enums\SessionChangeType`) | `CourseSessionController` on a notifiable cancel/reschedule (§5.2) | `SendCourseSessionChangedNotification` → `CourseSessionChangedNotification` | the course cohort |
+| `CourseResultsPublished` | `PublishCourseResults` (§5.4, `afterCommit`) | `SendCourseResultsPublishedNotification` → `CourseResultsPublishedNotification` | only the just-published students |
+| `ResultDisputeReviewed` | `ReviewResultDispute` (§5.5, `afterCommit`, terminal outcomes only) | `SendResultDisputeReviewedNotification` → `ResultDisputeReviewedNotification` | the disputing student |
+
+The results/dispute notifications (#81) are **nudge-only** — they announce the outcome and link to
+**My results**, carrying no scores.
 
 ---
 
@@ -375,6 +384,8 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `StudentResultViewTest.php` | published-only exposure; draft never leaks |
 | `RaiseResultDisputeTest.php` | own + published result only; one live dispute per result |
 | `ReviewResultDisputeTest.php` | SAO/Admin resolve; terminal re-guard; audit |
+| `CourseResultsPublishedNotificationTest.php` | publish notifies only the just-published students (mail + database); re-publish notifies only the newly-published; audit still written (#81) |
+| `ResultDisputeReviewedNotificationTest.php` | terminal dispute outcome notifies the disputing student (mail + database); UnderReview sends nothing (#81) |
 | `tests/Feature/Files/InlineFileViewTest.php` | inline 200 + `inline` disposition for authorized actor; `403`/`415` otherwise |
 
 ---
@@ -401,6 +412,7 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `app/Http/Requests/Lecturer/{StoreAssignmentRequest,UpdateAssignmentRequest,GradeSubmissionRequest,RecordCourseResultsRequest,StoreCourseSessionRequest,UpdateCourseSessionRequest,CancelCourseSessionRequest,MarkAttendanceRequest,UpdateCoursePlanRequest}.php` | Lecturer validation (grade bound = `max_score`) |
 | `app/Http/Requests/Sao/{StoreCourseRequest,UpdateCourseRequest,AssignLecturerRequest,RejectCoursePlanRequest}.php`, `app/Http/Requests/{ReviewResultDisputeRequest}.php`, `app/Http/Requests/Student/StoreResultDisputeRequest.php` | SAO + dispute validation |
 | `app/Events/CourseSessionChanged.php`, `app/Listeners/SendCourseSessionChangedNotification.php` | Session-change fan-out (see notifications module) |
+| `app/Events/{CourseResultsPublished,ResultDisputeReviewed}.php`, `app/Listeners/{SendCourseResultsPublishedNotification,SendResultDisputeReviewedNotification}.php`, `app/Notifications/{CourseResultsPublishedNotification,ResultDisputeReviewedNotification}.php`, `resources/views/mail/{course-results-published,result-dispute-reviewed}.blade.php` | Results-published + dispute-reviewed notifications (#81; see notifications module) |
 | `routes/{sao,lecturer,student}.php`, `routes/web.php` (file routes) | Route definitions |
 | `resources/js/pages/sao/courses/{Index,Form}.vue`, `sao/disputes/Index.vue` | SAO screens |
 | `resources/js/pages/lecturer/courses/{Index,Plan,Sessions,Attendance,Assignments,Submissions,Results}.vue` | Lecturer screens |

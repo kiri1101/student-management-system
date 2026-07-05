@@ -8,9 +8,11 @@ import {
     CalendarX,
     Check,
     ChevronRight,
+    ClipboardCheck,
     ClipboardList,
     FileText,
     GraduationCap,
+    Scale,
     Wallet,
 } from 'lucide-vue-next';
 import Badge from 'primevue/badge';
@@ -19,6 +21,7 @@ import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import Tag from 'primevue/tag';
+import type { Component } from 'vue';
 import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
 import {
@@ -60,7 +63,7 @@ type Application = {
     program_offering: ProgramOffering;
 };
 
-type NotificationData = {
+type SessionNotificationData = {
     type: 'cancelled' | 'rescheduled';
     course_id: number;
     course_code: string;
@@ -70,6 +73,28 @@ type NotificationData = {
     reason: string | null;
     previous_scheduled_for: string | null;
 };
+
+type ResultsPublishedNotificationData = {
+    type: 'course_results_published';
+    course_id: number;
+    course_code: string;
+    course_title: string;
+};
+
+type DisputeReviewedNotificationData = {
+    type: 'result_dispute_reviewed';
+    course_id: number;
+    course_code: string;
+    course_title: string;
+    dispute_id: number;
+    status: string;
+    resolution_notes: string | null;
+};
+
+type NotificationData =
+    | SessionNotificationData
+    | ResultsPublishedNotificationData
+    | DisputeReviewedNotificationData;
 
 type AppNotification = {
     id: string;
@@ -154,9 +179,48 @@ function formatDateTime(value: string | null): string {
 }
 
 function notificationTitle(item: AppNotification): string {
-    return item.data.type === 'cancelled'
-        ? `${item.data.course_code} session cancelled`
-        : `${item.data.course_code} session rescheduled`;
+    const data = item.data;
+
+    switch (data.type) {
+        case 'cancelled':
+            return `${data.course_code} session cancelled`;
+        case 'rescheduled':
+            return `${data.course_code} session rescheduled`;
+        case 'course_results_published':
+            return `${data.course_code} results published`;
+        case 'result_dispute_reviewed':
+            return `${data.course_code} dispute ${data.status}`;
+    }
+}
+
+function notificationIcon(item: AppNotification): Component {
+    switch (item.data.type) {
+        case 'cancelled':
+            return CalendarX;
+        case 'rescheduled':
+            return CalendarClock;
+        case 'course_results_published':
+            return ClipboardCheck;
+        case 'result_dispute_reviewed':
+            return Scale;
+    }
+}
+
+function notificationDetail(item: AppNotification): string | null {
+    const data = item.data;
+
+    switch (data.type) {
+        case 'cancelled':
+            return data.reason
+                ? `${formatDateTime(data.scheduled_for)} · ${data.reason}`
+                : formatDateTime(data.scheduled_for);
+        case 'rescheduled':
+            return `Moved from ${formatDateTime(data.previous_scheduled_for)} to ${formatDateTime(data.scheduled_for)}`;
+        case 'course_results_published':
+            return 'View them in My results.';
+        case 'result_dispute_reviewed':
+            return data.resolution_notes;
+    }
 }
 
 function markRead(item: AppNotification): void {
@@ -278,11 +342,10 @@ function markAllRead(): void {
                         @click="markRead(item)"
                     >
                         <span class="mt-0.5 shrink-0 text-muted-foreground">
-                            <CalendarX
-                                v-if="item.data.type === 'cancelled'"
+                            <component
+                                :is="notificationIcon(item)"
                                 class="size-5"
                             />
-                            <CalendarClock v-else class="size-5" />
                         </span>
                         <div class="min-w-0 flex-1 space-y-0.5">
                             <div class="flex items-center gap-2">
@@ -296,23 +359,10 @@ function markAllRead(): void {
                                 </p>
                             </div>
                             <p
-                                v-if="item.data.type === 'cancelled'"
+                                v-if="notificationDetail(item)"
                                 class="text-xs text-muted-foreground"
                             >
-                                {{ formatDateTime(item.data.scheduled_for) }}
-                                <template v-if="item.data.reason">
-                                    · {{ item.data.reason }}
-                                </template>
-                            </p>
-                            <p v-else class="text-xs text-muted-foreground">
-                                Moved from
-                                {{
-                                    formatDateTime(
-                                        item.data.previous_scheduled_for,
-                                    )
-                                }}
-                                to
-                                {{ formatDateTime(item.data.scheduled_for) }}
+                                {{ notificationDetail(item) }}
                             </p>
                             <p class="text-xs text-muted-foreground">
                                 {{ formatDateTime(item.created_at) }}

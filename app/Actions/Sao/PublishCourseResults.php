@@ -4,6 +4,7 @@ namespace App\Actions\Sao;
 
 use App\Enums\AuditAction;
 use App\Enums\ResultStatus;
+use App\Events\CourseResultsPublished;
 use App\Models\AuditLog;
 use App\Models\Course;
 use App\Models\CourseResult;
@@ -48,6 +49,7 @@ class PublishCourseResults
             }
 
             $count = $results->count();
+            $studentProfileIds = $results->pluck('student_profile_id')->all();
 
             AuditLog::record(
                 AuditAction::ResultsPublished,
@@ -55,6 +57,10 @@ class PublishCourseResults
                 ['count' => $count],
                 userId: $publisher->id,
             );
+
+            DB::afterCommit(function () use ($course, $studentProfileIds): void {
+                event(new CourseResultsPublished($course, $studentProfileIds));
+            });
 
             return $count;
         });
