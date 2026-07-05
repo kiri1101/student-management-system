@@ -63,7 +63,7 @@ class TriageApplicationAction
                 userId: $sao->id,
             );
 
-            if ($next === ApplicationStatus::DocumentsRequested) {
+            if ($next === ApplicationStatus::DocumentsRequested && $previous !== ApplicationStatus::DocumentsRequested) {
                 DB::afterCommit(function () use ($application): void {
                     event(new ApplicationDocumentsRequested($application->fresh()));
                 });

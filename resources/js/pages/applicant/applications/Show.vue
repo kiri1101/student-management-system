@@ -8,6 +8,7 @@ import type { FileUploadUploaderEvent } from 'primevue/fileupload';
 import FileUpload from 'primevue/fileupload';
 import Message from 'primevue/message';
 import Tag from 'primevue/tag';
+import { useToast } from 'primevue/usetoast';
 import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
 import {
@@ -58,6 +59,8 @@ type Application = {
 };
 
 const props = defineProps<{ application: Application }>();
+
+const toast = useToast();
 
 defineOptions({
     layout: {
@@ -126,7 +129,22 @@ function uploadReplacement(
             document: doc.id,
         }).url,
         { document: file },
-        { forceFormData: true, preserveScroll: true },
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onError: (errors) => {
+                const message =
+                    Object.values(errors)[0] ??
+                    'Could not upload the document. Please try again.';
+
+                toast.add({
+                    severity: 'error',
+                    summary: 'Upload failed',
+                    detail: message,
+                    life: 5000,
+                });
+            },
+        },
     );
 }
 </script>

@@ -142,6 +142,24 @@ it('emails the applicant when documents are requested — and again on re-entry'
     Mail::assertSentCount(2);
 });
 
+it('does not re-email when re-triaged from DocumentsRequested to DocumentsRequested', function () {
+    Mail::fake();
+    $application = Application::factory()->state([
+        'status' => ApplicationStatus::DocumentsRequested,
+        'submitted_at' => now()->subDay(),
+    ])->create();
+    ApplicationDocument::factory()->rejected('Scan is blurry.')->create(['application_id' => $application->id]);
+    $sao = userWithRole(RoleName::Sao);
+
+    $this->actingAs($sao)->post(route('sao.applications.triage', $application), [
+        'status' => 'documents_requested',
+        'notes' => 'Still waiting on the applicant.',
+    ])->assertRedirect()->assertSessionDoesntHaveErrors();
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::DocumentsRequested);
+    Mail::assertNotSent(ApplicationDocumentsRequestedMail::class);
+});
+
 it('does not email on other interim transitions', function () {
     Mail::fake();
     $application = Application::factory()->submitted()->create();
