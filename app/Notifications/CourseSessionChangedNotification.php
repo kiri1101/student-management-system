@@ -36,6 +36,7 @@ class CourseSessionChangedNotification extends Notification implements ShouldQue
         return (new MailMessage)
             ->subject(config('app.name').' — '.$this->session->course->code.' session '.$verb)
             ->markdown('mail.course-session-changed', [
+                'name' => $notifiable->name,
                 'session' => $this->session,
                 'type' => $this->type,
                 'reason' => $this->reason,

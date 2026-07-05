@@ -31,6 +31,7 @@ class ResultDisputeReviewedNotification extends Notification implements ShouldQu
         return (new MailMessage)
             ->subject(config('app.name').' — dispute reviewed')
             ->markdown('mail.result-dispute-reviewed', [
+                'name' => $notifiable->name,
                 'course' => $course,
                 'status' => $this->dispute->status->value,
                 'resolutionNotes' => $this->dispute->resolution_notes,

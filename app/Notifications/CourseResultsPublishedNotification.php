@@ -29,6 +29,7 @@ class CourseResultsPublishedNotification extends Notification implements ShouldQ
         return (new MailMessage)
             ->subject(config('app.name').' — '.$this->course->code.' results published')
             ->markdown('mail.course-results-published', [
+                'name' => $notifiable->name,
                 'course' => $this->course,
                 'url' => route('student.results.index'),
             ]);
