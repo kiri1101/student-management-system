@@ -426,8 +426,8 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `app/Http/Controllers/Applications/ApplicationController.php` | Applicant dashboard, form, show, submit, + the two `api/v1` lookup methods |
 | `app/Http/Requests/Applications/StoreApplicationRequest.php` | Submit validation; `requiredDocumentCodes()`, one-open-application rule |
 | `app/Rules/LevelWithinOfferingRange.php` | Custom rule: chosen level within the offering's band |
-| `app/Http/Controllers/Sao/ApplicationReviewController.php` | SAO dashboard, queue index, review show, triage/decide/restorePrior endpoints |
-| `app/Http/Requests/Sao/TriageApplicationRequest.php` | Interim-target whitelist; notes-required-for-DocumentsRequested |
+| `app/Http/Controllers/Sao/ApplicationReviewController.php` | SAO dashboard, queue index, review show, triage/decide/restorePrior + acceptDocument/rejectDocument endpoints |
+| `app/Http/Requests/Sao/TriageApplicationRequest.php` | Interim-target whitelist; `notes` optional on every target |
 | `app/Http/Requests/Sao/DecideApplicationRequest.php` | Terminal-decision whitelist (no Withdrawn); notes-required-for reject/waitlist |
 | `app/Http/Requests/Sao/RestorePriorEnrollmentRequest.php` | `prior_profile_id` existence + notes |
 | `app/Http/Requests/Sao/RejectApplicationDocumentRequest.php` | Document-reject validation (`notes` required, the reason shown to the applicant) |
