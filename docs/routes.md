@@ -1,7 +1,7 @@
 # Routes & endpoints
 
 Route reference for SchuLyf, extracted from the route files under `routes/` and reconciled against
-`php artisan route:list --except-vendor` (122 app routes). This page is **structure only** — for the
+`php artisan route:list --except-vendor` (125 app routes). This page is **structure only** — for the
 behaviour behind each action, follow the linked module docs.
 
 - **No `routes/api.php`.** Everything is a session-authenticated **web** route. The cross-cutting
@@ -53,6 +53,7 @@ Behaviour: receipt verify → [Payments & receipts](modules/payments.md).
 | GET | `application/{application}` | `application.show` | `Applications\ApplicationController@show` | — |
 | GET | `applications/{application}/documents/{document}/download` | `application.documents.download` | `Applications\DocumentDownloadController` | `scopeBindings`, `throttle:lookups` |
 | GET | `applications/{application}/documents/{document}/view` | `application.documents.view` | `Applications\DocumentViewController` | `scopeBindings`, `throttle:lookups` |
+| POST | `applications/{application}/documents/{document}` | `application.documents.replace` | `Applications\ApplicationController@replaceDocument` | `scopeBindings` (controller `403`s non-owner) |
 | GET | `payments/{payment}/slip` | `payments.slip` | `Payments\PaymentSlipDownloadController` | `throttle:lookups` (controller enforces ownership/role) |
 | GET | `payments/{payment}/slip/view` | `payments.slip.view` | `Payments\PaymentSlipViewController` | `throttle:lookups` (controller enforces ownership/role) |
 | GET | `assignment-submissions/{submission}` | `assignments.submission.download` | `Assignments\SubmissionDownloadController` | `throttle:lookups` (controller enforces ownership/role) |
@@ -185,6 +186,8 @@ Group: prefix `sao`, name `sao.`, `auth` + `verified` + **`role:sao,admin`**.
 | POST | `sao/applications/{application}/triage` | `sao.applications.triage` | `Sao\ApplicationReviewController@triage` | `role:sao,admin` |
 | POST | `sao/applications/{application}/decide` | `sao.applications.decide` | `Sao\ApplicationReviewController@decide` | `role:sao,admin` |
 | POST | `sao/applications/{application}/restore-prior` | `sao.applications.restorePrior` | `Sao\ApplicationReviewController@restorePrior` | `role:sao,admin` |
+| POST | `sao/applications/{application}/documents/{document}/accept` | `sao.applications.documents.accept` | `Sao\ApplicationReviewController@acceptDocument` | `role:sao,admin`, `scopeBindings` |
+| POST | `sao/applications/{application}/documents/{document}/reject` | `sao.applications.documents.reject` | `Sao\ApplicationReviewController@rejectDocument` | `role:sao,admin`, `scopeBindings` |
 | GET | `sao/courses` | `sao.courses.index` | `Sao\CourseController@index` | `role:sao,admin` |
 | GET | `sao/courses/create` | `sao.courses.create` | `Sao\CourseController@create` | `role:sao,admin` |
 | POST | `sao/courses` | `sao.courses.store` | `Sao\CourseController@store` | `role:sao,admin` |

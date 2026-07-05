@@ -127,13 +127,29 @@ The application form is a guided, 4-step wizard: **Programme → Personal → Do
 |---|---|
 | **Submitted** | Your application has been received and is waiting to be looked at. |
 | **Under review** | The admissions office is actively reviewing your application. |
-| **Documents requested** | The office needs something more from you — read the **Decision notes** on the detail page for what's needed. |
+| **Documents requested** | The office rejected one or more of your documents and needs you to re-upload them. Open the application to see which documents were rejected and why, then replace them — see [Respond to a documents request](#respond-to-a-documents-request). |
 | **Admitted** | Congratulations — you've been accepted. See [What happens when you're admitted](#what-happens-when-youre-admitted). |
 | **Rejected** | Your application was not accepted. The **Decision notes** may explain why. |
 | **Waitlisted** | You haven't been accepted yet but may be offered a place later. |
 | **Withdrawn** | The application was closed — for example, because a returning student's previous enrolment was restored instead. |
 
 You don't need to do anything to advance a status — the admissions office moves it. You'll be emailed once a final decision is made (see [Notifications](#notifications)).
+
+### Respond to a documents request
+
+If the admissions office needs better copies of some documents, your application moves to **Documents requested** and you receive an email listing what to replace. Here's how to fix it:
+
+1. Open the application from your dashboard (**View** on its row). At the top you'll see a yellow banner telling you some documents need attention.
+2. Scroll to the documents list. Each document now shows a **Status**:
+   - **Accepted** — this one is fine, nothing to do.
+   - **Awaiting review** — not looked at yet.
+   - **Rejected** — needs replacing. The reason the office gave is shown in red underneath.
+3. For each **Rejected** document, select **Replace**, then choose the corrected file. Accepted formats are **PDF, JPG, or PNG**, up to **8 MB**. Only rejected documents can be replaced.
+4. The file uploads immediately and that document returns to **Awaiting review**. A confirmation message tells you it will be re-checked.
+
+**How to tell it worked** — once you've replaced the **last** rejected document, your application automatically returns to **Submitted** and goes back into the office's queue — you don't resubmit anything. If some documents are still rejected, the application stays in **Documents requested** until you've replaced them all.
+
+> You won't get a second email each time you replace a single document. The office emails you once per request; you just keep replacing the rejected documents until none remain.
 
 ### What happens when you're admitted
 
@@ -189,9 +205,10 @@ Open the receipt-verification link for the receipt number you have:
 
 - **Email verification** — sent when you register (and whenever you select **Resend verification email**). You must click its link before you can use the app.
 - **Password reset** — sent when you request one from **Forgot password?**.
+- **Documents requested** — if the office rejects one or more of your documents, SchuLyf emails you a list of exactly which documents to replace, with a link to your application. See [Respond to a documents request](#respond-to-a-documents-request). You get one email each time the office makes a request.
 - **Admission decision** — once the admissions office reaches a **final** decision (admitted, rejected, or waitlisted, or a prior enrolment being restored), SchuLyf emails you. The email goes to the **Contact email** you entered on the application form, not necessarily your sign-in email. If you're admitted, the email includes your new **matricule**.
 
-You are **not** emailed for in-progress steps like "under review". To see where things stand at any time, open the application from your dashboard.
+Both the documents-request and decision emails go to the **Contact email** on your application form. You are **not** emailed for other in-progress steps like "under review". To see where things stand at any time, open the application from your dashboard.
 
 If a decision email doesn't arrive, check the spam folder and confirm the **Contact email** on your application is correct (open the application's detail page to see it).
 
