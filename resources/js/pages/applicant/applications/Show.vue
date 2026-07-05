@@ -1,13 +1,24 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { FileText } from 'lucide-vue-next';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
+import type { FileUploadUploaderEvent } from 'primevue/fileupload';
+import FileUpload from 'primevue/fileupload';
+import Message from 'primevue/message';
 import Tag from 'primevue/tag';
+import { computed } from 'vue';
 import ApplicationController from '@/actions/App/Http/Controllers/Applications/ApplicationController';
-import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
+import {
+    applicationDocumentStatusLabel,
+    applicationDocumentStatusSeverity,
+    degreeLabel,
+    statusLabel,
+    statusSeverity,
+} from '@/lib/statusDisplay';
 import applicant from '@/routes/applicant';
+import application_routes from '@/routes/application';
 
 type Department = { id: number; name: string; code: string };
 type DocumentTypeRef = { id: number; name: string; code: string };
@@ -24,6 +35,8 @@ type ApplicationDocument = {
     mime_type: string;
     size_bytes: number;
     uploaded_at: string | null;
+    status: string;
+    review_notes: string | null;
     document_type: DocumentTypeRef;
 };
 
@@ -76,6 +89,45 @@ function formatBytes(bytes: number): string {
     }
 
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+const rejectedCount = computed(
+    () =>
+        props.application.documents.filter((d) => d.status === 'rejected')
+            .length,
+);
+
+const awaitingResponse = computed(
+    () =>
+        props.application.status === 'documents_requested' &&
+        rejectedCount.value > 0,
+);
+
+function canReplace(doc: ApplicationDocument): boolean {
+    return (
+        props.application.status === 'documents_requested' &&
+        doc.status === 'rejected'
+    );
+}
+
+function uploadReplacement(
+    doc: ApplicationDocument,
+    event: FileUploadUploaderEvent,
+): void {
+    const file = Array.isArray(event.files) ? event.files[0] : event.files;
+
+    if (!file) {
+        return;
+    }
+
+    router.post(
+        application_routes.documents.replace({
+            application: props.application.id,
+            document: doc.id,
+        }).url,
+        { document: file },
+        { forceFormData: true, preserveScroll: true },
+    );
 }
 </script>
 
@@ -193,6 +245,15 @@ function formatBytes(bytes: number): string {
             </template>
         </Card>
 
+        <Message v-if="awaitingResponse" severity="warn" :closable="false">
+            The admission office needs you to replace
+            {{ rejectedCount === 1 ? 'one document' : `${rejectedCount} documents` }}
+            before your application can continue. Each rejected document below
+            shows the reason and an upload button — once every requested
+            document is replaced, your application automatically returns to the
+            review queue.
+        </Message>
+
         <Card>
             <template #title>
                 <span>Submitted documents</span>
@@ -215,6 +276,50 @@ function formatBytes(bytes: number): string {
                         </template>
                     </Column>
                     <Column field="original_filename" header="Filename" />
+                    <Column header="Status" style="width: 16rem">
+                        <template #body="{ data }">
+                            <div class="flex flex-col gap-1">
+                                <Tag
+                                    :value="
+                                        applicationDocumentStatusLabel(
+                                            data.status,
+                                        )
+                                    "
+                                    :severity="
+                                        applicationDocumentStatusSeverity(
+                                            data.status,
+                                        )
+                                    "
+                                />
+                                <span
+                                    v-if="
+                                        data.status === 'rejected' &&
+                                        data.review_notes
+                                    "
+                                    class="text-xs text-red-600 dark:text-red-400"
+                                >
+                                    {{ data.review_notes }}
+                                </span>
+                            </div>
+                        </template>
+                    </Column>
+                    <Column header="" style="width: 10rem">
+                        <template #body="{ data }">
+                            <FileUpload
+                                v-if="canReplace(data)"
+                                mode="basic"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                :max-file-size="8 * 1024 * 1024"
+                                choose-label="Replace"
+                                custom-upload
+                                auto
+                                @uploader="
+                                    (event: FileUploadUploaderEvent) =>
+                                        uploadReplacement(data, event)
+                                "
+                            />
+                        </template>
+                    </Column>
                     <Column header="Size" style="width: 8rem">
                         <template #body="{ data }">
                             {{ formatBytes(data.size_bytes) }}
