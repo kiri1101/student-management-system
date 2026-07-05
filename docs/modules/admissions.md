@@ -40,7 +40,7 @@ This module digitises that funnel end to end:
 | Role | What they do here | Guard |
 |---|---|---|
 | Guest / roleless user | Register; land on the applicant dashboard; start + submit an application | `auth` + `verified` middleware (no role gate — see below) |
-| Applicant | View own applications and a single application's detail; submit | Ownership check in `ApplicationController::show` (`403` if not the owner); `auth` + `verified` |
+| Applicant | View own applications and a single application's detail; submit; replace a rejected document when documents are requested | Ownership check in `ApplicationController::show` / `@replaceDocument` (`403` if not the owner); `auth` + `verified` |
 | SAO | Triage, decide, restore prior enrollment; browse the queue | `role:sao,admin` middleware on the whole `routes/sao.php` group |
 | Admin | Everything an SAO can do | Same `role:sao,admin` group (Admin is included) |
 
@@ -67,7 +67,7 @@ the ER diagram; only the contributor-relevant shape is shown here.
 | Model | Role | Key relations |
 |---|---|---|
 | `Application` | One admission request | `belongsTo` User (`user_id`, as `applicant`); `belongsTo` ProgramOffering (`withTrashed`); `belongsTo` User (`decided_by_user_id`, as `decidedBy`); `hasMany` ApplicationDocument. `SoftDeletes`, `RecordsAudit`. |
-| `ApplicationDocument` | One uploaded file on an application | `belongsTo` Application; `belongsTo` DocumentType. Stores `file_path`, `original_filename`, `mime_type`, `size_bytes`, `uploaded_at`. `SoftDeletes`, `RecordsAudit`. |
+| `ApplicationDocument` | One uploaded file on an application | `belongsTo` Application; `belongsTo` DocumentType; `belongsTo` User (`reviewed_by`, as `reviewedBy`). Stores `file_path`, `original_filename`, `mime_type`, `size_bytes`, `uploaded_at`, plus the per-document review state `status` (`ApplicationDocumentStatus`, default `pending`), `review_notes`, `reviewed_at`. `SoftDeletes`, `RecordsAudit`. |
 | `Department` | Academic department | `hasMany` ProgramOffering. |
 | `ProgramOffering` | A (department × degree programme) offering with a `min_level`/`max_level` range | `belongsTo` Department; `hasMany` LevelCredentialRequirement; `hasMany` Application. `SoftDeletes`. |
 | `LevelCredentialRequirement` | "For this offering at this level, document X is required" | `belongsTo` ProgramOffering; `belongsTo` DocumentType. |
@@ -88,6 +88,10 @@ the ER diagram; only the contributor-relevant shape is shown here.
   - `OPEN_STATUSES` = Draft + the interim trio (the "one open application" rule)
 - `StudentStatus`: `Active`, `Suspended`, `Graduated`, `Withdrawn`. A new profile is `Active`.
 - `RoleName`: the Admit path assigns `Student`; first submit auto-attaches `Applicant`.
+- `ApplicationDocumentStatus` (string-backed): `Pending` (`pending`), `Accepted` (`accepted`),
+  `Rejected` (`rejected`). Every uploaded document starts `pending`; an SAO accepts or rejects each
+  one individually, and requesting documents from an applicant requires at least one `rejected`
+  document (see §5.2).
 
 > **Matricule format.** `stm-{year}-{0000}`, year-scoped (e.g. `stm-2026-0001`). It is lowercased on
 > write (the `matricule()` attribute mutator) to match the case the Fortify login resolver
@@ -108,6 +112,7 @@ the ER diagram; only the contributor-relevant shape is shown here.
 | GET `application/{application}` | `application.show` | `…@show` | `applicant/applications/Show` |
 | GET `applications/{application}/documents/{document}/download` | `application.documents.download` | `Applications\DocumentDownloadController` | — (file stream) |
 | GET `applications/{application}/documents/{document}/view` | `application.documents.view` | `Applications\DocumentViewController` | — (inline file stream) |
+| POST `applications/{application}/documents/{document}` | `application.documents.replace` | `…@replaceDocument` | — (back; replace a rejected document) |
 
 ### 4.2 Cascading-dropdown JSON lookups (`routes/web.php`, `api/v1` prefix, `throttle:lookups`)
 
@@ -134,6 +139,8 @@ first render; offerings and per-level requirements are fetched on demand as the 
 | POST `sao/applications/{application}/triage` | `sao.applications.triage` | `@triage` | — (back) |
 | POST `sao/applications/{application}/decide` | `sao.applications.decide` | `@decide` | — (redirect to index) |
 | POST `sao/applications/{application}/restore-prior` | `sao.applications.restorePrior` | `@restorePrior` | — (redirect to index) |
+| POST `sao/applications/{application}/documents/{document}/accept` | `sao.applications.documents.accept` | `@acceptDocument` | — (back; accept one document) |
+| POST `sao/applications/{application}/documents/{document}/reject` | `sao.applications.documents.reject` | `@rejectDocument` | — (back; reject one document with a reason) |
 
 The queue defaults to the actionable interim trio but accepts any `ApplicationStatus` so SAOs can
 also browse decided rows; `sort_field` is whitelisted (`submitted_at`, `created_at`, `level`).
@@ -194,9 +201,14 @@ stateDiagram-v2
 `POST …/triage` → `TriageApplicationAction::execute()`. It re-fetches the application under
 `lockForUpdate()` (stale-status defence, `AUD-001`), then calls `$application->canTransitionTo($next)`
 — which permits only **interim → any non-Draft** moves and refuses every terminal source. The target
-itself is constrained to `INTERIM_STATUSES` by `TriageApplicationRequest`; choosing
-`DocumentsRequested` requires `notes`. Writes via `saveQuietly()` and records one **`StatusChanged`**
-audit row (`before`/`after`). No event, no mail.
+itself is constrained to `INTERIM_STATUSES` by `TriageApplicationRequest`; `notes` are **optional** on
+every target. Choosing `DocumentsRequested` is only allowed when **at least one document is already
+`rejected`** — the guard throws a `ValidationException` on `status` ("Reject at least one document
+before requesting documents.") otherwise, so a documents request always names concrete documents to
+replace (see §5.6). Writes via `saveQuietly()` and records one **`StatusChanged`** audit row
+(`before`/`after`). On **entry into `DocumentsRequested`** the action dispatches
+`ApplicationDocumentsRequested($application)` via `DB::afterCommit()`, which drives the queued
+"documents requested" email (§6.1); the other interim moves fire no event.
 
 ### 5.3 SAO decision (interim → terminal); Admit mints the student
 
@@ -278,6 +290,55 @@ SAO can merge rather than mint a new record. `POST …/restore-prior` → `Resto
 > it is reachable *only* through this merge. The decision mail therefore renders Withdrawn as
 > "Prior enrollment restored" rather than a rejection (§6).
 
+### 5.6 Document review round-trip (SAO reject → email → applicant replace → auto-resubmit)
+
+`DocumentsRequested` is no longer a dead end: an SAO reviews each uploaded document individually, and
+the applicant replaces the rejected ones in place, which returns the application to the queue
+automatically.
+
+```mermaid
+stateDiagram-v2
+    UnderReview --> DocumentsRequested: SAO rejects ≥1 doc, then triages
+    DocumentsRequested --> DocumentsRequested: applicant replaces a rejected doc (others still rejected)
+    DocumentsRequested --> Submitted: last rejected doc replaced / accepted (auto-flip)
+```
+
+1. **SAO accept / reject (per document).** On the Review screen each document has Accept/Reject
+   controls. `POST …/documents/{document}/accept` and `…/reject` → `ReviewApplicationDocument::execute()`:
+   - Re-fetches **both** the application and the document under `lockForUpdate()` (`AUD-001`); refuses
+     if the application `isTerminal()`.
+   - Sets the document's `status`, `reviewed_by`, `reviewed_at`; a **reject** stores `review_notes`
+     (the reason shown to the applicant), an **accept** clears them.
+   - Records one **`DocumentAccepted`** or **`DocumentRejected`** audit row (`saveQuietly()` keeps the
+     bare `Updated` row out).
+   - An **accept** that resolves the last outstanding rejection triggers the shared auto-flip (below).
+   - A `Pending` decision is rejected at the action boundary with an `InvalidArgumentException`
+     (accept/reject only).
+2. **Request the documents.** Once at least one document is rejected, the SAO triages to
+   `DocumentsRequested` (§5.2), which emails the applicant the list of rejected documents (§6.1).
+3. **Applicant replaces a rejected document.** On their own application page, each rejected document
+   shows a **Replace** upload. `POST applications/{application}/documents/{document}` →
+   `ApplicationController@replaceDocument` (owner-only, `403` otherwise) →
+   `ReplaceRejectedDocument::execute()`:
+   - Stores the new file **before** the transaction and deletes it again on any failure; the replaced
+     file is deleted only **after** commit (`AUD-009`).
+   - Under lock, refuses unless the application is `DocumentsRequested` **and** the document is
+     `Rejected`. The row is updated **in place** — `(application_id, document_type_id)` is unique
+     *including trashed rows*, so delete-and-recreate is impossible — swapping the file metadata and
+     resetting the document to `pending` with its review fields cleared (the history stays in the
+     audit log).
+   - Records one **`DocumentResubmitted`** audit row (`{before, after}` filename).
+4. **Auto-resubmit (shared concern).** Both the accept path and the replace path call
+   `ResolvesDocumentsRequested::flipToSubmittedWhenResolved()`: while the application is
+   `DocumentsRequested` and **no** `rejected` document remains, it flips the status back to
+   `Submitted` (`saveQuietly()` + one `StatusChanged` audit row) so the application re-enters the SAO
+   queue on its own. It is a no-op in any other status or while a rejection is still outstanding.
+
+> **One request round = one email.** The `ApplicationDocumentsRequested` event fires on every *entry*
+> into `DocumentsRequested`, so each fresh request round emails exactly once. Replacing a document
+> when others are still rejected keeps the application in `DocumentsRequested` (no flip, no new
+> email); only clearing the **last** rejection flips it back to `Submitted`.
+
 ---
 
 ## 6. Side effects
@@ -287,9 +348,10 @@ SAO can merge rather than mint a new record. `POST …/restore-prior` → `Resto
 | Trigger | Event | Listener (queued) | Mail |
 |---|---|---|---|
 | Any terminal decision (SAO decide **or** restore-prior merge) | `ApplicationDecided($application, $decidedBy)` (dispatched `afterCommit`) | `SendApplicationDecisionNotification implements ShouldQueue` | `ApplicationDecisionMail` |
+| Entry into `DocumentsRequested` (triage) | `ApplicationDocumentsRequested($application)` (dispatched `afterCommit`) | `SendDocumentsRequestedNotification implements ShouldQueue` | `ApplicationDocumentsRequestedMail` |
 
-- The event fires **exactly once per terminal outcome**, so the applicant gets exactly one email per
-  decision (`AUD-002`). It does **not** fire for triage / interim transitions.
+- `ApplicationDecided` fires **exactly once per terminal outcome**, so the applicant gets exactly one
+  email per decision (`AUD-002`). It does **not** fire for triage / interim transitions.
 - `SendApplicationDecisionNotification` mails the application's **`contact_email`** (the address
   captured on the form, not necessarily the user's account email).
 - `ApplicationDecisionMail` (markdown view `mail.application-decision`) renders a decision label —
@@ -297,6 +359,13 @@ SAO can merge rather than mint a new record. `POST …/restore-prior` → `Resto
   **matricule** on the Admitted and Withdrawn(merge) paths only (read from
   `applicant->studentProfile->matricule`), so the new student learns the identifier they can now sign
   in with.
+- `ApplicationDocumentsRequested` fires on **every entry into `DocumentsRequested`** (§5.2), so each
+  request round emails exactly once. `SendDocumentsRequestedNotification` also mails the
+  **`contact_email`**; `ApplicationDocumentsRequestedMail` (markdown view
+  `mail.application-documents-requested`) lists the currently `rejected` documents (name + the SAO's
+  `review_notes`) and links to the application page where the applicant replaces them. The mailable is
+  `Queueable` (not `ShouldQueue`) — queuing happens at the listener, matching `ApplicationDecisionMail`
+  — so tests use `Mail::assertSent`.
 
 ### 6.2 Audit rows (`App\Enums\AuditAction`)
 
@@ -304,6 +373,10 @@ SAO can merge rather than mint a new record. `POST …/restore-prior` → `Resto
 |---|---|---|---|
 | First submit by a roleless user | `RoleAssigned` | User | `{role: applicant}` |
 | Triage transition | `StatusChanged` | Application | `{before, after}` |
+| SAO accepts a document | `DocumentAccepted` | ApplicationDocument | `{status: accepted, notes: null}` |
+| SAO rejects a document | `DocumentRejected` | ApplicationDocument | `{status: rejected, notes}` (the reason) |
+| Applicant replaces a rejected document | `DocumentResubmitted` | ApplicationDocument | `{before, after}` filename |
+| Auto-resubmit when the last rejection clears | `StatusChanged` | Application | `{before: documents_requested, after: submitted}` |
 | Terminal decision | `ApplicationDecided` | Application | `{decision, notes}` (+ `acknowledged_prior_history` context if set) |
 | Admit mints/assigns Student | `RoleAssigned` | User | `{role: student}` (skipped if already a Student) |
 | Restore-prior merge | `Restored` (auto) + `RoleAssigned` + `StatusChanged` + `ApplicationDecided` | profile / user / application | merge note + `{merged_into_prior, prior_profile_id}` |
@@ -329,10 +402,13 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `tests/Feature/Applications/CascadingLookupsTest.php` | `api/v1` offerings + level-requirements lookup filtering |
 | `tests/Feature/Applications/ReferenceDataCacheTest.php` | `ReferenceDataCache` behaviour behind the lookups |
 | `tests/Feature/Applications/ShowApplicationTest.php` | Applicant ownership `403` on someone else's application |
+| `tests/Feature/Applications/ApplicationDocumentReviewStateTest.php` | New documents default to `pending`; `status` casts to `ApplicationDocumentStatus` |
+| `tests/Feature/Applications/ReplaceRejectedDocumentTest.php` | Owner-only replace; in-place update resets doc to `pending` + clears review fields; guards (wrong status / non-rejected doc); `DocumentResubmitted` audit; new-file rollback on failure + old-file delete on success; last-rejection replace auto-flips the application to `Submitted` |
 | `tests/Feature/Applications/ApplicantDashboardTest.php` | Dashboard lists the user's own applications |
 | `tests/Feature/Applications/DocumentDownloadTest.php` | Document download authorization |
 | `tests/Feature/Sao/DecideApplicationTest.php` | Admit creates profile + matricule + Student role + audit + event; sequential matricules; reject (no profile); notes required for reject/waitlist; **Withdrawn refused** on decide; terminal/draft re-decide refused; returning-applicant trashed-profile restore w/ fresh matricule; active-profile keeps matricule; concurrent-finalize lock guard; matricule not reused after force-delete; prior-history acknowledgement context |
-| `tests/Feature/Sao/TriageApplicationTest.php` | Interim transitions + guards |
+| `tests/Feature/Sao/TriageApplicationTest.php` | Interim transitions + guards; `DocumentsRequested` refused with no rejected document; entry into `DocumentsRequested` sends the documents-requested mail |
+| `tests/Feature/Sao/ReviewApplicationDocumentTest.php` | Accept/reject one document; `review_notes`/`reviewed_by`/`reviewed_at` set on reject and cleared on accept; terminal-application guard; `DocumentAccepted`/`DocumentRejected` audit; accept resolving the last rejection auto-flips to `Submitted` |
 | `tests/Feature/Sao/RestorePriorEnrollmentTest.php` | Merge: restore prior profile, withdraw current app, full audit fan-out |
 | `tests/Feature/Sao/ReviewApplicationTest.php` | Review screen incl. prior-history props |
 | `tests/Feature/Sao/ApplicationQueueTest.php` | Queue filtering / sorting / pagination |
@@ -350,26 +426,36 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `app/Http/Controllers/Applications/ApplicationController.php` | Applicant dashboard, form, show, submit, + the two `api/v1` lookup methods |
 | `app/Http/Requests/Applications/StoreApplicationRequest.php` | Submit validation; `requiredDocumentCodes()`, one-open-application rule |
 | `app/Rules/LevelWithinOfferingRange.php` | Custom rule: chosen level within the offering's band |
-| `app/Http/Controllers/Sao/ApplicationReviewController.php` | SAO dashboard, queue index, review show, triage/decide/restorePrior endpoints |
-| `app/Http/Requests/Sao/TriageApplicationRequest.php` | Interim-target whitelist; notes-required-for-DocumentsRequested |
+| `app/Http/Controllers/Sao/ApplicationReviewController.php` | SAO dashboard, queue index, review show, triage/decide/restorePrior + acceptDocument/rejectDocument endpoints |
+| `app/Http/Requests/Sao/TriageApplicationRequest.php` | Interim-target whitelist; `notes` optional on every target |
 | `app/Http/Requests/Sao/DecideApplicationRequest.php` | Terminal-decision whitelist (no Withdrawn); notes-required-for reject/waitlist |
 | `app/Http/Requests/Sao/RestorePriorEnrollmentRequest.php` | `prior_profile_id` existence + notes |
-| `app/Actions/Sao/TriageApplicationAction.php` | Interim transition under lock; `StatusChanged` audit |
+| `app/Http/Requests/Sao/RejectApplicationDocumentRequest.php` | Document-reject validation (`notes` required, the reason shown to the applicant) |
+| `app/Http/Requests/Applications/ReplaceDocumentRequest.php` | Replacement-file validation (pdf/jpg/jpeg/png, ≤ 8 MB) |
+| `app/Actions/Sao/TriageApplicationAction.php` | Interim transition under lock; `≥1-rejected` guard for `DocumentsRequested`; `StatusChanged` audit; `afterCommit` documents-requested event |
 | `app/Actions/Sao/DecideApplicationAction.php` | Terminal decision; `promoteToStudent()` (matricule + Student role); audit + event |
 | `app/Actions/Sao/RestorePriorEnrollment.php` | Merge a returning applicant into a prior profile; withdraw current app |
+| `app/Actions/Sao/ReviewApplicationDocument.php` | SAO accept/reject one document under lock; `DocumentAccepted`/`DocumentRejected` audit; shared auto-flip on accept |
+| `app/Actions/Applicant/ReplaceRejectedDocument.php` | Applicant replaces a rejected document in place; `DocumentResubmitted` audit; store-before-transaction + rollback (`AUD-009`); shared auto-flip |
+| `app/Actions/Concerns/ResolvesDocumentsRequested.php` | `flipToSubmittedWhenResolved()` — shared trait flipping `DocumentsRequested`→`Submitted` once no rejection remains |
 | `app/Actions/Fortify/CreateNewUser.php` | Registration; trashed-email-indistinguishable `422` (`AUD-004`) |
 | `app/Actions/Fortify/ResetUserPassword.php` | Verify-first reactivation of a trashed non-staff account |
 | `app/Models/Application.php` | Status sets + `canTransitionTo()` / `isTerminal()` transition matrix |
-| `app/Models/ApplicationDocument.php` | Uploaded-file row |
+| `app/Models/ApplicationDocument.php` | Uploaded-file row + per-document review state (`status`, `review_notes`, `reviewed_by`, `reviewed_at`) and the `reviewedBy` relation |
 | `app/Models/StudentProfile.php` | Student record + `nextMatriculeForYear()` sequence issuer + matricule lowercasing |
 | `app/Models/{Department,ProgramOffering,LevelCredentialRequirement,DocumentType}.php` | Reference data + the level-credential requirement matrix |
 | `app/Enums/ApplicationStatus.php` | Lowercase-backed application statuses |
+| `app/Enums/ApplicationDocumentStatus.php` | Per-document review status (`pending`/`accepted`/`rejected`) |
 | `app/Enums/{StudentStatus,RoleName}.php` | Student status; role names + `staff()` set |
-| `app/Enums/AuditAction.php` | `ApplicationDecided`, `StatusChanged`, `RoleAssigned`, `RoleRevoked`, `Restored`, … |
+| `app/Enums/AuditAction.php` | `ApplicationDecided`, `StatusChanged`, `DocumentAccepted`, `DocumentRejected`, `DocumentResubmitted`, `RoleAssigned`, `RoleRevoked`, `Restored`, … |
 | `app/Events/ApplicationDecided.php` | Fired `afterCommit` on every terminal decision |
-| `app/Listeners/SendApplicationDecisionNotification.php` | Queued listener → mails the applicant |
+| `app/Events/ApplicationDocumentsRequested.php` | Fired `afterCommit` on entry into `DocumentsRequested` |
+| `app/Listeners/SendApplicationDecisionNotification.php` | Queued listener → mails the applicant the decision |
+| `app/Listeners/SendDocumentsRequestedNotification.php` | Queued listener → mails the applicant the rejected-document list |
 | `app/Mail/ApplicationDecisionMail.php` | Decision email; surfaces the matricule on Admit/merge |
+| `app/Mail/ApplicationDocumentsRequestedMail.php` | Documents-requested email; lists rejected documents + review notes |
 | `resources/views/mail/application-decision.blade.php` | Markdown mail body |
+| `resources/views/mail/application-documents-requested.blade.php` | Markdown mail body (rejected-document list) |
 | `app/Services/ReferenceDataCache.php` | Cached source for the cascading-dropdown lookups |
 | `resources/js/pages/dashboards/Applicant.vue` | Applicant dashboard |
 | `resources/js/pages/applicant/applications/Create.vue` | The multi-step application form + cascading dropdowns |
@@ -383,7 +469,9 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 
 ---
 
-*Sources verified: the controllers, Form Requests, Actions, models, enums, event/listener/mail, and
-routes listed above, plus `app/Providers/AppServiceProvider.php` (gates), `app/Models/User.php`
-(`studentProfile`), `app/Concerns/ProfileValidationRules.php` (unique-email rule), and the
-`tests/Feature/{Applications,Sao}` suites.*
+*Sources verified: the controllers, Form Requests, Actions (incl. `ReviewApplicationDocument`,
+`ReplaceRejectedDocument`, and the `ResolvesDocumentsRequested` trait), models, enums,
+event/listener/mail (both the decision and the documents-requested chains), and routes listed above,
+plus `app/Providers/AppServiceProvider.php` (gates), `app/Models/User.php` (`studentProfile`),
+`app/Concerns/ProfileValidationRules.php` (unique-email rule), and the `tests/Feature/{Applications,Sao}`
+suites.*

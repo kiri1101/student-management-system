@@ -56,6 +56,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         ->middleware('throttle:lookups')
         ->name('application.documents.view');
 
+    // Applicant response to DocumentsRequested (#80): replace one rejected
+    // document; the action flips the application back to Submitted when the
+    // last rejected document is resolved.
+    Route::post('applications/{application}/documents/{document}', [ApplicationController::class, 'replaceDocument'])
+        ->scopeBindings()
+        ->name('application.documents.replace');
+
     // Payment slips are reachable by the reporting student and by reviewing
     // accountants/admins; the controller enforces ownership/role itself.
     Route::get('payments/{payment}/slip', PaymentSlipDownloadController::class)

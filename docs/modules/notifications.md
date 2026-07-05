@@ -171,21 +171,22 @@ sequenceDiagram
 `SessionChangeType` (string enum) has two cases: `Cancelled = 'cancelled'`, `Rescheduled =
 'rescheduled'` — lowercase values, matching the course-management status convention.
 
-### 5.2 The email-only paths — the four transactional Mailables
+### 5.2 The email-only paths — the five transactional Mailables
 
 These predate Laravel Notifications and remain the **email** channel for 1:1 outcomes. Each is sent by
 a queued listener on a domain event (except the invite, which is queued directly from an action). Each
-fires **once per terminal outcome**:
+fires **once per outcome** (for the documents-requested mail, once per request round):
 
 | Mailable | Dispatched by | Trigger → recipient |
 |---|---|---|
 | `ApplicationDecisionMail` | `SendApplicationDecisionNotification` ← `ApplicationDecided` | SAO/Admin decides an application (or restore-prior merge) → the application's `contact_email`. |
+| `ApplicationDocumentsRequestedMail` | `SendDocumentsRequestedNotification` ← `ApplicationDocumentsRequested` | SAO/Admin triages an application into `DocumentsRequested` (after rejecting ≥1 document) → the application's `contact_email`; lists the rejected documents + review notes. |
 | `PaymentReviewedMail` | `SendPaymentReviewedNotification` ← `PaymentReviewed` | Accountant/Admin validates or rejects a payment submission → the student's account email. |
 | `DeferralReviewedMail` | `SendDeferralReviewedNotification` ← `DeferralReviewed` | Accountant/Admin approves or rejects a tuition deferral → the student's account email. |
 | `UserInvitationMail` | `CreateUserAction` (`Mail::to(...)->queue(...)`) — **no event/listener** | Admin provisions a staff/admin user → the new user's email, carrying the single-use password-reset (first-login) link. See [security.md](../security.md) §1.5. |
 
-> **Note on queueing the mail:** of the four, only `UserInvitationMail` is itself `ShouldQueue`. The
-> other three Mailables are **not** `ShouldQueue` — but they are sent from listeners that **are**
+> **Note on queueing the mail:** of the five, only `UserInvitationMail` is itself `ShouldQueue`. The
+> other four Mailables are **not** `ShouldQueue` — but they are sent from listeners that **are**
 > `ShouldQueue`, so the send still happens on the worker. Don't "fix" this by adding `ShouldQueue` to
 > the Mailables without checking the listener, or the work double-queues.
 
@@ -205,6 +206,7 @@ suppressed** by a guard.
 | Session rescheduled (time moved, future) | `CourseSessionRescheduled` | Yes — `CourseSessionChangedNotification` (mail + database) to cohort |
 | Session edited (topic/duration only) | none (no audit, no notify) | **No** |
 | Application decided | `ApplicationDecided` (via the admissions module) | Yes — `ApplicationDecisionMail` (email) |
+| Application triaged into Documents requested | `StatusChanged` (via the admissions module) | Yes — `ApplicationDocumentsRequestedMail` (email) |
 | Payment validated/rejected | `PaymentValidated` / `PaymentRejected` | Yes — `PaymentReviewedMail` (email) |
 | Deferral approved/rejected | `DeferralApproved` / `DeferralRejected` | Yes — `DeferralReviewedMail` (email) |
 | Staff user provisioned | `Created` (password redacted) | Yes — `UserInvitationMail` (email) |
@@ -218,7 +220,7 @@ the trivial sense; it carries no forensic weight.
 
 GitHub **#18** locked the strategy (closed 2026-06-15). The rule for any **new** notification:
 
-- **Email** = transactional, **1:1** outcomes addressed to a single known recipient (the four
+- **Email** = transactional, **1:1** outcomes addressed to a single known recipient (the five
   Mailables). Unchanged by #18.
 - **In-app (database)** = **broadcasts / cohort fan-out**, and anything that should also be visible
   inside the app. Use `Illuminate\Notifications\Notification` with `via() => ['mail', 'database']`,
@@ -239,6 +241,7 @@ page. Today the in-app feed is the student dashboard's 10-row list only.
 | `tests/Feature/Courses/CourseSessionNotificationTest.php` | The full trigger matrix: cancel & reschedule notify each active cohort student on **both** `mail` and `database` (asserting `via()` channels and `SessionChangeType`); reschedule carries `previousScheduledFor`; **sends nothing** for topic/duration-only edits, already-cancelled sessions, past sessions, or a non-owning lecturer (`403`); excludes out-of-cohort and inactive cohort-matching students; asserts the matching `AuditAction` rows. |
 | `tests/Feature/Notifications/StudentNotificationTest.php` | The in-app feed routes: `markAsRead` flips `read_at` for the owner; `markAllAsRead` clears all unread; an intruder marking another student's notification gets `403` and the row stays unread. |
 | `tests/Feature/Sao/ApplicationDecisionNotificationTest.php` | The `ApplicationDecisionMail` (email channel) decision path. |
+| `tests/Feature/Sao/TriageApplicationTest.php` | Entry into `DocumentsRequested` sends `ApplicationDocumentsRequestedMail` to the `contact_email` (`Mail::assertSent`); no mail for the other triage moves. |
 
 The session test uses `Notification::fake()`; the feed test uses `Mail::fake()` so `notify()` still
 persists the database row synchronously under `QUEUE_CONNECTION=sync`. See [testing.md](../testing.md).

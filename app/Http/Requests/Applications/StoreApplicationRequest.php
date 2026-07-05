@@ -13,9 +13,9 @@ use Illuminate\Validation\Validator;
 
 class StoreApplicationRequest extends FormRequest
 {
-    private const ALLOWED_MIMES = ['pdf', 'jpg', 'jpeg', 'png'];
+    public const ALLOWED_MIMES = ['pdf', 'jpg', 'jpeg', 'png'];
 
-    private const MAX_FILE_KB = 8192;
+    public const MAX_FILE_KB = 8192;
 
     /**
      * @return array<string, array<int, ValidationRule|array<mixed>|string>>

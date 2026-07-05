@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Sao;
 
 use App\Actions\Sao\DecideApplicationAction;
 use App\Actions\Sao\RestorePriorEnrollment;
+use App\Actions\Sao\ReviewApplicationDocument;
 use App\Actions\Sao\TriageApplicationAction;
+use App\Enums\ApplicationDocumentStatus;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sao\DecideApplicationRequest;
+use App\Http\Requests\Sao\RejectApplicationDocumentRequest;
 use App\Http\Requests\Sao\RestorePriorEnrollmentRequest;
 use App\Http\Requests\Sao\TriageApplicationRequest;
 use App\Models\Application;
@@ -193,6 +196,8 @@ class ApplicationReviewController extends Controller
                         'mime_type' => $document->mime_type,
                         'size_bytes' => $document->size_bytes,
                         'uploaded_at' => $document->uploaded_at?->toIso8601String(),
+                        'status' => $document->status->value,
+                        'review_notes' => $document->review_notes,
                         'document_type' => [
                             'id' => $document->documentType->id,
                             'name' => $document->documentType->name,
@@ -221,6 +226,37 @@ class ApplicationReviewController extends Controller
         );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Application status updated.')]);
+
+        return back();
+    }
+
+    public function acceptDocument(
+        Request $request,
+        Application $application,
+        ApplicationDocument $document,
+        ReviewApplicationDocument $action,
+    ): RedirectResponse {
+        $action->execute($document, ApplicationDocumentStatus::Accepted, null, $request->user());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Document accepted.')]);
+
+        return back();
+    }
+
+    public function rejectDocument(
+        RejectApplicationDocumentRequest $request,
+        Application $application,
+        ApplicationDocument $document,
+        ReviewApplicationDocument $action,
+    ): RedirectResponse {
+        $action->execute(
+            $document,
+            ApplicationDocumentStatus::Rejected,
+            $request->string('notes')->toString(),
+            $request->user(),
+        );
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Document rejected.')]);
 
         return back();
     }

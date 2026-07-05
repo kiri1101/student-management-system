@@ -2,8 +2,10 @@
 
 namespace App\Actions\Sao;
 
+use App\Enums\ApplicationDocumentStatus;
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
+use App\Events\ApplicationDocumentsRequested;
 use App\Models\Application;
 use App\Models\AuditLog;
 use App\Models\User;
@@ -35,6 +37,18 @@ class TriageApplicationAction
                 ]);
             }
 
+            if ($next === ApplicationStatus::DocumentsRequested) {
+                $hasRejected = $application->documents()
+                    ->where('status', ApplicationDocumentStatus::Rejected->value)
+                    ->exists();
+
+                if (! $hasRejected) {
+                    throw ValidationException::withMessages([
+                        'status' => __('Reject at least one document before requesting documents.'),
+                    ]);
+                }
+            }
+
             $previous = $application->status;
 
             $application->fill([
@@ -48,6 +62,12 @@ class TriageApplicationAction
                 ['before' => $previous->value, 'after' => $next->value],
                 userId: $sao->id,
             );
+
+            if ($next === ApplicationStatus::DocumentsRequested && $previous !== ApplicationStatus::DocumentsRequested) {
+                DB::afterCommit(function () use ($application): void {
+                    event(new ApplicationDocumentsRequested($application->fresh()));
+                });
+            }
 
             return $application;
         });

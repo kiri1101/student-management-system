@@ -27,6 +27,16 @@ const APPLICATION_STATUS: Record<
     withdrawn: { label: 'Withdrawn', severity: 'secondary' },
 };
 
+/** `App\Enums\ApplicationDocumentStatus` */
+const APPLICATION_DOCUMENT_STATUS: Record<
+    string,
+    { label: string; severity: TagSeverity }
+> = {
+    pending: { label: 'Awaiting review', severity: 'warn' },
+    accepted: { label: 'Accepted', severity: 'success' },
+    rejected: { label: 'Rejected', severity: 'danger' },
+};
+
 /** `App\Enums\StudentStatus` */
 const ENROLLMENT_STATUS: Record<
     string,
@@ -152,6 +162,14 @@ export function statusLabel(status: string): string {
 
 export function statusSeverity(status: string): TagSeverity {
     return APPLICATION_STATUS[status]?.severity ?? 'secondary';
+}
+
+export function applicationDocumentStatusLabel(status: string): string {
+    return APPLICATION_DOCUMENT_STATUS[status]?.label ?? status;
+}
+
+export function applicationDocumentStatusSeverity(status: string): TagSeverity {
+    return APPLICATION_DOCUMENT_STATUS[status]?.severity ?? 'secondary';
 }
 
 export function enrollmentLabel(status: string): string {

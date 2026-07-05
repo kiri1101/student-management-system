@@ -28,11 +28,13 @@ use App\Enums\StudentStatus;
 use App\Models\Application;
 use App\Models\PaymentSubmission;
 use App\Models\ProgramOffering;
+use App\Models\SchoolReceipt;
 use App\Models\StudentProfile;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 if (! app()->environment('local', 'testing')) {
     throw new RuntimeException('seed_demo.php is local-only.');
@@ -109,7 +111,7 @@ $makeSlip = function (string $bankName, int $amount, string $reference, string $
     imagepng($img, $tmp);
     imagedestroy($img);
 
-    $storedPath = 'payment-slips/'.\Illuminate\Support\Str::uuid().'.png';
+    $storedPath = 'payment-slips/'.Str::uuid().'.png';
     Storage::put($storedPath, file_get_contents($tmp));
     @unlink($tmp);
 
@@ -215,7 +217,7 @@ DB::transaction(function () use ($year, $makeSlip): void {
     ]);
 });
 
-$receipt = \App\Models\SchoolReceipt::query()->latest('id')->first();
+$receipt = SchoolReceipt::query()->latest('id')->first();
 echo 'Demo data seeded.'.PHP_EOL;
 echo 'Receipt: '.($receipt?->receipt_number ?? 'none').' verifies='.($receipt?->verifies() ? 'yes' : 'no').PHP_EOL;
 echo 'Applications: '.Application::count().' | Students: '.StudentProfile::count().' | Payments: '.PaymentSubmission::count().PHP_EOL;

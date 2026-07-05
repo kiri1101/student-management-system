@@ -234,7 +234,7 @@ SoftDeletes. `RecordsAudit`. Fillable: `user_id`, `program_offering_id`, `level`
 | | | | | index(`status`,`submitted_at`), index(`user_id`,`status`) |
 
 ### `application_documents`
-SoftDeletes. `RecordsAudit`. Fillable: `application_id`, `document_type_id`, `file_path`, `original_filename`, `mime_type`, `size_bytes`, `uploaded_at`.
+SoftDeletes. `RecordsAudit`. Fillable: `application_id`, `document_type_id`, `file_path`, `original_filename`, `mime_type`, `size_bytes`, `uploaded_at`, `status`, `review_notes`, `reviewed_by`, `reviewed_at`.
 
 | Column | Type | Null? | Cast | Notes |
 |---|---|---|---|---|
@@ -246,6 +246,10 @@ SoftDeletes. `RecordsAudit`. Fillable: `application_id`, `document_type_id`, `fi
 | `mime_type` | string | no | | |
 | `size_bytes` | int | no | `integer` | |
 | `uploaded_at` | timestamp | no | `datetime` | |
+| `status` | string | no | `ApplicationDocumentStatus` | default `pending`; indexed. Per-document SAO review state (#80) |
+| `review_notes` | text | yes | | rejection reason shown to the applicant |
+| `reviewed_by` | FK→`users` | yes | | nullOnDelete; relation `reviewedBy()` |
+| `reviewed_at` | timestamp | yes | `datetime` | |
 | `created_at` / `updated_at` | timestamp | yes | | |
 | `deleted_at` | timestamp | yes | | SoftDeletes |
 | | | | | unique(`application_id`,`document_type_id`) |
@@ -590,6 +594,10 @@ All status/type columns above are `string` in the DB with an Eloquent cast to on
 <a id="enum-applicationstatus"></a>
 ### `ApplicationStatus`
 `draft` · `submitted` · `under_review` · `documents_requested` · `admitted` · `rejected` · `waitlisted` · `withdrawn`. Terminal: admitted/rejected/waitlisted/withdrawn. Interim: submitted/under_review/documents_requested.
+
+<a id="enum-applicationdocumentstatus"></a>
+### `ApplicationDocumentStatus`
+`pending` · `accepted` · `rejected`. Per-document SAO review state (#80). A document starts `pending`; `documents_requested` requires ≥1 `rejected`; replacing a rejected document returns it to `pending`.
 
 <a id="enum-bank"></a>
 ### `Bank`

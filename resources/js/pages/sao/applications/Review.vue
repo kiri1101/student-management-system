@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Download, Eye, History } from 'lucide-vue-next';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Check, Download, Eye, History, X } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
+import Dialog from 'primevue/dialog';
 import Message from 'primevue/message';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
@@ -12,7 +13,13 @@ import Textarea from 'primevue/textarea';
 import { computed, ref } from 'vue';
 import ApplicationReviewController from '@/actions/App/Http/Controllers/Sao/ApplicationReviewController';
 import FileViewerDialog from '@/components/FileViewerDialog.vue';
-import { degreeLabel, statusLabel, statusSeverity } from '@/lib/statusDisplay';
+import {
+    applicationDocumentStatusLabel,
+    applicationDocumentStatusSeverity,
+    degreeLabel,
+    statusLabel,
+    statusSeverity,
+} from '@/lib/statusDisplay';
 import application_routes from '@/routes/application';
 import sao from '@/routes/sao';
 
@@ -29,6 +36,8 @@ type DocumentRow = {
     mime_type: string;
     size_bytes: number;
     uploaded_at: string | null;
+    status: string;
+    review_notes: string | null;
     document_type: DocumentType;
 };
 type Applicant = { id: number; name: string; email: string };
@@ -161,10 +170,6 @@ const decideNotesRequired = computed(() =>
     ['rejected', 'waitlisted'].includes(decideForm.status),
 );
 
-const triageNotesRequired = computed(
-    () => triageForm.status === 'documents_requested',
-);
-
 const decideRef = ref<HTMLElement | null>(null);
 
 const documentViewerVisible = ref(false);
@@ -173,6 +178,48 @@ const activeDocument = ref<DocumentRow | null>(null);
 function openDocument(document: DocumentRow): void {
     activeDocument.value = document;
     documentViewerVisible.value = true;
+}
+
+const rejectDialogVisible = ref(false);
+const rejectTarget = ref<DocumentRow | null>(null);
+const rejectForm = useForm({ notes: '' });
+
+function acceptDocument(doc: DocumentRow): void {
+    router.post(
+        sao.applications.documents.accept({
+            application: props.application.id,
+            document: doc.id,
+        }).url,
+        {},
+        { preserveScroll: true },
+    );
+}
+
+function openRejectDialog(doc: DocumentRow): void {
+    rejectTarget.value = doc;
+    rejectForm.reset();
+    rejectForm.clearErrors();
+    rejectDialogVisible.value = true;
+}
+
+function submitReject(): void {
+    if (!rejectTarget.value) {
+        return;
+    }
+
+    rejectForm.post(
+        sao.applications.documents.reject({
+            application: props.application.id,
+            document: rejectTarget.value.id,
+        }).url,
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                rejectDialogVisible.value = false;
+                rejectTarget.value = null;
+            },
+        },
+    );
 }
 
 function submitTriage(): void {
@@ -418,6 +465,30 @@ function focusDecide(): void {
                         </template>
                     </Column>
                     <Column field="original_filename" header="Filename" />
+                    <Column header="Review" style="width: 11rem">
+                        <template #body="{ data }">
+                            <div class="flex flex-col gap-1">
+                                <Tag
+                                    :value="
+                                        applicationDocumentStatusLabel(
+                                            data.status,
+                                        )
+                                    "
+                                    :severity="
+                                        applicationDocumentStatusSeverity(
+                                            data.status,
+                                        )
+                                    "
+                                />
+                                <span
+                                    v-if="data.review_notes"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ data.review_notes }}
+                                </span>
+                            </div>
+                        </template>
+                    </Column>
                     <Column header="Size" style="width: 8rem">
                         <template #body="{ data }">
                             {{ formatSize(data.size_bytes) }}
@@ -456,6 +527,32 @@ function focusDecide(): void {
                                         </template>
                                     </Button>
                                 </a>
+                                <template v-if="!application.is_terminal">
+                                    <Button
+                                        v-if="data.status !== 'accepted'"
+                                        label="Accept"
+                                        severity="success"
+                                        text
+                                        size="small"
+                                        @click="acceptDocument(data)"
+                                    >
+                                        <template #icon>
+                                            <Check class="size-4" />
+                                        </template>
+                                    </Button>
+                                    <Button
+                                        v-if="data.status !== 'rejected'"
+                                        label="Reject"
+                                        severity="danger"
+                                        text
+                                        size="small"
+                                        @click="openRejectDialog(data)"
+                                    >
+                                        <template #icon>
+                                            <X class="size-4" />
+                                        </template>
+                                    </Button>
+                                </template>
                             </div>
                         </template>
                     </Column>
@@ -509,15 +606,7 @@ function focusDecide(): void {
                             />
                         </div>
                         <div class="space-y-1">
-                            <label class="text-sm">
-                                Notes
-                                <span
-                                    v-if="triageNotesRequired"
-                                    class="text-red-500"
-                                >
-                                    (required)
-                                </span>
-                            </label>
+                            <label class="text-sm">Notes (optional)</label>
                             <Textarea
                                 v-model="triageForm.notes"
                                 rows="4"
@@ -618,5 +707,49 @@ function focusDecide(): void {
             :filename="activeDocument.original_filename"
             :mime="activeDocument.mime_type"
         />
+
+        <Dialog
+            v-model:visible="rejectDialogVisible"
+            modal
+            header="Reject document"
+            :style="{ width: '28rem' }"
+        >
+            <div class="space-y-3">
+                <p class="text-sm text-muted-foreground">
+                    Tell the applicant what is wrong with
+                    <strong>{{
+                        rejectTarget?.document_type.name ?? 'this document'
+                    }}</strong>
+                    — they will see this reason and upload a replacement.
+                </p>
+                <Textarea
+                    v-model="rejectForm.notes"
+                    class="w-full"
+                    rows="4"
+                    :invalid="Boolean(rejectForm.errors.notes)"
+                    placeholder="e.g. The scan is cropped — edges are missing."
+                />
+                <p
+                    v-if="rejectForm.errors.notes"
+                    class="text-sm text-red-600 dark:text-red-400"
+                >
+                    {{ rejectForm.errors.notes }}
+                </p>
+            </div>
+            <template #footer>
+                <Button
+                    label="Cancel"
+                    severity="secondary"
+                    text
+                    @click="rejectDialogVisible = false"
+                />
+                <Button
+                    label="Reject document"
+                    severity="danger"
+                    :loading="rejectForm.processing"
+                    @click="submitReject"
+                />
+            </template>
+        </Dialog>
     </div>
 </template>

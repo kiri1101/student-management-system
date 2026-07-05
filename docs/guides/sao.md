@@ -113,6 +113,17 @@ This is the heart of admissions. Opening an application's **Review** page shows 
 2. Click **View** to open it right in your browser — no need to download it. A viewer dialog opens; for PDFs and images it shows the file inline, and you can also open it in a new tab.
 3. Prefer to save a copy? Click **Download** instead.
 
+**Accepting or rejecting each document**
+
+Each document in the **Documents** card has its own **Review** status and its own **Accept** / **Reject** buttons, so you can sign off good documents and send back only the ones that need fixing.
+
+1. After viewing a document, click **Accept** if it's fine, or **Reject** if it isn't.
+2. When you **Reject**, a small dialog opens for a note — type what's wrong with it (for example "photo is blurry, please rescan"). This note is shown to the applicant, so be specific. Click **Reject** to confirm.
+3. The document's **Review** column updates: **Accepted** (green), **Rejected** (red, with your note shown), or **Awaiting review** for ones you haven't decided yet.
+4. Changed your mind? You can accept a previously rejected document, or reject a previously accepted one, at any time while the application isn't yet finally decided.
+
+> Accepting or rejecting a document doesn't email the applicant on its own — it just records your call. The applicant is emailed once you actually **request the documents** (next step).
+
 **Moving an application along (Triage)**
 
 Use this while you're still assessing — before you make a final decision. On the left of the decision area is a **Triage** card.
@@ -120,11 +131,15 @@ Use this while you're still assessing — before you make a final decision. On t
 1. In **Status**, choose one of:
    - **Submitted** — leave it in the new pile.
    - **Under review** — mark that you're assessing it.
-   - **Documents requested** — you need more paperwork from the applicant.
-2. If you choose **Documents requested**, the **Notes** field becomes **required** — type what the applicant must provide. (For other statuses, notes are optional.)
+   - **Documents requested** — ask the applicant to re-upload the documents you rejected.
+2. **Before you can choose "Documents requested"**, you must have **rejected at least one document** (above). If none are rejected, the status won't save and you'll see "Reject at least one document before requesting documents." The **Notes** field is optional for every triage status.
 3. Click **Update status**. The page refreshes with the new status.
 
-> Triage statuses are reversible — you can move an application back and forth between these three while you work. They are not final, so the applicant is not emailed at this stage.
+**What happens when you request documents**
+
+Choosing **Documents requested** emails the applicant a list of exactly which documents you rejected, along with your rejection notes, and a link to their application. They replace those documents themselves; once they've replaced the **last** rejected one, the application automatically returns to **Submitted** and reappears in your queue — you don't have to chase it. If they replace only some, it stays in **Documents requested** until they finish.
+
+> The other triage statuses (Submitted, Under review) are reversible and email no one. Only **Documents requested** emails the applicant.
 
 **Making the final decision (Decide)**
 
@@ -145,7 +160,8 @@ After a decision, reopening that application shows a read-only **Decision** card
 
 **Common problems and what to do**
 
-- **"Notes (required)" appears in red and the decision won't submit.** You picked Reject, Waitlist, or Documents requested without typing a note. Add a note and try again.
+- **"Notes (required)" appears in red and the decision won't submit.** You picked **Reject** or **Waitlist** as a final decision without typing a note. Add a note and try again. (Triage notes, including for Documents requested, are optional.)
+- **"Reject at least one document before requesting documents." appears when you try to set Documents requested.** You haven't rejected any document yet. Reject the specific documents you need re-uploaded first, then set the status.
 - **You can't pick "Withdrawn" as a decision.** That's by design — Withdrawn is only used when you merge a returning student into their old record (next task).
 - **The application already shows a final outcome and you can't change it.** Decisions are final. If a genuine mistake was made, contact your administrator.
 
@@ -315,7 +331,8 @@ Open your settings from your name at the bottom of the sidebar.
 
 ## Notifications
 
-- **Applicants** are emailed automatically the moment you record a final admission decision (Admit, Reject, Waitlist, or a merge into prior enrolment). Admitted applicants get their new matricule in that email. You don't send these yourself — deciding the application triggers them. Triage steps (Under review, Documents requested) do **not** email anyone.
+- **Applicants** are emailed automatically the moment you record a final admission decision (Admit, Reject, Waitlist, or a merge into prior enrolment). Admitted applicants get their new matricule in that email. You don't send these yourself — deciding the application triggers them.
+- **Applicants** are also emailed when you set an application to **Documents requested** — the email lists the documents you rejected and your notes, so they know exactly what to replace. The other triage steps (Under review, Submitted) email no one.
 - **Lecturers** are notified when you approve or reject their course plan via the plan's status changing in their own course list.
 - **Confirmation messages** appear on screen as you work — for example after assigning a lecturer or publishing results — so you can tell each action went through.
 
@@ -332,7 +349,7 @@ Make sure you're using your work email or employee ID in the **Username** field,
 Decisions are final and can't be undone from your screen. Contact your administrator to sort it out.
 
 **The applicant says they uploaded a document but I can't find it.**
-Check the **Documents** card on the Review page. If a required document is genuinely missing, set the application's status to **Documents requested** with a note explaining what's needed — the applicant will be prompted to supply it.
+Check the **Documents** card on the Review page. If a document is wrong or unreadable, **Reject** it with a note explaining the problem, then set the application's status to **Documents requested** — the applicant is emailed the list of rejected documents and replaces them, and the application returns to your queue automatically once they're all replaced.
 
 **A course plan's review dialog has no Approve/Reject buttons.**
 Open the plan with **Review plan** / **View plan**. Those actions appear only while the plan's status is **Submitted**. If it reads **Draft**, the lecturer hasn't submitted it yet; if it reads **Approved** or **Rejected**, it's already been decided and the dialog opens read-only.

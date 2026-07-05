@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Applications;
 
+use App\Actions\Applicant\ReplaceRejectedDocument;
 use App\Enums\ApplicationStatus;
 use App\Enums\AuditAction;
 use App\Enums\DegreeProgram;
 use App\Enums\RoleName;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Applications\ReplaceDocumentRequest;
 use App\Http\Requests\Applications\StoreApplicationRequest;
 use App\Models\Application;
 use App\Models\ApplicationDocument;
@@ -127,6 +129,8 @@ class ApplicationController extends Controller
                         'mime_type' => $document->mime_type,
                         'size_bytes' => $document->size_bytes,
                         'uploaded_at' => $document->uploaded_at?->toIso8601String(),
+                        'status' => $document->status->value,
+                        'review_notes' => $document->review_notes,
                         'document_type' => [
                             'id' => $document->documentType->id,
                             'name' => $document->documentType->name,
@@ -136,6 +140,26 @@ class ApplicationController extends Controller
                     ->values(),
             ],
         ]);
+    }
+
+    /**
+     * Replace one rejected document on the caller's own DocumentsRequested
+     * application. Status/ownership guards live in ReplaceRejectedDocument;
+     * replacing the last rejected document auto-resubmits the application.
+     */
+    public function replaceDocument(
+        ReplaceDocumentRequest $request,
+        Application $application,
+        ApplicationDocument $document,
+        ReplaceRejectedDocument $action,
+    ): RedirectResponse {
+        abort_if($application->user_id !== $request->user()->id, 403);
+
+        $action->execute($application, $document, $request->file('document'), $request->user());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Document uploaded — it will be re-checked by the admission office.')]);
+
+        return back();
     }
 
     /**

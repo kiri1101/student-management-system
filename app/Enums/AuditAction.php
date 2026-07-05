@@ -16,6 +16,9 @@ enum AuditAction: string
     case LoginFailed = 'login_failed';
     case LoggedOut = 'logged_out';
     case ApplicationDecided = 'application_decided';
+    case DocumentAccepted = 'document_accepted';
+    case DocumentRejected = 'document_rejected';
+    case DocumentResubmitted = 'document_resubmitted';
     case PaymentValidated = 'payment_validated';
     case PaymentRejected = 'payment_rejected';
     case ReceiptIssued = 'receipt_issued';

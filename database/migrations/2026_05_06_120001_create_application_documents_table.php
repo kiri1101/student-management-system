@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('mime_type');
             $table->unsignedInteger('size_bytes');
             $table->timestamp('uploaded_at');
+            $table->string('status')->default('pending')->index();
+            $table->text('review_notes')->nullable();
+            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

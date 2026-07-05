@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ApplicationDocumentStatus;
 use App\Models\Concerns\RecordsAudit;
 use Database\Factories\ApplicationDocumentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -23,6 +24,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'mime_type',
     'size_bytes',
     'uploaded_at',
+    'status',
+    'review_notes',
+    'reviewed_by',
+    'reviewed_at',
 ])]
 class ApplicationDocument extends Model
 {
@@ -37,6 +42,8 @@ class ApplicationDocument extends Model
         return [
             'size_bytes' => 'integer',
             'uploaded_at' => 'datetime',
+            'status' => ApplicationDocumentStatus::class,
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -54,5 +61,15 @@ class ApplicationDocument extends Model
     public function documentType(): BelongsTo
     {
         return $this->belongsTo(DocumentType::class);
+    }
+
+    /**
+     * The staff user who last reviewed this document (null while pending).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }
