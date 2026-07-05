@@ -1,7 +1,7 @@
 <x-mail::message>
 # Dispute reviewed
 
-Hi {{ $notifiable->name ?? 'there' }},
+Hi {{ $name ?? 'there' }},
 
 Your dispute for **{{ $course->code }} — {{ $course->title }}** has been **{{ $status }}**.
 

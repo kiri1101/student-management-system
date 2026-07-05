@@ -1,7 +1,7 @@
 <x-mail::message>
 # {{ $course->code }} results published
 
-Hi {{ $notifiable->name ?? 'there' }},
+Hi {{ $name ?? 'there' }},
 
 Your results for **{{ $course->code }} — {{ $course->title }}** are now available.
 

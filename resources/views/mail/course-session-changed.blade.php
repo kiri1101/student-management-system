@@ -1,7 +1,7 @@
 <x-mail::message>
 # {{ $course->code }} session {{ $type === \App\Enums\SessionChangeType::Cancelled ? 'cancelled' : 'rescheduled' }}
 
-Hi {{ $notifiable->name ?? 'there' }},
+Hi {{ $name ?? 'there' }},
 
 @if ($type === \App\Enums\SessionChangeType::Cancelled)
 Your **{{ $course->code }} — {{ $course->title }}** session scheduled for **{{ $session->scheduled_for->format('l, j M Y \a\t H:i') }}** has been **cancelled**.
