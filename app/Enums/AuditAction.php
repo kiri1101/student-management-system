@@ -40,4 +40,5 @@ enum AuditAction: string
     case ResultsPublished = 'results_published';
     case DisputeRaised = 'dispute_raised';
     case DisputeResolved = 'dispute_resolved';
+    case TranscriptGenerated = 'transcript_generated';
 }
