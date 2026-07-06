@@ -237,7 +237,7 @@ sequenceDiagram
 
 1. Guards `$decision` against `ALLOWED_DECISIONS` (the same three).
 2. In `DB::transaction`, re-fetches under `lockForUpdate()`; refuses if `isTerminal()` (re-decide a
-   finalized row) or if `! canTransitionTo($decision)` (e.g. decide a Draft).
+   finalized row) or if `! canTransitionTo($decision)` (the source is no longer an interim status).
 3. `saveQuietly()`s `status`, `decision_notes`, `decided_at`, `decided_by_user_id`.
 4. **On Admit → `promoteToStudent()`** (the role flip + matricule):
    - Looks up the applicant's `StudentProfile::withTrashed()` under `lockForUpdate()` —
@@ -408,7 +408,7 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `tests/Feature/Applications/ReplaceRejectedDocumentTest.php` | Owner-only replace; in-place update resets doc to `pending` + clears review fields; guards (wrong status / non-rejected doc); `DocumentResubmitted` audit; new-file rollback on failure + old-file delete on success; last-rejection replace auto-flips the application to `Submitted` |
 | `tests/Feature/Applications/ApplicantDashboardTest.php` | Dashboard lists the user's own applications |
 | `tests/Feature/Applications/DocumentDownloadTest.php` | Document download authorization |
-| `tests/Feature/Sao/DecideApplicationTest.php` | Admit creates profile + matricule + Student role + audit + event; sequential matricules; reject (no profile); notes required for reject/waitlist; **Withdrawn refused** on decide; terminal/draft re-decide refused; returning-applicant trashed-profile restore w/ fresh matricule; active-profile keeps matricule; concurrent-finalize lock guard; matricule not reused after force-delete; prior-history acknowledgement context |
+| `tests/Feature/Sao/DecideApplicationTest.php` | Admit creates profile + matricule + Student role + audit + event; sequential matricules; reject (no profile); notes required for reject/waitlist; **Withdrawn refused** on decide; terminal re-decide refused; returning-applicant trashed-profile restore w/ fresh matricule; active-profile keeps matricule; concurrent-finalize lock guard; matricule not reused after force-delete; prior-history acknowledgement context |
 | `tests/Feature/Sao/TriageApplicationTest.php` | Interim transitions + guards; `DocumentsRequested` refused with no rejected document; entry into `DocumentsRequested` sends the documents-requested mail |
 | `tests/Feature/Sao/ReviewApplicationDocumentTest.php` | Accept/reject one document; `review_notes`/`reviewed_by`/`reviewed_at` set on reject and cleared on accept; terminal-application guard; `DocumentAccepted`/`DocumentRejected` audit; accept resolving the last rejection auto-flips to `Submitted` |
 | `tests/Feature/Sao/RestorePriorEnrollmentTest.php` | Merge: restore prior profile, withdraw current app, full audit fan-out |

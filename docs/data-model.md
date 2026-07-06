@@ -224,7 +224,7 @@ SoftDeletes. `RecordsAudit`. Fillable: `user_id`, `program_offering_id`, `level`
 | `phone` | string | no | | |
 | `date_of_birth` | date | no | `date` | |
 | `previous_institute` | string | yes | | |
-| `status` | string | no | [`ApplicationStatus`](#enum-applicationstatus) | default `draft` |
+| `status` | string | no | [`ApplicationStatus`](#enum-applicationstatus) | default `submitted` |
 | `submitted_at` | timestamp | yes | `datetime` | |
 | `decided_at` | timestamp | yes | `datetime` | |
 | `decided_by_user_id` | FK→`users` | yes | | nullOnDelete; relation `decidedBy()` |
