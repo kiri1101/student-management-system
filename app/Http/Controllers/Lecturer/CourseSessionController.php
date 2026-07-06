@@ -20,7 +20,6 @@ use App\Models\StudentProfile;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -194,8 +193,6 @@ class CourseSessionController extends Controller
     public function markAttendance(MarkAttendanceRequest $request, Course $course, CourseSession $session, MarkAttendance $action): RedirectResponse
     {
         $this->authorizeOwnership($request, $course);
-
-        Gate::authorize('mark-attendance');
 
         $action->mark($session, $request->statuses(), $request->user());
 
