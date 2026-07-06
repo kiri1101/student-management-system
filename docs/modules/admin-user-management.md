@@ -36,12 +36,13 @@ produced by the SAO admission flow. This module's writable roles are **staff + a
 
 | Who | What they may do | Gate / guard |
 |---|---|---|
-| **Admin** | Everything in this module — list, create, edit, deactivate/restore, resend invite, change role, bulk import, read the audit log | `role:admin` middleware on the whole `routes/admin.php` group; the audit-log read is additionally protected by the `view-audit-log` **ability gate** |
+| **Admin** | Everything in this module — list, create, edit, deactivate/restore, resend invite, change role, bulk import, read the audit log | `role:admin` middleware on the whole `routes/admin.php` group |
 | Any other role | Nothing — every endpoint returns `403` | blocked by `role:admin` |
 
 There is **no policy class** for users — authorization is the route-group `role:admin` middleware
-(`EnsureUserHasRole`), plus the `view-audit-log` gate from `AppServiceProvider::ABILITIES` on the
-audit-log endpoint. Two self-targeting actions are blocked **in the controller**, not by a gate:
+(`EnsureUserHasRole`) on the whole group, including the audit-log endpoint (there is no ability gate;
+they were retired in [ADR-0025](../adr/0025-retire-ability-gates.md)). Two self-targeting actions are
+blocked **in the controller**:
 
 - an admin **cannot deactivate their own account** (`UserController@destroy`), and
 - an admin **cannot change their own role** (`UserController@changeRole`).
@@ -110,7 +111,7 @@ Inertia pages live under `resources/js/pages/admin/users/`.
 | POST · `admin/users/{user}/restore` | `admin.users.restore` | `restore` | (redirect to index) — `withTrashed` |
 | POST · `admin/users/{user}/resend-invite` | `admin.users.resend-invite` | `resendInvite` | (redirect back) |
 | PATCH · `admin/users/{user}/role` | `admin.users.role` | `changeRole` | (redirect to edit) |
-| GET · `admin/audit-logs` | `admin.audit-logs.index` | `AuditLogController@index` | JSON for the audit-log modal; `throttle:audit-logs`, `view-audit-log` gate |
+| GET · `admin/audit-logs` | `admin.audit-logs.index` | `AuditLogController@index` | JSON for the audit-log modal; `role:admin` group + `throttle:audit-logs` |
 
 > **Route ordering note:** the literal `users/import*` segments are declared **before**
 > `users/{user}/...` so the wildcard never captures `import`. Preserve that order when editing
@@ -297,7 +298,7 @@ The **random plaintext password is never present** in any audit row — proven b
 ### Reading the audit log
 
 Admins read the trail through a modal backed by `AuditLogController@index` (`admin/audit-logs`,
-`view-audit-log` gate, `throttle:audit-logs`). It returns paginated JSON validated by
+`role:admin` group, `throttle:audit-logs`). It returns paginated JSON validated by
 `AuditLogIndexRequest`, with filters for actor (`user_id`), actor-or-affected-account
 (`involving_user_id`), `actions[]`, `subject_types[]` (short class names → FQCNs), and a `from`/`to`
 date range. `subject_types` are restricted to a `SUBJECT_TYPES` allowlist (`422` otherwise).

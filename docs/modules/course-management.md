@@ -47,18 +47,18 @@ another; nothing is migrated.
 | Action | Role | Guard (named) |
 |---|---|---|
 | Create course, edit, assign lecturer | SAO, Admin | `routes/sao.php` group `role:sao,admin` |
-| Approve / reject a course plan | SAO, Admin | `Gate::authorize('approve-course-plan')` |
-| Publish a course's results | SAO, Admin | `Gate::authorize('publish-results')` |
-| Resolve a result dispute | SAO, Admin | `routes/sao.php` group `role:sao,admin` (no per-action gate) |
+| Approve / reject a course plan | SAO, Admin | `routes/sao.php` group `role:sao,admin` |
+| Publish a course's results | SAO, Admin | `routes/sao.php` group `role:sao,admin` |
+| Resolve a result dispute | SAO, Admin | `routes/sao.php` group `role:sao,admin` |
 | Edit own course plan, submit for approval | Lecturer | `role:lecturer` + per-course ownership (`lecturer_profile_id`) |
 | Schedule/update/cancel sessions; create/grade assignments; record marks | Lecturer | `role:lecturer` + ownership |
-| Mark attendance | Lecturer, Admin | `Gate::authorize('mark-attendance')` + ownership |
+| Mark attendance | Lecturer | `role:lecturer` + per-course ownership |
 | View own courses / attendance / assignments / published results; submit assignment; raise dispute | Student | `role:student,admin` + cohort match |
 | View any submission file inline / download | submitting student, course lecturer, Admin | per-resource check in the view/download controllers |
 
-The three gates (`approve-course-plan`, `mark-attendance`, `publish-results`) are defined from the
-single `ABILITIES` map in `AppServiceProvider::configureGates()`; Admin is on each by design. See
-[security.md](../security.md) §2 for the gate machinery and the role middleware.
+Authorization is the `role:*` route-group middleware plus per-resource ownership — there are no
+ability gates (they were retired in [ADR-0025](../adr/0025-retire-ability-gates.md)). See
+[security.md](../security.md) §2 for the role middleware and ownership model.
 
 **Ownership** is not a gate: lecturer controllers call a private `authorizeOwnership()` that aborts
 `403` unless `course.lecturer_profile_id === $request->user()->lecturerProfile->id`. Dispute
@@ -198,7 +198,7 @@ sequenceDiagram
     L->>SC: POST sessions (approved course)
     SC-->>L: session (status=scheduled), audit CourseSessionScheduled
     L->>SC: POST .../attendance {statuses}
-    SC->>SC: authorizeOwnership + Gate::authorize('mark-attendance')
+    SC->>SC: authorizeOwnership (role:lecturer via middleware)
     SC->>MA: mark(session, statuses, marker)
     MA->>MA: lockForUpdate session; re-guard course approved
     MA->>MA: cohortStudents filter — skip non-cohort ids
@@ -253,7 +253,7 @@ sequenceDiagram
     L->>RR: POST results {rows}
     RR->>RR: per row — skip non-cohort; skip if already Published
     RR-->>L: upsert draft CourseResult, audit ResultRecorded {count} (if count>0)
-    S->>PR: POST publish-results (Gate publish-results)
+    S->>PR: POST publish-results (role:sao,admin via middleware)
     PR->>PR: select status=draft AND ca_score NOT NULL AND exam_score NOT NULL, lockForUpdate
     PR-->>S: mark each Published, audit ResultsPublished {count}
 ```
@@ -262,7 +262,7 @@ sequenceDiagram
   not in `cohortStudents()`, and skip any row whose existing `CourseResult` is already `published`
   (published marks are locked). `updateOrCreate` keyed on `(course_id, student_profile_id)`, status
   forced to `draft`. Audits `ResultRecorded` **only if** ≥1 row written.
-- **Publish** (`App\Actions\Sao\PublishCourseResults`) — `publish-results` gate; transaction. **Selects
+- **Publish** (`App\Actions\Sao\PublishCourseResults`) — `role:sao,admin` route group; transaction. **Selects
   only fully-scored drafts** (`status=draft AND ca_score IS NOT NULL AND exam_score IS NOT NULL`) under
   `lockForUpdate`; throws `ValidationException` *"There are no fully-scored draft results…"* if none.
   Partial drafts are left untouched. Stamps each Published with publisher + timestamp; audits
@@ -373,14 +373,14 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 | `CoursePlanApprovalTest.php` | submit by assigned lecturer only; SAO approve/reject + `submitted` re-guard + audit |
 | `CourseSessionTest.php` | session create gated on approved + ownership; cancel soft-flip |
 | `CourseSessionNotificationTest.php` | reschedule/cancel notification gate (future-scheduled only) |
-| `MarkAttendanceTest.php` | upsert idempotency; cohort-only application; `mark-attendance` gate |
+| `MarkAttendanceTest.php` | upsert idempotency; cohort-only application; `role:lecturer` + ownership enforcement |
 | `StudentAttendanceTest.php` | student sees only own marks, only approved courses |
 | `StudentCoursesTest.php` | semester-ordered cohort list with lecturer + counts; unapproved/out-of-cohort excluded; profile-less empty state; role gate |
 | `AssignmentManagementTest.php` | assignment CRUD gated on approved + ownership |
 | `AssignmentSubmissionTest.php` | upload mime/size validation; cohort-only; one-per-student replace + old-file cleanup; `is_late` |
 | `GradeSubmissionTest.php` | grade ≤ `max_score`; cross-assignment `404`; audit |
 | `CourseResultRecordingTest.php` | draft upsert; cohort-only; published rows skipped |
-| `PublishCourseResultsTest.php` | `publish-results` gate (SAO only); fully-scored-drafts-only; partials untouched |
+| `PublishCourseResultsTest.php` | `role:sao,admin` (SAO only); fully-scored-drafts-only; partials untouched |
 | `StudentResultViewTest.php` | published-only exposure; draft never leaks |
 | `RaiseResultDisputeTest.php` | own + published result only; one live dispute per result |
 | `ReviewResultDisputeTest.php` | SAO/Admin resolve; terminal re-guard; audit |
@@ -425,7 +425,7 @@ All under `tests/Feature/Courses/` unless noted ([testing.md](../testing.md) cov
 *Sources verified against code: the seven models above; the six status enums + `SessionChangeType` +
 `AuditAction`; `ReviewCoursePlanApproval`, `PublishCourseResults`, `MarkAttendance`, `GradeSubmission`,
 `RecordCourseResults`, `SubmitAssignment`, `ReviewResultDispute`; the SAO/Lecturer/Student controllers
-listed; `SubmissionViewController`; `AppServiceProvider::configureGates()`; `routes/{sao,lecturer,student}.php`
+listed; `SubmissionViewController`; `routes/{sao,lecturer,student}.php`
 + `routes/web.php`; `StoreAssignmentSubmissionRequest`, `GradeSubmissionRequest`,
 `ReviewResultDisputeRequest`; `FileViewerDialog.vue`; the lecturer Vue pages' lowercase status
 comparisons; and `plan/course-management/plan.md`.*

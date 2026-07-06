@@ -32,9 +32,10 @@ request a `TuitionDeferral`; an accountant approves it (with an extended deadlin
 
 ## 2. Roles & abilities
 
-This module is guarded entirely by the **`role:` middleware** (`EnsureUserHasRole`) — there is **no
-dedicated ability gate** for standing or deferrals in `AppServiceProvider::configureGates()`. The
-relevant audit actions (`DeferralApproved`, `DeferralRejected`) are recorded, not gated.
+This module is guarded entirely by the **`role:` middleware** (`EnsureUserHasRole`) plus per-resource
+ownership checks — the app has no ability gates (they were retired in
+[ADR-0025](../adr/0025-retire-ability-gates.md)). The relevant audit actions (`DeferralApproved`,
+`DeferralRejected`) are recorded.
 
 | Action | Who | Guard |
 |---|---|---|

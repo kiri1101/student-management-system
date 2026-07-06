@@ -44,13 +44,12 @@ This module digitises that funnel end to end:
 | SAO | Triage, decide, restore prior enrollment; browse the queue | `role:sao,admin` middleware on the whole `routes/sao.php` group |
 | Admin | Everything an SAO can do | Same `role:sao,admin` group (Admin is included) |
 
-**Gate vs. middleware (verified nuance).** `AppServiceProvider::ABILITIES` defines two admissions
-gates — `process-admission` and `decide-application` (both → SAO, Admin) — and they are exhaustively
-tested in `tests/Feature/Auth/AbilityGatesTest.php`. **In the shipped admissions code these gates are
-not invoked anywhere**: the SAO controller and its Form Requests carry no `Gate::authorize()` /
-`$this->authorize()` calls. Authorization is enforced entirely by the `role:sao,admin` route
-middleware. The gates exist as a tested, ready-to-use abstraction but are currently belt to the
-middleware's braces. See [security.md](../security.md) §2 for the gate/middleware layering.
+**Authorization (role middleware).** Authorization for the SAO admissions endpoints is enforced
+entirely by the `role:sao,admin` route middleware — the SAO controller and its Form Requests carry no
+`Gate::authorize()` / `$this->authorize()` calls. (Earlier revisions declared `process-admission` /
+`decide-application` ability gates; those were never invoked and were retired in
+[ADR-0025](../adr/0025-retire-ability-gates.md).) See [security.md](../security.md) §2 for the
+authorization model.
 
 > The applicant routes deliberately have **no** role guard. A freshly-registered (or just-reactivated)
 > user is roleless; `applicant/dashboard` and the application form are the roleless fallback they land
@@ -417,7 +416,6 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `tests/Feature/Sao/SaoDashboardTest.php` | Per-status counts |
 | `tests/Feature/Sao/AuthorizationTest.php` | `role:sao,admin` enforcement on the SAO group |
 | `tests/Feature/Sao/ApplicationDecisionNotificationTest.php` | `ApplicationDecided` → queued mail to `contact_email` |
-| `tests/Feature/Auth/AbilityGatesTest.php` | The `process-admission` / `decide-application` gate definitions (role × ability matrix) |
 
 ---
 

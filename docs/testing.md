@@ -23,8 +23,8 @@ keep it green.
 Most tests are **feature tests** (`php artisan make:test SomeFeatureTest`); reach for a unit test
 (`--unit`) only when there’s genuinely framework-free logic to isolate. The suite is large —
 **699 tests / 2,614 assertions** in the default `php artisan test` run (datasets expand a single
-`it()` into many cases, e.g. `tests/Feature/Auth/AbilityGatesTest.php` runs every role × ability
-pair). All green at this baseline; the `tests/Browser` smoke suite runs as a separate job (§2).
+`it()` into many cases, e.g. `tests/Feature/Admin/AdminAuthorizationTest.php` runs every non-admin
+role against every admin endpoint). The `tests/Browser` smoke suite runs as a separate job (§2).
 
 ### Test environment (`phpunit.xml`)
 
@@ -139,8 +139,8 @@ delete tests without approval.
 | Area | Representative tests |
 |---|---|
 | Auth & identifiers | `Auth/{AuthenticationTest,PhoneIdentifierTest,AuthThrottleTest,PasswordResetTest,TwoFactorChallengeTest}` |
-| Authorization | `Auth/AbilityGatesTest`, `Admin/AdminAuthorizationTest`, `Sao/AuthorizationTest` |
-| Audit log | `Audit/{RecordsAuditTest,AuthEventsTest,UserAuditTest,PruneAuditLogsTest,ViewAuditLogGateTest}`, `Admin/AuditLogIndexTest` |
+| Authorization | `Admin/AdminAuthorizationTest`, `Sao/AuthorizationTest` |
+| Audit log | `Audit/{RecordsAuditTest,AuthEventsTest,UserAuditTest,PruneAuditLogsTest}`, `Admin/AuditLogIndexTest` |
 | Admissions | `Applications/*`, `Sao/*` |
 | Payments & receipts | `Payments/{SchoolReceiptIssuanceTest,VerifyReceiptTest,PaymentStandingTest}`, `Student/ReportPaymentTest`, `Accountant/ReviewPaymentTest` |
 | Exam gating / deferrals | `Standing/StandingCheckTest`, `Student/RequestDeferralTest`, `Accountant/ReviewDeferralTest` |
@@ -152,6 +152,6 @@ delete tests without approval.
 ---
 
 *Sources verified: `phpunit.xml`, `tests/Pest.php`, `tests/Browser/SmokeTest.php`, and
-representative files under `tests/Feature/` (`Auth/AbilityGatesTest`, `Audit/RecordsAuditTest`,
+representative files under `tests/Feature/` (`Admin/AdminAuthorizationTest`, `Audit/RecordsAuditTest`,
 `Files/InlineFileViewTest`). The 699/2,614 figure is from a full `php artisan test` run at this
 baseline.*

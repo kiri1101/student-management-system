@@ -115,24 +115,16 @@ indistinguishable (no enumeration oracle).
 
 Three layers, used together.
 
-### 2.1 Ability gates
+### 2.1 Authorization model
 
-`AppServiceProvider::configureGates()` defines role-based gates from a single `ABILITIES` map. Each
-gate passes when the user holds **any** of the listed roles (`$user->hasAnyRole($roles)`):
-
-| Gate | Allowed roles |
-|---|---|
-| `process-admission` | SAO, Admin |
-| `decide-application` | SAO, Admin |
-| `validate-payment` | Accountant, Admin |
-| `publish-results` | SAO, Admin |
-| `approve-course-plan` | SAO, Admin |
-| `mark-attendance` | Lecturer, Admin |
-| `view-audit-log` | Admin |
-| `manage-references` | Admin |
-
-Admin is on every gate by design. The gate map is mirrored (and exhaustively tested per
-role × ability) in `tests/Feature/Auth/AbilityGatesTest.php`.
+Authorization is two concrete layers — **`role:*` route middleware** (§2.2) and **per-resource
+ownership checks** (§2.3). There is **no ability-gate registry**: the `AppServiceProvider`
+`ABILITIES` gates were retired in [ADR-0025](../adr/0025-retire-ability-gates.md). Every gate merely
+restated the roles of the route group its endpoints sat behind (only 3 of 8 were ever invoked, and
+none could decide anything the route middleware didn't — `Gate::define(fn ($u) => $u->hasAnyRole($roles))`
+is the same test `EnsureUserHasRole` already runs). Removing them changed no authorization outcome; the
+denial paths are covered by endpoint tests (`AdminAuthorizationTest`, `CoursePlanApprovalTest`,
+`PublishCourseResultsTest`, `MarkAttendanceTest`).
 
 ### 2.2 Role middleware
 
@@ -206,7 +198,7 @@ Auth events are recorded by `AppServiceProvider::configureAuditListeners()` (lis
 ### 3.4 Reading the log
 
 Admins read the log through a modal backed by `admin/audit-logs` (inside the `routes/admin.php`
-admin group, `view-audit-log` gate, `audit-logs` throttle). Filtering/sorting is index-backed
+`role:admin` group + `audit-logs` throttle). Filtering/sorting is index-backed
 (`AUD-008`).
 
 ---

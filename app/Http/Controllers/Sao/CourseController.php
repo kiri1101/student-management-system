@@ -16,7 +16,6 @@ use App\Models\LecturerProfile;
 use App\Models\ProgramOffering;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -127,8 +126,6 @@ class CourseController extends Controller
 
     public function approve(Request $request, Course $course): RedirectResponse
     {
-        Gate::authorize('approve-course-plan');
-
         $this->reviewCoursePlan->approve($course, $request->user());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Course plan approved.')]);
@@ -138,8 +135,6 @@ class CourseController extends Controller
 
     public function reject(RejectCoursePlanRequest $request, Course $course): RedirectResponse
     {
-        Gate::authorize('approve-course-plan');
-
         $this->reviewCoursePlan->reject($course, $request->user(), $request->string('notes')->toString());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Course plan rejected.')]);
@@ -149,8 +144,6 @@ class CourseController extends Controller
 
     public function publishResults(Request $request, Course $course, PublishCourseResults $action): RedirectResponse
     {
-        Gate::authorize('publish-results');
-
         $count = $action->publish($course, $request->user());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Published :count result(s).', ['count' => $count])]);
