@@ -74,8 +74,14 @@ class CourseResultController extends Controller
                 ->all();
         }
 
+        $hasTranscript = $profile !== null && CourseResult::query()
+            ->where('student_profile_id', $profile->id)
+            ->where('status', ResultStatus::Published->value)
+            ->exists();
+
         return Inertia::render('student/results/Index', [
             'courses' => $courses,
+            'hasTranscript' => $hasTranscript,
         ]);
     }
 

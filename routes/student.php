@@ -7,6 +7,7 @@ use App\Http\Controllers\Student\CourseResultController;
 use App\Http\Controllers\Student\DeferralController;
 use App\Http\Controllers\Student\NotificationController;
 use App\Http\Controllers\Student\PaymentController;
+use App\Http\Controllers\Student\TranscriptController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:student,admin'])
@@ -28,6 +29,10 @@ Route::middleware(['auth', 'verified', 'role:student,admin'])
 
         Route::get('results', [CourseResultController::class, 'index'])->name('results.index');
         Route::post('results/{result}/dispute', [CourseResultController::class, 'dispute'])->name('results.dispute');
+
+        Route::get('transcript', [TranscriptController::class, 'download'])
+            ->middleware('throttle:lookups')
+            ->name('transcript');
 
         Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
