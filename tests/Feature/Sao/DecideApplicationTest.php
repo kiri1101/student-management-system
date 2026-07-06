@@ -214,19 +214,6 @@ it('keeps the matricule when admitting an applicant who already has an active pr
         ->count())->toBe(0);
 });
 
-it('refuses to decide a draft application', function () {
-    $application = Application::factory()->create();
-    $sao = userWithRole(RoleName::Sao);
-
-    $response = $this->actingAs($sao)->post(route('sao.applications.decide', $application), [
-        'status' => 'admitted',
-    ]);
-
-    $response->assertSessionHasErrors('status');
-    expect($application->fresh()->status)->toBe(ApplicationStatus::Draft)
-        ->and(StudentProfile::count())->toBe(0);
-});
-
 it('refuses a decision when the application was finalized concurrently', function () {
     $application = Application::factory()->submitted()->create();
     $sao = userWithRole(RoleName::Sao);

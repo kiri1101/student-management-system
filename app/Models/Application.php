@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * An admission application moving through the SAO triage lifecycle
- * (Draft → Submitted → interim → terminal; see {@see ApplicationStatus}).
+ * (Submitted → interim → terminal; see {@see ApplicationStatus}).
  *
  * Carries its own snapshot of the applicant's identity at submission time
  * (first_name, last_name, contact_email, phone, date_of_birth,
@@ -120,12 +120,11 @@ class Application extends Model
 
     /**
      * Statuses that count as "in progress" for the one-open-application-per-
-     * applicant rule: Draft plus the interim trio.
+     * applicant rule (the interim trio).
      *
      * @var list<ApplicationStatus>
      */
     public const OPEN_STATUSES = [
-        ApplicationStatus::Draft,
         ...self::INTERIM_STATUSES,
     ];
 
@@ -139,19 +138,17 @@ class Application extends Model
     }
 
     /**
-     * Transition matrix: Draft → Submitted only (the applicant-side submit);
-     * interim → any other interim or terminal; terminal → nothing.
+     * Transition matrix: an interim application may move to any other interim
+     * or terminal status; a terminal application may not transition. Valid
+     * targets are further constrained by the SAO Form Requests
+     * (TriageApplicationRequest / DecideApplicationRequest).
      */
     public function canTransitionTo(ApplicationStatus $next): bool
     {
-        if ($this->status === ApplicationStatus::Draft) {
-            return $next === ApplicationStatus::Submitted;
-        }
-
         if (! in_array($this->status, self::INTERIM_STATUSES, strict: true)) {
             return false;
         }
 
-        return $next !== ApplicationStatus::Draft;
+        return true;
     }
 }

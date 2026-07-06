@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->date('date_of_birth');
             $table->string('previous_institute')->nullable();
-            $table->string('status')->default(ApplicationStatus::Draft->value);
+            $table->string('status')->default(ApplicationStatus::Submitted->value);
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('decided_at')->nullable();
             $table->foreignId('decided_by_user_id')->nullable()->constrained('users')->nullOnDelete();
