@@ -3,6 +3,7 @@
 use App\Http\Controllers\Sao\ApplicationReviewController;
 use App\Http\Controllers\Sao\CourseController;
 use App\Http\Controllers\Sao\ResultDisputeController;
+use App\Http\Controllers\Sao\StudentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:sao,admin'])
@@ -35,4 +36,9 @@ Route::middleware(['auth', 'verified', 'role:sao,admin'])
 
         Route::get('disputes', [ResultDisputeController::class, 'index'])->name('disputes.index');
         Route::post('disputes/{dispute}/review', [ResultDisputeController::class, 'review'])->name('disputes.review');
+
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::get('students/{studentProfile}/transcript', [StudentController::class, 'transcript'])
+            ->middleware('throttle:lookups')
+            ->name('students.transcript');
     });
