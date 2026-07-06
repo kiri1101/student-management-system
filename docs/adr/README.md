@@ -36,6 +36,7 @@ with the original intent noted for history.
 | [0019](0019-notification-channel-strategy.md) | Notification channel strategy (email / in-app / SMS deferred) | Accepted |
 | [0020](0020-reference-data-cache.md) | Reference-data read-through cache (no tags) | Accepted |
 | [0021](0021-reactivation-via-password-reset.md) | Re-registration = verify-first via password reset | Accepted |
-| [0022](0022-authorization-enforcement-model.md) | AuthZ via role middleware + ownership; ability gates largely uninvoked | Accepted (known gap) |
+| [0022](0022-authorization-enforcement-model.md) | AuthZ via role middleware + ownership; ability gates largely uninvoked | Superseded by ADR-0025 |
 | [0023](0023-structured-application-document-review.md) | Structured per-document review (pending/accepted/rejected) makes DocumentsRequested a resolvable round-trip | Accepted |
 | [0024](0024-applications-born-submitted.md) | Applications are born Submitted — the unreachable Draft state removed (save-as-draft rejected) | Accepted |
+| [0025](0025-retire-ability-gates.md) | Ability gates retired — role middleware + ownership is the single authorization model | Accepted |

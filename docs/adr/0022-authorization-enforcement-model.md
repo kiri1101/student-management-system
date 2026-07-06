@@ -1,6 +1,6 @@
 # ADR-0022: Authorization is enforced by role middleware + ownership; ability gates are largely uninvoked
 
-- **Status:** Accepted (with a known gap)
+- **Status:** Superseded by [ADR-0025](0025-retire-ability-gates.md) — the ability gates were retired; role middleware + ownership is now the single documented model
 - **Date:** 2026-06-20
 - **Deciders:** SchuLyf maintainers
 

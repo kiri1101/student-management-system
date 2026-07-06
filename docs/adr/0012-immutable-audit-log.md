@@ -22,8 +22,8 @@ An **append-only `audit_logs` table** records only **significant writes**. The `
 - Pruning is the **one** sanctioned bulk delete, and it deliberately sidesteps the `deleting` guard via
   the query builder; application code cannot delete a single row.
 - Audited models must keep the `RecordsAudit` redaction list correct — anything not excluded is stored.
-- Read access is **enforced by the `role:admin` route-group middleware** on the audit-log endpoint. Note
-  the `view-audit-log` **ability gate is defined but not invoked** at that call site — see
-  [0022](0022-authorization-enforcement-model.md).
+- Read access is **enforced by the `role:admin` route-group middleware** on the audit-log endpoint.
+  (An earlier `view-audit-log` ability gate was never invoked and has since been retired — see
+  [0025](0025-retire-ability-gates.md).)
 
 See [`../security.md`](../security.md) §3.

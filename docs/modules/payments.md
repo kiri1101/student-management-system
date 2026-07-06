@@ -26,13 +26,11 @@ ships the ledger, receipts, verification, and exposes the validated-paid total.
 | **Student** | Reports a deposit (uploads slip), tracks own submissions + running total, prints their receipt | `routes/student.php` group (`role:student,admin`) + per-resource ownership |
 | **Anyone (public)** | Verifies a receipt number | No auth; `throttle:lookups` only |
 
-**Authorization is enforced by `role:` middleware + per-resource ownership checks, not by the
-`validate-payment` ability gate.** The `validate-payment` gate (Accountant, Admin) is *defined* in
-`AppServiceProvider::ABILITIES` and exhaustively tested in `tests/Feature/Auth/AbilityGatesTest.php`,
-but the payment review routes are guarded by the `role:accountant,admin` group middleware rather than
-a `Gate::authorize('validate-payment')` call in the controller. Treat the gate as the documented
-capability; the route group is the live enforcement point. See [security.md](../security.md) §2 for
-the three-layer authorization model.
+**Authorization is enforced by `role:` middleware + per-resource ownership checks.** The payment
+review routes are guarded by the `role:accountant,admin` group middleware. (There is no
+`validate-payment` ability gate — the gates were retired in
+[ADR-0025](../adr/0025-retire-ability-gates.md); the route group is the enforcement point.) See
+[security.md](../security.md) §2 for the authorization model.
 
 Per-resource ownership (not Gates):
 

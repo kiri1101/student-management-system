@@ -10,11 +10,11 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 | Doc | What it covers | Status |
 |---|---|---|
-| [Architecture](architecture.md) | Request lifecycle, the Laravel 13 + Inertia v3 + Vue 3 + PrimeVue/Aura + Fortify stack, core patterns (Actions, ability gates, audit log, enum-as-string) | ✅ |
+| [Architecture](architecture.md) | Request lifecycle, the Laravel 13 + Inertia v3 + Vue 3 + PrimeVue/Aura + Fortify stack, core patterns (Actions, role middleware + ownership authorization, audit log, enum-as-string) | ✅ |
 | [Onboarding](onboarding.md) | Local setup (Laragon, MySQL, Redis), seeded credentials, the quality gate (Pint / Pest / vue-tsc / ESLint / Vite) | ✅ |
 | [Data model](data-model.md) | 25-table schema reference + ER diagrams | ✅ |
 | [Routes & endpoints](routes.md) | Reference across the route files, the `api/v1` lookups, the public receipt-verify endpoint, and the Fortify auth routes | ✅ |
-| [Security](security.md) | Fortify auth, ability gates, immutable audit log, HMAC receipts + public verify, file-viewer hardening | ✅ |
+| [Security](security.md) | Fortify auth, role middleware + ownership authorization, immutable audit log, HMAC receipts + public verify, file-viewer hardening | ✅ |
 | [Testing](testing.md) | Pest feature + `tests/Browser` smoke conventions | ✅ |
 | [Deployment & ops](deployment.md) | Laravel Cloud, queue worker, mail, Redis/predis cache runbook | ✅ |
 
@@ -42,7 +42,7 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 ## Decisions
 
-- [Architecture Decision Records](adr/README.md) — 24 numbered records of the locked design decisions (all Accepted; ADR-0022 records a known authorization-enforcement gap).
+- [Architecture Decision Records](adr/README.md) — 25 numbered records of the locked design decisions (ADR-0022 superseded by ADR-0025, which retired the ability gates).
 
 ---
 

@@ -115,28 +115,18 @@ New Actions mirror this. The SAO decision flow
 (`app/Actions/Sao/DecideApplicationAction.php`), attendance
 (`Lecturer/MarkAttendance`), grading, deferral review, and dispute resolution all follow it.
 
-### 2. Ability gates in `AppServiceProvider`
+### 2. Authorization: role middleware + ownership
 
-Top-level, role-based abilities are defined in
-[`AppServiceProvider::configureGates()`](../app/Providers/AppServiceProvider.php) from a
-single `ABILITIES` map (`ability => [RoleName, ...]`), each resolved with
-`$user->hasAnyRole($roles)`:
+Authorization is two layers, both concrete (there is no ability-gate registry — the gates were
+retired in [ADR-0025](adr/0025-retire-ability-gates.md)):
 
-| Gate | Allowed roles |
-|---|---|
-| `process-admission` | SAO, Admin |
-| `decide-application` | SAO, Admin |
-| `validate-payment` | Accountant, Admin |
-| `publish-results` | SAO, Admin |
-| `approve-course-plan` | SAO, Admin |
-| `mark-attendance` | Lecturer, Admin |
-| `view-audit-log` | Admin |
-| `manage-references` | Admin |
+- **`role:*` route middleware** (`EnsureUserHasRole`, registered in `bootstrap/app.php`) — the coarse
+  role gate on every protected route group (`role:admin`, `role:sao,admin`, `role:lecturer`, …);
+  `abort_unless($user->hasAnyRole($required), 403)`.
+- **Per-resource ownership checks** in the controller/Action (e.g. a lecturer only marks attendance
+  for their own course via `authorizeOwnership()`) — the fine-grained layer.
 
-Route-level role membership is enforced separately by the `role:*` middleware alias
-(`EnsureUserHasRole`, registered in `bootstrap/app.php`). Per-resource ownership rules
-(e.g. a lecturer only marks attendance for their own course) live in the controller/Action.
-Full matrix in [Security](security.md).
+Full detail in [Security](security.md).
 
 ### 3. Immutable audit log
 

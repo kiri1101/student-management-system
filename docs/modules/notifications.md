@@ -30,8 +30,9 @@ deferred (§7).
 
 ## 2. Roles & abilities
 
-This module has no ability gates of its own — it is a side effect of actions that are gated elsewhere.
-The relevant authorization lives at the **trigger** and the **feed**:
+This module has no authorization surface of its own — it is a side effect of actions authorized
+elsewhere (by the `role:*` route middleware). The relevant authorization lives at the **trigger** and
+the **feed**:
 
 | Surface | Who | Guard |
 |---|---|---|

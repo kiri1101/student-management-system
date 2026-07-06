@@ -133,7 +133,7 @@ Notes:
 | Understand a request's path | [Architecture](architecture.md) |
 | Add a state change | `app/Actions/` — mirror `Accountant/ReviewPaymentAction.php` |
 | Add/guard a route | `routes/*.php` (split by audience) — see [Routes](routes.md) |
-| Add a gated ability | `AppServiceProvider::ABILITIES` — see [Security](security.md) |
+| Authorize an action | `role:*` route middleware + a per-resource ownership check in the controller/Action — see [Security](security.md) |
 | Add a status column | `app/Enums/` + `string` column (never native `ENUM`) |
 | Add a page | `resources/js/pages/` + a Wayfinder route helper |
 | Understand the schema | [Data model](data-model.md) |
