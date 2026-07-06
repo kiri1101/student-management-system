@@ -38,3 +38,4 @@ with the original intent noted for history.
 | [0021](0021-reactivation-via-password-reset.md) | Re-registration = verify-first via password reset | Accepted |
 | [0022](0022-authorization-enforcement-model.md) | AuthZ via role middleware + ownership; ability gates largely uninvoked | Accepted (known gap) |
 | [0023](0023-structured-application-document-review.md) | Structured per-document review (pending/accepted/rejected) makes DocumentsRequested a resolvable round-trip | Accepted |
+| [0024](0024-applications-born-submitted.md) | Applications are born Submitted — the unreachable Draft state removed (save-as-draft rejected) | Accepted |

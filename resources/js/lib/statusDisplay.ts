@@ -17,7 +17,6 @@ const APPLICATION_STATUS: Record<
     string,
     { label: string; severity: TagSeverity }
 > = {
-    draft: { label: 'Draft', severity: 'secondary' },
     submitted: { label: 'Submitted', severity: 'info' },
     under_review: { label: 'Under review', severity: 'warn' },
     documents_requested: { label: 'Documents requested', severity: 'warn' },

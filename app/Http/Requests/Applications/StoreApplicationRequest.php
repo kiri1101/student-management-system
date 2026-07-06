@@ -53,7 +53,7 @@ class StoreApplicationRequest extends FormRequest
 
     /**
      * One open application per applicant: a new submission is refused while a
-     * Draft/Submitted/UnderReview/DocumentsRequested one exists. Re-applying
+     * Submitted/UnderReview/DocumentsRequested one exists. Re-applying
      * after a decision (rejected, withdrawn — or admitted, e.g. for a higher
      * level) stays possible. The controller re-checks this inside its
      * transaction under a per-user lock to close the concurrent-submit race

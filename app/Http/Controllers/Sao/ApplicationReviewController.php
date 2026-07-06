@@ -143,7 +143,6 @@ class ApplicationReviewController extends Controller
         $priorApplications = Application::withTrashed()
             ->where('user_id', $application->user_id)
             ->where('id', '!=', $application->id)
-            ->whereNotIn('status', [ApplicationStatus::Draft])
             ->orderByDesc('id')
             ->get()
             ->map(fn (Application $prior): array => [

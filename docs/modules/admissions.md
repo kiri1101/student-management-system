@@ -77,15 +77,17 @@ the ER diagram; only the contributor-relevant shape is shown here.
 
 **Status enums.**
 
-- `ApplicationStatus` (string-backed, lowercase `->value`): `Draft` (`draft`), `Submitted`
+- `ApplicationStatus` (string-backed, lowercase `->value`): `Submitted`
   (`submitted`), `UnderReview` (`under_review`), `DocumentsRequested` (`documents_requested`),
   `Admitted` (`admitted`), `Rejected` (`rejected`), `Waitlisted` (`waitlisted`), `Withdrawn`
-  (`withdrawn`). The Vue pages render `status.value`, so any UI status map must key on the lowercase
+  (`withdrawn`). Applications are **born `Submitted`** — there is no `Draft` state (removed in
+  ADR-0024). The Vue pages render `status.value`, so any UI status map must key on the lowercase
   string.
 - `Application` defines three sets that drive every guard:
   - `INTERIM_STATUSES` = Submitted, UnderReview, DocumentsRequested (reversible, SAO triage)
   - `TERMINAL_STATUSES` = Admitted, Rejected, Waitlisted, Withdrawn (no further transition)
-  - `OPEN_STATUSES` = Draft + the interim trio (the "one open application" rule)
+  - `OPEN_STATUSES` = the interim trio (the "one open application" rule) — equal to
+    `INTERIM_STATUSES` now that `Draft` is gone, kept as a semantic alias
 - `StudentStatus`: `Active`, `Suspended`, `Graduated`, `Withdrawn`. A new profile is `Active`.
 - `RoleName`: the Admit path assigns `Student`; first submit auto-attaches `Applicant`.
 - `ApplicationDocumentStatus` (string-backed): `Pending` (`pending`), `Accepted` (`accepted`),
@@ -200,7 +202,7 @@ stateDiagram-v2
 
 `POST …/triage` → `TriageApplicationAction::execute()`. It re-fetches the application under
 `lockForUpdate()` (stale-status defence, `AUD-001`), then calls `$application->canTransitionTo($next)`
-— which permits only **interim → any non-Draft** moves and refuses every terminal source. The target
+— which permits an **interim source → any status** and refuses every terminal source. The target
 itself is constrained to `INTERIM_STATUSES` by `TriageApplicationRequest`; `notes` are **optional** on
 every target. Choosing `DocumentsRequested` is only allowed when **at least one document is already
 `rejected`** — the guard throws a `ValidationException` on `status` ("Reject at least one document
@@ -235,7 +237,7 @@ sequenceDiagram
 
 1. Guards `$decision` against `ALLOWED_DECISIONS` (the same three).
 2. In `DB::transaction`, re-fetches under `lockForUpdate()`; refuses if `isTerminal()` (re-decide a
-   finalized row) or if `! canTransitionTo($decision)` (e.g. decide a Draft).
+   finalized row) or if `! canTransitionTo($decision)` (the source is no longer an interim status).
 3. `saveQuietly()`s `status`, `decision_notes`, `decided_at`, `decided_by_user_id`.
 4. **On Admit → `promoteToStudent()`** (the role flip + matricule):
    - Looks up the applicant's `StudentProfile::withTrashed()` under `lockForUpdate()` —
@@ -406,7 +408,7 @@ All Pest feature tests. See [testing.md](../testing.md) for how to run a single 
 | `tests/Feature/Applications/ReplaceRejectedDocumentTest.php` | Owner-only replace; in-place update resets doc to `pending` + clears review fields; guards (wrong status / non-rejected doc); `DocumentResubmitted` audit; new-file rollback on failure + old-file delete on success; last-rejection replace auto-flips the application to `Submitted` |
 | `tests/Feature/Applications/ApplicantDashboardTest.php` | Dashboard lists the user's own applications |
 | `tests/Feature/Applications/DocumentDownloadTest.php` | Document download authorization |
-| `tests/Feature/Sao/DecideApplicationTest.php` | Admit creates profile + matricule + Student role + audit + event; sequential matricules; reject (no profile); notes required for reject/waitlist; **Withdrawn refused** on decide; terminal/draft re-decide refused; returning-applicant trashed-profile restore w/ fresh matricule; active-profile keeps matricule; concurrent-finalize lock guard; matricule not reused after force-delete; prior-history acknowledgement context |
+| `tests/Feature/Sao/DecideApplicationTest.php` | Admit creates profile + matricule + Student role + audit + event; sequential matricules; reject (no profile); notes required for reject/waitlist; **Withdrawn refused** on decide; terminal re-decide refused; returning-applicant trashed-profile restore w/ fresh matricule; active-profile keeps matricule; concurrent-finalize lock guard; matricule not reused after force-delete; prior-history acknowledgement context |
 | `tests/Feature/Sao/TriageApplicationTest.php` | Interim transitions + guards; `DocumentsRequested` refused with no rejected document; entry into `DocumentsRequested` sends the documents-requested mail |
 | `tests/Feature/Sao/ReviewApplicationDocumentTest.php` | Accept/reject one document; `review_notes`/`reviewed_by`/`reviewed_at` set on reject and cleared on accept; terminal-application guard; `DocumentAccepted`/`DocumentRejected` audit; accept resolving the last rejection auto-flips to `Submitted` |
 | `tests/Feature/Sao/RestorePriorEnrollmentTest.php` | Merge: restore prior profile, withdraw current app, full audit fan-out |

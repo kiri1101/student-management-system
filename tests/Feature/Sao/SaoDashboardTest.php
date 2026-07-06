@@ -23,8 +23,7 @@ it('renders the SAO dashboard with status counts', function () {
             ->where('statusCounts.submitted', 2)
             ->where('statusCounts.under_review', 1)
             ->where('statusCounts.admitted', 1)
-            ->where('statusCounts.rejected', 0)
-            ->where('statusCounts.draft', 0));
+            ->where('statusCounts.rejected', 0));
 });
 
 it('exposes a count for every ApplicationStatus case', function () {
