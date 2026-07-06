@@ -60,6 +60,50 @@ it('produces the same digest for unchanged content regardless of generation meta
     expect($a)->toBe($b);
 });
 
+it('produces a different digest when the underlying academic content differs', function (): void {
+    $profileA = StudentProfile::factory()->create();
+    $courseA = Course::factory()->approved()->create(['credits' => 3]);
+    CourseResult::factory()->published()->create(['course_id' => $courseA->id, 'student_profile_id' => $profileA->id, 'ca_score' => 80, 'exam_score' => 80]); // A
+
+    $profileB = StudentProfile::factory()->create();
+    $courseB = Course::factory()->approved()->create(['credits' => 3]);
+    CourseResult::factory()->published()->create(['course_id' => $courseB->id, 'student_profile_id' => $profileB->id, 'ca_score' => 55, 'exam_score' => 55]); // D
+
+    $service = app(TranscriptService::class);
+    $digestA = $service->contentDigest($service->buildSnapshot($profileA, 'student'));
+    $digestB = $service->contentDigest($service->buildSnapshot($profileB, 'student'));
+
+    expect($digestA)->not->toBe($digestB);
+});
+
+it('orders semesters by year then semester, and courses by code, even when created out of chronological order', function (): void {
+    $profile = StudentProfile::factory()->create();
+
+    // Deliberately created out of order: a later semester first, then an earlier
+    // academic year, then two same-year/semester courses with codes that would
+    // stay unsorted under the old (broken) sortBy([...]) multi-key sort.
+    $laterSemester = Course::factory()->approved()->create(['academic_year' => '2025/2026', 'semester' => 2, 'credits' => 3, 'code' => 'YYY200']);
+    $earlierYear = Course::factory()->approved()->create(['academic_year' => '2024/2025', 'semester' => 1, 'credits' => 3, 'code' => 'AAA100']);
+    $laterCode = Course::factory()->approved()->create(['academic_year' => '2025/2026', 'semester' => 1, 'credits' => 3, 'code' => 'BBB100']);
+    $earlierCode = Course::factory()->approved()->create(['academic_year' => '2025/2026', 'semester' => 1, 'credits' => 3, 'code' => 'AAA050']);
+
+    CourseResult::factory()->published()->create(['course_id' => $laterSemester->id, 'student_profile_id' => $profile->id, 'ca_score' => 80, 'exam_score' => 80]);
+    CourseResult::factory()->published()->create(['course_id' => $earlierYear->id, 'student_profile_id' => $profile->id, 'ca_score' => 80, 'exam_score' => 80]);
+    CourseResult::factory()->published()->create(['course_id' => $laterCode->id, 'student_profile_id' => $profile->id, 'ca_score' => 80, 'exam_score' => 80]);
+    CourseResult::factory()->published()->create(['course_id' => $earlierCode->id, 'student_profile_id' => $profile->id, 'ca_score' => 80, 'exam_score' => 80]);
+
+    $snapshot = app(TranscriptService::class)->buildSnapshot($profile, 'student');
+
+    expect($snapshot['semesters'])->toHaveCount(3)
+        ->and($snapshot['semesters'][0]['academic_year'])->toBe('2024/2025')
+        ->and($snapshot['semesters'][0]['semester'])->toBe(1)
+        ->and($snapshot['semesters'][1]['academic_year'])->toBe('2025/2026')
+        ->and($snapshot['semesters'][1]['semester'])->toBe(1)
+        ->and($snapshot['semesters'][2]['academic_year'])->toBe('2025/2026')
+        ->and($snapshot['semesters'][2]['semester'])->toBe(2)
+        ->and(array_column($snapshot['semesters'][1]['courses'], 'code'))->toBe(['AAA050', 'BBB100']);
+});
+
 it('returns an empty semester list for a student with no published results', function (): void {
     $profile = StudentProfile::factory()->create();
 

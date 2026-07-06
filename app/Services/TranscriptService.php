@@ -51,10 +51,14 @@ class TranscriptService
             ->with('course')
             ->get()
             ->filter(fn (CourseResult $result): bool => $result->final_score !== null && $result->course !== null)
-            ->sortBy([
-                fn (CourseResult $r) => $r->course->academic_year,
-                fn (CourseResult $r) => $r->course->semester,
-                fn (CourseResult $r) => $r->course->code,
+            ->sort(fn (CourseResult $a, CourseResult $b): int => [
+                $a->course->academic_year,
+                $a->course->semester,
+                $a->course->code,
+            ] <=> [
+                $b->course->academic_year,
+                $b->course->semester,
+                $b->course->code,
             ]);
 
         $grouped = $results->groupBy(fn (CourseResult $r): string => $r->course->academic_year.'|'.$r->course->semester);
