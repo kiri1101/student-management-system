@@ -593,7 +593,7 @@ All status/type columns above are `string` in the DB with an Eloquent cast to on
 
 <a id="enum-applicationstatus"></a>
 ### `ApplicationStatus`
-`draft` · `submitted` · `under_review` · `documents_requested` · `admitted` · `rejected` · `waitlisted` · `withdrawn`. Terminal: admitted/rejected/waitlisted/withdrawn. Interim: submitted/under_review/documents_requested.
+`submitted` · `under_review` · `documents_requested` · `admitted` · `rejected` · `waitlisted` · `withdrawn`. Terminal: admitted/rejected/waitlisted/withdrawn. Interim: submitted/under_review/documents_requested. Applications are born `submitted` — there is no `draft` state (removed in ADR-0024).
 
 <a id="enum-applicationdocumentstatus"></a>
 ### `ApplicationDocumentStatus`
