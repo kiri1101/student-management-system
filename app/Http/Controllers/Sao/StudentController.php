@@ -14,12 +14,24 @@ use Symfony\Component\HttpFoundation\Response;
 class StudentController extends Controller
 {
     /**
+     * Rows-per-page options offered by the students index paginator; the first
+     * is the default. Mirrors the SAO applications index.
+     */
+    private const ROWS_PER_PAGE = [15, 25, 50];
+
+    /**
      * Searchable, paginated list of student profiles for staff — the home for
      * looking up any student and generating their transcript.
      */
     public function index(Request $request): InertiaResponse
     {
         $search = trim((string) $request->query('search', ''));
+
+        $rows = (int) $request->integer('rows', self::ROWS_PER_PAGE[0]);
+
+        if (! in_array($rows, self::ROWS_PER_PAGE, true)) {
+            $rows = self::ROWS_PER_PAGE[0];
+        }
 
         $students = StudentProfile::query()
             ->with(['user:id,name', 'programOffering.department:id,name'])
@@ -30,7 +42,7 @@ class StudentController extends Controller
                 });
             })
             ->orderBy('matricule')
-            ->paginate(20)
+            ->paginate($rows)
             ->withQueryString()
             ->through(fn (StudentProfile $profile): array => [
                 'id' => $profile->id,
@@ -43,7 +55,7 @@ class StudentController extends Controller
 
         return Inertia::render('sao/students/Index', [
             'students' => $students,
-            'filters' => ['search' => $search],
+            'filters' => ['search' => $search, 'rows' => $rows],
         ]);
     }
 
