@@ -18,7 +18,7 @@ class TranscriptFactory extends Factory
     public function definition(): array
     {
         $snapshot = [
-            'student' => ['matricule' => 'stm-2025-0001', 'name' => 'Test Student', 'programme' => 'Computer Science', 'level' => 200],
+            'student' => ['matricule' => 'stm-2025-0001', 'name' => 'Test Student', 'programme' => 'Computer Science (Bachelors)', 'level' => 200],
             'semesters' => [[
                 'academic_year' => '2025/2026',
                 'semester' => 1,

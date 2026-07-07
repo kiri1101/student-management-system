@@ -118,7 +118,7 @@ class TranscriptService
             'student' => [
                 'matricule' => $profile->matricule,
                 'name' => $profile->user?->name,
-                'programme' => $profile->programOffering?->department?->name,
+                'programme' => $this->programmeLabel($profile),
                 'level' => $profile->level,
             ],
             'semesters' => $semesters,
@@ -174,6 +174,24 @@ class TranscriptService
         unset($value);
 
         ksort($array);
+    }
+
+    /**
+     * The student's programme as "{department} ({degree})" — the same
+     * department + degree the SAO students index surfaces, so the transcript
+     * and the lookup table agree. Null when the profile has no offering.
+     */
+    private function programmeLabel(StudentProfile $profile): ?string
+    {
+        $department = $profile->programOffering?->department?->name;
+
+        if ($department === null) {
+            return null;
+        }
+
+        $degree = $profile->programOffering?->degree_program?->label();
+
+        return $degree !== null ? "{$department} ({$degree})" : $department;
     }
 
     private function weightedAverage(float $qualityPoints, int $credits): float
