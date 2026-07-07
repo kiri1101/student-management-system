@@ -73,7 +73,9 @@ C ≥ 60, D ≥ 50, else F).
 The snapshot shape: `student{matricule,name,programme,level}`, `semesters[]{academic_year, semester,
 courses[]{code,title,credits,score,grade,points}, gpa, credits_earned, credits_attempted}`,
 `cumulative{cgpa, credits_earned, credits_attempted, total_courses}`, and `meta{generated_at,
-generated_by_role}`.
+generated_by_role}`. `programme` is the student's department + degree
+(`"{department} ({degree})"`, e.g. `Computer Science (Bachelors)`, via `DegreeProgram::label()`) —
+the same programme the SAO students index shows, so the transcript and the lookup table agree.
 
 ## Issuance & dedupe — `IssueTranscript`
 
