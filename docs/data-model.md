@@ -27,6 +27,7 @@ writes these tables, follow the linked module docs.
 | [Payments & receipts](#payments--receipts) | `fee_schedules`, `fee_installments`, `payment_submissions`, `school_receipts`, `receipt_sequences` |
 | [Exam gating & deferrals](#exam-gating--deferrals) | `tuition_deferrals` (+ derived `PaymentStanding`) |
 | [Courses](#courses) | `courses`, `course_sessions`, `attendance_records`, `assignments`, `assignment_submissions`, `course_results`, `result_disputes` |
+| [Transcripts](#transcripts) | `transcripts`, `transcript_sequences` |
 | [Notifications](#notifications) | `notifications` |
 | [Audit](#audit) | `audit_logs` |
 
@@ -534,6 +535,50 @@ erDiagram
 
 ---
 
+<a id="transcripts"></a>
+## Transcripts
+
+Behaviour: [Transcripts](modules/transcripts.md). An immutable, HMAC-signed snapshot of a student's
+academic transcript at issue time (#71), plus a per-year number counter.
+
+### `transcripts`
+**Immutable** — model blocks `updating`/`deleting`. No timestamps (`issued_at` only). No soft deletes; audited only via the `TranscriptGenerated` action on mint (no `RecordsAudit` trait). Fillable: `transcript_number`, `student_profile_id`, `matricule`, `student_name`, `programme`, `level`, `snapshot`, `content_digest`, `cgpa`, `credits_earned`, `credits_attempted`, `signature`, `issued_at`, `issued_by`.
+
+| Column | Type | Null? | Cast | Notes |
+|---|---|---|---|---|
+| `id` | bigint PK | no | | |
+| `transcript_number` | string | no | | unique; format `TRN-{year}-{00000}` |
+| `student_profile_id` | FK→`student_profiles` | no | | **restrictOnDelete** |
+| `matricule` | string | no | | snapshotted from the profile at issue |
+| `student_name` | string | yes | | snapshotted |
+| `programme` | string | yes | | department name, snapshotted |
+| `level` | int | yes | `integer` | snapshotted |
+| `snapshot` | json | no | `array` | full rendered transcript — source of truth for the PDF + verify page |
+| `content_digest` | string(64) | no | | SHA-256 of `snapshot` minus `meta`; drives dedupe |
+| `cgpa` | decimal(3,2) | no | `decimal:2` | cumulative GPA on the 4.0 scale |
+| `credits_earned` | int | no | `integer` | passed credits (excludes F) |
+| `credits_attempted` | int | no | `integer` | all included credits |
+| `signature` | string | no | | HMAC-SHA256 over transcript_number\|issued_at_iso\|content_digest, keyed by `app.key` |
+| `issued_at` | timestamp | no | `datetime` | |
+| `issued_by` | FK→`users` | yes | | **nullOnDelete**; the issuing user |
+| | | | | index(`student_profile_id`, `content_digest`) — non-unique; dedupe enforced in `IssueTranscript` |
+
+### `transcript_sequences` (counter)
+No model — written via the query builder by `Transcript::nextTranscriptNumberForYear()`. No timestamps, no soft deletes.
+
+| Column | Type | Null? | Notes |
+|---|---|---|---|
+| `year` | smallint PK | no | one row per year |
+| `last_number` | int | no | default 0; `lockForUpdate` on issue |
+
+```mermaid
+erDiagram
+    STUDENT_PROFILES ||--o{ TRANSCRIPTS : "issued to"
+    USERS ||--o{ TRANSCRIPTS : "issued by"
+```
+
+---
+
 ## Notifications
 
 Behaviour: [Notifications](modules/notifications.md). Laravel's standard `database` notifications
@@ -645,4 +690,4 @@ All status/type columns above are `string` in the DB with an Eloquent cast to on
 
 <a id="enum-auditaction"></a>
 ### `AuditAction`
-`created` · `updated` · `deleted` · `restored` · `status_changed` · `role_assigned` · `role_revoked` · `users_imported` · `logged_in` · `login_failed` · `logged_out` · `application_decided` · `payment_validated` · `payment_rejected` · `receipt_issued` · `deferral_approved` · `deferral_rejected` · `course_created` · `lecturer_assigned` · `course_plan_submitted` · `course_plan_approved` · `course_plan_rejected` · `course_session_scheduled` · `course_session_cancelled` · `course_session_rescheduled` · `attendance_marked` · `assignment_created` · `assignment_submitted` · `assignment_graded` · `result_recorded` · `results_published` · `dispute_raised` · `dispute_resolved`.
+`created` · `updated` · `deleted` · `restored` · `status_changed` · `role_assigned` · `role_revoked` · `users_imported` · `logged_in` · `login_failed` · `logged_out` · `application_decided` · `payment_validated` · `payment_rejected` · `receipt_issued` · `deferral_approved` · `deferral_rejected` · `course_created` · `lecturer_assigned` · `course_plan_submitted` · `course_plan_approved` · `course_plan_rejected` · `course_session_scheduled` · `course_session_cancelled` · `course_session_rescheduled` · `attendance_marked` · `assignment_created` · `assignment_submitted` · `assignment_graded` · `result_recorded` · `results_published` · `dispute_raised` · `dispute_resolved` · `transcript_generated`.

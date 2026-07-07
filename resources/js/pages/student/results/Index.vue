@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { GraduationCap } from 'lucide-vue-next';
+import { FileText, GraduationCap } from 'lucide-vue-next';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Dialog from 'primevue/dialog';
@@ -32,7 +32,7 @@ type CourseRow = {
     dispute: Dispute | null;
 };
 
-defineProps<{ courses: CourseRow[] }>();
+defineProps<{ courses: CourseRow[]; hasTranscript: boolean }>();
 
 defineOptions({
     layout: {
@@ -74,17 +74,24 @@ function submitDispute(): void {
     <Head title="My results" />
 
     <div class="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
-        <section>
-            <p
-                class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
-            >
-                Student
-            </p>
-            <h1 class="mt-1 text-2xl font-bold tracking-tight">My results</h1>
-            <p class="mt-1 text-sm text-muted-foreground">
-                Your published CA and exam results. Raise a dispute if a score
-                looks wrong.
-            </p>
+        <section class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <p
+                    class="text-xs font-semibold tracking-wider text-primary-700 uppercase dark:text-primary-400"
+                >
+                    Student
+                </p>
+                <h1 class="mt-1 text-2xl font-bold tracking-tight">My results</h1>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Your published CA and exam results. Raise a dispute if a
+                    score looks wrong.
+                </p>
+            </div>
+            <a v-if="hasTranscript" :href="student.transcript().url">
+                <Button label="Download transcript" icon-pos="left">
+                    <template #icon><FileText class="mr-2 size-4" /></template>
+                </Button>
+            </a>
         </section>
 
         <Card v-for="course in courses" :key="course.id">

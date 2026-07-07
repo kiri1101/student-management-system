@@ -40,3 +40,6 @@ with the original intent noted for history.
 | [0023](0023-structured-application-document-review.md) | Structured per-document review (pending/accepted/rejected) makes DocumentsRequested a resolvable round-trip | Accepted |
 | [0024](0024-applications-born-submitted.md) | Applications are born Submitted — the unreachable Draft state removed (save-as-draft rejected) | Accepted |
 | [0025](0025-retire-ability-gates.md) | Ability gates retired — role middleware + ownership is the single authorization model | Accepted |
+| [0026](0026-transcript-gpa-scale.md) | Transcripts aggregate on a 4.0 GPA scale (credit-weighted GPA/CGPA) | Accepted |
+| [0027](0027-pdf-generation-mpdf.md) | Transcript PDFs via mpdf; QR via the existing bacon/bacon-qr-code (simple-qrcode rejected) | Accepted |
+| [0028](0028-transcript-verification.md) | Transcript verification is snapshot-at-issue (immutable signed record), not live re-derivation | Accepted |

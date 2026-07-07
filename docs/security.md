@@ -227,6 +227,33 @@ renders the bound identity (matricule, name, level, programme, amount, academic 
 **only when authentic**. An unknown number and a bad signature both read as `invalid` — no oracle
 for which receipt numbers exist. See [modules/payments.md](modules/payments.md).
 
+### 4.1 Transcript verification — snapshot-at-issue (#71)
+
+A `Transcript` (`App\Models\Transcript`) uses the same HMAC posture as a receipt, with one
+deliberate difference: it verifies against a **stored snapshot**, not live data, because a
+transcript's underlying results can legitimately change after it is printed (see
+[ADR-0028](adr/0028-transcript-verification.md)).
+
+- **Immutable:** the model throws on `updating`/`deleting`, so the signed snapshot cannot drift.
+- **Canonical payload:** `transcriptNumber | issued_at_iso | contentDigest(snapshot)`
+  (`canonicalPayload()`), where `contentDigest` is a SHA-256 of the snapshot **with its `meta` block
+  removed** (issue time + issuer role excluded, so the digest is role-independent and drives dedupe).
+- **Signature:** `hash_hmac('sha256', payload, config('app.key'))` (`computeSignature()`).
+- **Verification:** `verifies()` recomputes the digest from the transcript's **currently stored
+  `snapshot`** and compares with `hash_equals()` (constant-time). Tampering with the stored snapshot,
+  number, or date fails.
+- **Issuance ordering:** numbers come from a one-row-per-year `transcript_sequences` counter under
+  `lockForUpdate()` (`TRN-YYYY-00001`), mirroring the receipt sequence.
+
+**Public verify endpoint.** `GET transcripts/verify/{transcript_number}`
+(`Transcripts\VerifyTranscriptController`, `routes/web.php`) is **unauthenticated** and
+`throttle:lookups`-limited. The response payload is built only inside a `$valid ? [...] : null`
+branch, so an unknown number, a forged record, and a tampered snapshot all render `valid: false` with
+`transcript: null` — **no existence oracle**. Authorization for *generating* a transcript is
+`role:` middleware + ownership (the student route resolves the caller's own profile, no id in the URL;
+the SAO route sits behind `role:sao,admin`) — no ability gates ([ADR-0025](adr/0025-retire-ability-gates.md)).
+See [modules/transcripts.md](modules/transcripts.md).
+
 ---
 
 ## 5. File-viewer hardening

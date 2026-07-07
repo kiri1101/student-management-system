@@ -30,7 +30,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
-          extensions: sockets
+          extensions: sockets, gd, mbstring
           coverage: xdebug
 
       - name: Setup Node
@@ -68,7 +68,7 @@ jobs:
         with:
           php-version: '8.4'
           tools: composer:v2
-          extensions: sockets
+          extensions: sockets, gd, mbstring
           coverage: none
 
       - name: Setup Node

@@ -37,8 +37,9 @@ behaviour behind each action, follow the linked module docs.
 |---|---|---|---|---|
 | ANY | `/` | `home` | redirect → `/login` | — |
 | GET | `receipts/verify/{receipt_number}` | `receipts.verify` | `Receipts\VerifyReceiptController` (invokable) | `throttle:lookups` |
+| GET | `transcripts/verify/{transcript_number}` | `transcripts.verify` | `Transcripts\VerifyTranscriptController` (invokable) | `throttle:lookups` |
 
-Behaviour: receipt verify → [Payments & receipts](modules/payments.md).
+Behaviour: receipt verify → [Payments & receipts](modules/payments.md); transcript verify → [Transcripts](modules/transcripts.md).
 
 ### Authenticated shared — `auth`, `verified`
 
@@ -199,8 +200,10 @@ Group: prefix `sao`, name `sao.`, `auth` + `verified` + **`role:sao,admin`**.
 | POST | `sao/courses/{course}/publish-results` | `sao.courses.publishResults` | `Sao\CourseController@publishResults` | `role:sao,admin` |
 | GET | `sao/disputes` | `sao.disputes.index` | `Sao\ResultDisputeController@index` | `role:sao,admin` |
 | POST | `sao/disputes/{dispute}/review` | `sao.disputes.review` | `Sao\ResultDisputeController@review` | `role:sao,admin` |
+| GET | `sao/students` | `sao.students.index` | `Sao\StudentController@index` | `role:sao,admin` |
+| GET | `sao/students/{studentProfile}/transcript` | `sao.students.transcript` | `Sao\StudentController@transcript` | `role:sao,admin`, `throttle:lookups` |
 
-Behaviour: applications → [Admissions](modules/admissions.md); courses/disputes → [Course management](modules/course-management.md).
+Behaviour: applications → [Admissions](modules/admissions.md); courses/disputes → [Course management](modules/course-management.md); students/transcript → [Transcripts](modules/transcripts.md).
 
 ---
 
@@ -251,10 +254,11 @@ Group: prefix `student`, name `student.`, `auth` + `verified` + **`role:student,
 | POST | `student/assignments/{assignment}/submit` | `student.assignments.submit` | `Student\AssignmentController@submit` | `role:student,admin` |
 | GET | `student/results` | `student.results.index` | `Student\CourseResultController@index` | `role:student,admin` |
 | POST | `student/results/{result}/dispute` | `student.results.dispute` | `Student\CourseResultController@dispute` | `role:student,admin` |
+| GET | `student/transcript` | `student.transcript` | `Student\TranscriptController@download` | `role:student,admin`, `throttle:lookups` |
 | POST | `student/notifications/{notification}/read` | `student.notifications.read` | `Student\NotificationController@markAsRead` | `role:student,admin` |
 | POST | `student/notifications/read-all` | `student.notifications.read-all` | `Student\NotificationController@markAllAsRead` | `role:student,admin` |
 
-Behaviour: payments/deferrals → [Payments](modules/payments.md) / [Exam gating](modules/exam-gating.md); courses/attendance/assignments/results → [Course management](modules/course-management.md); notifications → [Notifications](modules/notifications.md).
+Behaviour: payments/deferrals → [Payments](modules/payments.md) / [Exam gating](modules/exam-gating.md); courses/attendance/assignments/results → [Course management](modules/course-management.md); transcript → [Transcripts](modules/transcripts.md); notifications → [Notifications](modules/notifications.md).
 
 ---
 

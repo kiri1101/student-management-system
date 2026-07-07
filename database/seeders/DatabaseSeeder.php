@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             DocumentTypesSeeder::class,
             DemoReferencesSeeder::class,
             LocalStaffSeeder::class,
+            TranscriptDemoSeeder::class,
         ]);
 
         // Drop any reference-data cache left over from a prior run so a freshly

@@ -31,6 +31,7 @@ import { index as lecturerCoursesIndex } from '@/routes/lecturer/courses';
 import { index as saoApplicationsIndex } from '@/routes/sao/applications';
 import { index as saoCoursesIndex } from '@/routes/sao/courses';
 import { index as saoDisputesIndex } from '@/routes/sao/disputes';
+import { index as saoStudentsIndex } from '@/routes/sao/students';
 import { check as standingCheck } from '@/routes/standing';
 import { index as studentAssignmentsIndex } from '@/routes/student/assignments';
 import { index as studentAttendanceIndex } from '@/routes/student/attendance';
@@ -110,6 +111,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 title: 'Disputes',
                 href: saoDisputesIndex(),
                 icon: Gavel,
+            },
+            {
+                title: 'Students',
+                href: saoStudentsIndex(),
+                icon: Users,
             },
         );
     }

@@ -28,6 +28,7 @@ admission, tuition-payment, and course-management processes. This is the documen
 | [Course management](modules/course-management.md) — catalog, attendance, assignments, results, disputes | #11 | ✅ |
 | [Notifications](modules/notifications.md) — channel strategy via Laravel Notifications | #12 / #18 | ✅ |
 | [Admin user management](modules/admin-user-management.md) — invite-link users, role change, CSV import, audit | #30 | ✅ |
+| [Transcripts](modules/transcripts.md) — 4.0 GPA/CGPA, immutable snapshot, mpdf PDF + public HMAC verification | #71 | ✅ |
 
 ## User guides (by role)
 
@@ -42,7 +43,7 @@ admission, tuition-payment, and course-management processes. This is the documen
 
 ## Decisions
 
-- [Architecture Decision Records](adr/README.md) — 25 numbered records of the locked design decisions (ADR-0022 superseded by ADR-0025, which retired the ability gates).
+- [Architecture Decision Records](adr/README.md) — 28 numbered records of the locked design decisions (ADR-0022 superseded by ADR-0025, which retired the ability gates; ADR-0026–0028 cover student transcripts).
 
 ---
 

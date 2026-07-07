@@ -12,6 +12,7 @@ use App\Http\Controllers\Payments\PaymentSlipDownloadController;
 use App\Http\Controllers\Payments\PaymentSlipViewController;
 use App\Http\Controllers\Receipts\VerifyReceiptController;
 use App\Http\Controllers\StandingController;
+use App\Http\Controllers\Transcripts\VerifyTranscriptController;
 use Illuminate\Support\Facades\Route;
 
 // The landing page is the auth funnel: every request to `/` (any verb) is
@@ -24,6 +25,13 @@ Route::redirect('/', '/login')->name('home');
 Route::get('receipts/verify/{receipt_number}', VerifyReceiptController::class)
     ->middleware('throttle:lookups')
     ->name('receipts.verify');
+
+// Public, unauthenticated transcript verification (#71). Throttled like the
+// receipt endpoint; re-derives the HMAC over the stored snapshot and reveals
+// only the transcript summary when authentic (no existence oracle).
+Route::get('transcripts/verify/{transcript_number}', VerifyTranscriptController::class)
+    ->middleware('throttle:lookups')
+    ->name('transcripts.verify');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
