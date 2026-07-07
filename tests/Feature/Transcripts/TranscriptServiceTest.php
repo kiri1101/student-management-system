@@ -143,3 +143,11 @@ it('returns an empty semester list for a student with no published results', fun
 
     expect(app(TranscriptService::class)->buildSnapshot($profile, 'student')['semesters'])->toBe([]);
 });
+
+it('labels the programme with department and degree', function (): void {
+    // The default factory offering is Computer Science / Bachelors.
+    $profile = StudentProfile::factory()->create();
+
+    expect(app(TranscriptService::class)->buildSnapshot($profile, 'student')['student']['programme'])
+        ->toBe('Computer Science (Bachelors)');
+});
