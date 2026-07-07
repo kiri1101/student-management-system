@@ -551,7 +551,7 @@ academic transcript at issue time (#71), plus a per-year number counter.
 | `student_profile_id` | FK→`student_profiles` | no | | **restrictOnDelete** |
 | `matricule` | string | no | | snapshotted from the profile at issue |
 | `student_name` | string | yes | | snapshotted |
-| `programme` | string | yes | | department name, snapshotted |
+| `programme` | string | yes | | department + degree, snapshotted (e.g. `Computer Science (Bachelors)`) |
 | `level` | int | yes | `integer` | snapshotted |
 | `snapshot` | json | no | `array` | full rendered transcript — source of truth for the PDF + verify page |
 | `content_digest` | string(64) | no | | SHA-256 of `snapshot` minus `meta`; drives dedupe |
