@@ -138,9 +138,14 @@ class TranscriptService
     /**
      * Stable SHA-256 over the snapshot's identity + academic content. The `meta`
      * block (issue time + issuer) is excluded so re-issuing the same results for
-     * the same student yields the same digest and is deduped. Encoding is
-     * deterministic across the DB JSON round-trip (int/float normalization), so
-     * the digest recomputed at verify time matches the one computed at issue.
+     * the same student yields the same digest and is deduped.
+     *
+     * Object keys are canonicalized (recursive `ksort`) before encoding: MySQL's
+     * native JSON column reorders object keys on storage, so the snapshot re-read
+     * at verify time has a different key order than the one hashed at issue time.
+     * Sorting both sides keeps the issue-time and verify-time digests identical
+     * regardless of the storage engine (lists keep their 0..n order, and MySQL
+     * never reorders JSON arrays).
      *
      * @param  array<string, mixed>  $snapshot
      */
@@ -148,8 +153,27 @@ class TranscriptService
     {
         $stable = $snapshot;
         unset($stable['meta']);
+        $this->ksortRecursive($stable);
 
         return hash('sha256', json_encode($stable, JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * Recursively sort array keys in place so a digest over the array is
+     * invariant to key ordering.
+     *
+     * @param  array<array-key, mixed>  $array
+     */
+    private function ksortRecursive(array &$array): void
+    {
+        foreach ($array as &$value) {
+            if (is_array($value)) {
+                $this->ksortRecursive($value);
+            }
+        }
+        unset($value);
+
+        ksort($array);
     }
 
     private function weightedAverage(float $qualityPoints, int $credits): float

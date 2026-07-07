@@ -76,6 +76,40 @@ it('produces a different digest when the underlying academic content differs', f
     expect($digestA)->not->toBe($digestB);
 });
 
+it('produces the same digest when snapshot object keys are reordered (MySQL JSON round-trip safety)', function (): void {
+    $profile = StudentProfile::factory()->create();
+    $s1 = Course::factory()->approved()->create(['academic_year' => '2025/2026', 'semester' => 1, 'credits' => 3, 'code' => 'AAA100']);
+    $s2 = Course::factory()->approved()->create(['academic_year' => '2025/2026', 'semester' => 2, 'credits' => 4, 'code' => 'BBB100']);
+    CourseResult::factory()->published()->create(['course_id' => $s1->id, 'student_profile_id' => $profile->id, 'ca_score' => 85, 'exam_score' => 85]);
+    CourseResult::factory()->published()->create(['course_id' => $s2->id, 'student_profile_id' => $profile->id, 'ca_score' => 72, 'exam_score' => 72]);
+
+    $service = app(TranscriptService::class);
+    $snapshot = $service->buildSnapshot($profile, 'student');
+
+    // MySQL's native JSON column reorders object keys on storage (verified: the
+    // snapshot re-read at verify time comes back keyed meta,student,... not the
+    // insertion order). Simulate that by reversing object-key order at every
+    // level while preserving list order — the digest MUST be unchanged, or every
+    // genuine transcript would fail verification on MySQL.
+    $reorderKeys = function (array $array) use (&$reorderKeys): array {
+        $keys = array_keys($array);
+
+        if (! array_is_list($array)) {
+            $keys = array_reverse($keys);
+        }
+
+        $reordered = [];
+
+        foreach ($keys as $key) {
+            $reordered[$key] = is_array($array[$key]) ? $reorderKeys($array[$key]) : $array[$key];
+        }
+
+        return $reordered;
+    };
+
+    expect($service->contentDigest($snapshot))->toBe($service->contentDigest($reorderKeys($snapshot)));
+});
+
 it('orders semesters by year then semester, and courses by code, even when created out of chronological order', function (): void {
     $profile = StudentProfile::factory()->create();
 
