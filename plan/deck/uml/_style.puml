@@ -1,0 +1,79 @@
+' ── Shared StarUML-style emerald skin (SchuLyf) ───────────────────────
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam ArrowColor #334155
+skinparam ArrowFontColor #334155
+skinparam classAttributeIconSize 0
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #0F172A
+  HeaderBackgroundColor #ECFDF5
+  AttributeFontColor #0F172A
+  FontColor #065F46
+  FontStyle bold
+}
+skinparam actorStyle awesome
+skinparam actor {
+  BorderColor #065F46
+  BackgroundColor #ECFDF5
+  FontColor #0F172A
+}
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #059669
+  FontColor #065F46
+}
+skinparam rectangle {
+  BorderColor #94A3B8
+  FontColor #065F46
+  BackgroundColor #FFFFFF
+}
+skinparam sequence {
+  ParticipantBackgroundColor #ECFDF5
+  ParticipantBorderColor #065F46
+  ParticipantFontColor #065F46
+  ActorBackgroundColor #ECFDF5
+  ActorBorderColor #065F46
+  LifeLineBorderColor #CBD5E1
+  LifeLineBackgroundColor #FFFFFF
+  GroupBackgroundColor #ECFDF5
+  GroupBorderColor #059669
+  GroupHeaderFontColor #065F46
+  DividerBackgroundColor #ECFDF5
+}
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #065F46
+  FontColor #065F46
+  AttributeFontColor #334155
+  StartColor #065F46
+  EndColor #065F46
+}
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #065F46
+  FontColor #0F172A
+  DiamondBackgroundColor #ECFDF5
+  DiamondBorderColor #059669
+  DiamondFontColor #065F46
+  StartColor #065F46
+  EndColor #065F46
+  BarColor #065F46
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #065F46
+  FontColor #065F46
+}
+skinparam database {
+  BackgroundColor #ECFDF5
+  BorderColor #065F46
+  FontColor #065F46
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #0F172A
+  FontColor #065F46
+}

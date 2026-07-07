@@ -1,0 +1,33 @@
+@startuml seq-decision
+!include _style.puml
+title Sequence — SAO admission decision
+
+actor "SAO" as SAO
+participant "ApplicationReview\nController" as CTL
+participant "DecideApplication\nAction" as ACT
+database "MySQL" as DB
+queue "Queue" as Q
+actor Applicant as APP
+
+SAO -> CTL : decide(application, decision, notes)
+activate CTL
+CTL -> ACT : execute(application, decision)
+activate ACT
+ACT -> DB : begin transaction
+alt decision = Admitted
+  ACT -> DB : nextMatriculeForYear() [lockForUpdate]
+  ACT -> DB : create StudentProfile
+  ACT -> DB : assignRole(Student)
+  ACT -> DB : AuditLog.record(RoleAssigned)
+else Rejected / Waitlisted
+  ACT -> DB : update Application.status
+end
+ACT -> DB : AuditLog.record(ApplicationDecided)
+ACT -> DB : commit
+ACT -->> Q : ApplicationDecided event (afterCommit)
+deactivate ACT
+CTL -->> SAO : redirect + flash toast
+deactivate CTL
+Q -> Q : SendApplicationDecisionNotification
+Q -->> APP : ApplicationDecisionMail
+@enduml

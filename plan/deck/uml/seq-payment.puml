@@ -1,0 +1,34 @@
+@startuml seq-payment
+!include _style.puml
+title Sequence — payment validation & tamper-proof receipt
+
+actor Accountant as ACC
+participant "Payment\nController" as CTL
+participant "ReviewPayment\nAction" as ACT
+participant "SchoolReceipt" as RCP
+database "MySQL" as DB
+
+ACC -> CTL : validate(payment)
+activate CTL
+CTL -> ACT : execute(payment, Validated)
+activate ACT
+ACT -> DB : begin transaction
+ACT -> DB : lockForUpdate(payment)
+alt already terminal
+  ACT -->> CTL : 422 already reviewed
+else Submitted
+  ACT -> DB : payment.status = Validated
+  ACT -> RCP : nextReceiptNumberForYear()
+  activate RCP
+  RCP -> RCP : computeSignature()\nHMAC(number|matricule|amount|year, APP_KEY)
+  RCP --> ACT : signed receipt
+  deactivate RCP
+  ACT -> DB : create SchoolReceipt (immutable)
+  ACT -> DB : AuditLog.record(PaymentValidated, ReceiptIssued)
+end
+ACT -> DB : commit
+ACT -->> CTL : PaymentReviewed event (afterCommit)
+deactivate ACT
+CTL -->> ACC : redirect + flash toast
+deactivate CTL
+@enduml

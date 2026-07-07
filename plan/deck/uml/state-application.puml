@@ -1,0 +1,27 @@
+@startuml state-application
+!pragma layout smetana
+!include _style.puml
+title State Machine — application lifecycle (born Submitted, ADR-0024)
+
+[*] --> Submitted : applicant submits
+
+state "Interim" as I {
+  Submitted --> UnderReview : SAO triage
+  UnderReview --> DocumentsRequested : request documents
+  DocumentsRequested --> UnderReview : documents resubmitted\n/ accepted
+}
+
+Submitted --> Admitted : decide [admit]
+UnderReview --> Admitted : decide [admit]
+UnderReview --> Rejected : decide [reject]
+UnderReview --> Waitlisted : decide [waitlist]
+Submitted --> Rejected : decide [reject]
+
+Admitted --> [*]
+Rejected --> [*]
+Waitlisted --> Withdrawn : re-enrollment merge
+Waitlisted --> [*]
+Withdrawn --> [*]
+
+note bottom of I : Terminal states\n(Admitted / Rejected /\nWaitlisted / Withdrawn)\nblock further transitions
+@enduml
