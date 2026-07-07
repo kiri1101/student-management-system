@@ -49,6 +49,7 @@ class StudentController extends Controller
                 'matricule' => $profile->matricule,
                 'name' => $profile->user?->name,
                 'programme' => $profile->programOffering?->department?->name,
+                'degree_program' => $profile->programOffering?->degree_program?->value,
                 'level' => $profile->level,
                 'status' => $profile->status->value,
             ]);
