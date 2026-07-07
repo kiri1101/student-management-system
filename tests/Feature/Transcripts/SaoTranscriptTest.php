@@ -4,6 +4,7 @@ use App\Enums\RoleName;
 use App\Models\Course;
 use App\Models\CourseResult;
 use App\Models\StudentProfile;
+use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Inertia\Testing\AssertableInertia;
 
@@ -35,4 +36,21 @@ it('renders a searchable student index for SAO', function (): void {
             ->component('sao/students/Index')
             ->has('students.data', 1)
             ->where('students.data.0.matricule', 'stm-2025-4242'));
+});
+
+it('filters the student index by the student name', function (): void {
+    $matched = User::factory()->create(['name' => 'Ada Ngwa']);
+    StudentProfile::factory()->create(['user_id' => $matched->id, 'matricule' => 'stm-2025-1111']);
+
+    $other = User::factory()->create(['name' => 'Bola Tabi']);
+    StudentProfile::factory()->create(['user_id' => $other->id, 'matricule' => 'stm-2025-2222']);
+
+    $this->actingAs(userWithRole(RoleName::Sao))
+        ->get(route('sao.students.index', ['search' => 'Ngwa']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('sao/students/Index')
+            ->has('students.data', 1)
+            ->where('students.data.0.matricule', 'stm-2025-1111')
+            ->where('students.data.0.name', 'Ada Ngwa'));
 });

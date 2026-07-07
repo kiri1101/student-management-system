@@ -9,6 +9,7 @@ import type { DataTablePageEvent } from 'primevue/datatable';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 import { ref } from 'vue';
+import { degreeLabel } from '@/lib/statusDisplay';
 import sao from '@/routes/sao';
 
 type StudentRow = {
@@ -16,6 +17,7 @@ type StudentRow = {
     matricule: string | null;
     name: string | null;
     programme: string | null;
+    degree_program: string | null;
     level: number | null;
     status: string;
 };
@@ -133,9 +135,17 @@ function transcriptUrl(id: number): string {
                         }}</template>
                     </Column>
                     <Column field="programme" header="Programme">
-                        <template #body="{ data }">{{
-                            data.programme ?? '—'
-                        }}</template>
+                        <template #body="{ data }">
+                            <div class="flex flex-col">
+                                <span>{{ data.programme ?? '—' }}</span>
+                                <span
+                                    v-if="data.degree_program"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ degreeLabel(data.degree_program) }}
+                                </span>
+                            </div>
+                        </template>
                     </Column>
                     <Column field="level" header="Level" style="width: 6rem">
                         <template #body="{ data }">{{
