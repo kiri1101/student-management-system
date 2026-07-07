@@ -1,0 +1,34 @@
+@startuml component-architecture
+!pragma layout smetana
+!include _style.puml
+title Component & Deployment — layered architecture
+
+actor User as U
+
+package "Client (SPA)" {
+  [Inertia + Vue 3\n+ PrimeVue / Tailwind] as SPA
+}
+
+package "Laravel application server" {
+  [Routing + Middleware\n(auth · verified · role:* · throttle)] as MW
+  [Controllers\n(thin)] as CTL
+  [Actions & Services\n(domain logic)] as ACT
+  [Eloquent Models] as MOD
+  [Fortify\n(authentication)] as FORT
+  [Queue Worker\n(notifications / mail)] as QW
+}
+
+database "MySQL\n(student_management)" as DB
+cloud "SMTP / Mail" as MAIL
+
+U --> SPA : HTTPS
+SPA --> MW : Inertia request
+MW --> CTL
+CTL --> ACT
+ACT --> MOD
+MOD --> DB : Eloquent / SQL
+MW ..> FORT : login / verify
+ACT ..> QW : dispatch (afterCommit)
+QW --> MAIL : queued mail
+CTL --> SPA : Inertia::render (props)
+@enduml

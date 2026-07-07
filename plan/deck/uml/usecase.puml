@@ -1,0 +1,59 @@
+@startuml usecase
+!pragma layout smetana
+!include _style.puml
+left to right direction
+title Use Cases — SchuLyf Student Management System
+
+actor Applicant  as APP
+actor Student    as STU
+actor Lecturer   as LEC
+actor Accountant as ACC
+actor "SAO"      as SAO
+actor Admin      as ADM
+actor "Public\n(unauthenticated)" as PUB
+
+rectangle "SchuLyf Student Management System" {
+  usecase "Submit application" as UC_APPLY
+  usecase "Track application" as UC_TRACK
+  usecase "Review & decide\nadmission" as UC_DECIDE
+  usecase "Promote to student" as UC_PROMOTE
+
+  usecase "Report payment\n(upload slip)" as UC_PAY
+  usecase "Validate payment" as UC_VALID
+  usecase "Issue school receipt" as UC_RECEIPT
+  usecase "Grant deferral" as UC_DEFER
+
+  usecase "Manage course plan\n& results" as UC_COURSE
+  usecase "Publish results" as UC_PUBLISH
+  usecase "Raise result dispute" as UC_DISPUTE
+
+  usecase "Download transcript" as UC_TRANS
+  usecase "Generate transcript" as UC_GEN
+  usecase "Verify document\n(receipt / transcript)" as UC_VERIFY
+
+  usecase "Manage users\n& reference data" as UC_ADMIN
+  usecase "View audit log" as UC_AUDIT
+}
+
+APP --> UC_APPLY
+APP --> UC_TRACK
+SAO --> UC_DECIDE
+UC_DECIDE ..> UC_PROMOTE : <<include>>
+
+STU --> UC_PAY
+ACC --> UC_VALID
+UC_VALID ..> UC_RECEIPT : <<include>>
+ACC --> UC_DEFER
+
+LEC --> UC_COURSE
+SAO --> UC_PUBLISH
+STU --> UC_DISPUTE
+
+STU --> UC_TRANS
+SAO --> UC_TRANS
+UC_TRANS ..> UC_GEN : <<include>>
+PUB --> UC_VERIFY
+
+ADM --> UC_ADMIN
+ADM --> UC_AUDIT
+@enduml

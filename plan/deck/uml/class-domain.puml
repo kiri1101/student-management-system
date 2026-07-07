@@ -1,0 +1,132 @@
+@startuml class-domain
+' ── StarUML-style classic UML class diagram ───────────────────────────
+!pragma layout smetana
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "Segoe UI"
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #0F172A
+  HeaderBackgroundColor #ECFDF5
+  ArrowColor #334155
+  AttributeFontColor #0F172A
+  FontColor #065F46
+  FontStyle bold
+}
+hide circle
+
+class User {
+  +id : int
+  +name : string
+  +email : string
+  +employee_id : string
+  +phone : string
+  --
+  +hasAnyRole() : bool
+}
+
+class Role {
+  +name : RoleName
+}
+
+class StudentProfile {
+  +matricule : string
+  +level : int
+  +academic_year : string
+  +status : StudentStatus
+  --
+  +nextMatriculeForYear() : string
+}
+
+class Application {
+  +first_name : string
+  +last_name : string
+  +status : ApplicationStatus
+  --
+  +canTransitionTo() : bool
+  +isTerminal() : bool
+}
+
+class ProgramOffering {
+  +degree_program : DegreeProgram
+  +min_level : int
+  +max_level : int
+}
+
+class PaymentSubmission {
+  +amount_xaf : int
+  +bank : Bank
+  +status : PaymentStatus
+}
+
+class SchoolReceipt {
+  +receipt_number : string
+  +signature : string
+  --
+  +verifies() : bool
+}
+
+class TuitionDeferral {
+  +status : DeferralStatus
+  +new_deadline : date
+  --
+  +activeAsOf() : bool
+}
+
+class Course {
+  +code : string
+  +plan_status : CoursePlanStatus
+  --
+  +cohortStudents() : Collection
+}
+
+class CourseResult {
+  +ca_score : int
+  +exam_score : int
+  --
+  +final_score() : int
+  +grade() : string
+}
+
+class Transcript {
+  +transcript_number : string
+  +cgpa : decimal
+  +content_digest : string
+  +signature : string
+  --
+  +verifies() : bool
+}
+
+class AuditLog {
+  +action : AuditAction
+  +changes : json
+  --
+  +record() : void
+}
+
+enum RoleName {
+  Applicant
+  Student
+  Lecturer
+  Accountant
+  Sao
+  Admin
+}
+
+' ── associations with multiplicities (StarUML notation) ──
+User "1" -- "0..*" Role
+Role  ..>  RoleName
+User "1" -- "0..1" StudentProfile
+User "1" -- "0..*" Application
+User "1" -- "0..*" AuditLog
+ProgramOffering "1" -- "0..*" Application
+ProgramOffering "1" -- "0..*" StudentProfile
+ProgramOffering "1" -- "0..*" Course
+StudentProfile "1" -- "0..*" PaymentSubmission
+StudentProfile "1" -- "0..*" TuitionDeferral
+StudentProfile "1" -- "0..*" CourseResult
+StudentProfile "1" -- "0..*" Transcript
+PaymentSubmission "1" *-- "0..1" SchoolReceipt
+Course "1" -- "0..*" CourseResult
+@enduml

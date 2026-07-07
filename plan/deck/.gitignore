@@ -1,0 +1,7 @@
+# build tool — fetched on demand, not versioned (see README)
+tools/
+# per-slide QA renders (regenerate from the .pptx)
+build/png/
+# Office lock/temp files
+~$*
+build/~$*

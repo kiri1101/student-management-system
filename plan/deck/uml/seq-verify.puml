@@ -1,0 +1,26 @@
+@startuml seq-verify
+!include _style.puml
+title Sequence — public verification (no existence oracle)
+
+actor "Verifier\n(public)" as V
+participant "Verify\nController" as CTL
+participant "Receipt / Transcript" as M
+database "MySQL" as DB
+
+V -> CTL : GET verify/{number}
+activate CTL
+CTL -> DB : find by number
+DB --> CTL : record or null
+CTL -> M : verifies()
+activate M
+M -> M : recompute HMAC over stored data
+M -> M : hash_equals(stored, expected)
+M --> CTL : true / false
+deactivate M
+alt authentic
+  CTL -->> V : bound identity\n(name, matricule, amount / CGPA ...)
+else unknown OR forged OR tampered
+  CTL -->> V : "Invalid" — no detail\n(no oracle for which numbers exist)
+end
+deactivate CTL
+@enduml

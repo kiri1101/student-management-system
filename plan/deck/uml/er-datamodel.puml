@@ -1,0 +1,107 @@
+@startuml er-datamodel
+!pragma layout smetana
+!include _style.puml
+title Data Model (crow's-foot ER) — core entities
+
+entity USERS {
+  * id : bigint <<PK>>
+  --
+  name
+  email
+  employee_id
+}
+entity ROLES {
+  * id : bigint <<PK>>
+  --
+  name
+}
+entity ROLE_USER {
+  * user_id : bigint <<FK>>
+  * role_id : bigint <<FK>>
+}
+entity STUDENT_PROFILES {
+  * id : bigint <<PK>>
+  --
+  user_id <<FK>>
+  program_offering_id <<FK>>
+  matricule
+  level
+  status
+}
+entity PROGRAM_OFFERINGS {
+  * id : bigint <<PK>>
+  --
+  department_id <<FK>>
+  degree_program
+}
+entity APPLICATIONS {
+  * id : bigint <<PK>>
+  --
+  user_id <<FK>>
+  program_offering_id <<FK>>
+  status
+}
+entity PAYMENT_SUBMISSIONS {
+  * id : bigint <<PK>>
+  --
+  student_profile_id <<FK>>
+  amount_xaf
+  status
+}
+entity SCHOOL_RECEIPTS {
+  * id : bigint <<PK>>
+  --
+  payment_submission_id <<FK>>
+  receipt_number
+  signature
+}
+entity TUITION_DEFERRALS {
+  * id : bigint <<PK>>
+  --
+  student_profile_id <<FK>>
+  status
+}
+entity COURSES {
+  * id : bigint <<PK>>
+  --
+  program_offering_id <<FK>>
+  code
+  plan_status
+}
+entity COURSE_RESULTS {
+  * id : bigint <<PK>>
+  --
+  course_id <<FK>>
+  student_profile_id <<FK>>
+  status
+}
+entity TRANSCRIPTS {
+  * id : bigint <<PK>>
+  --
+  student_profile_id <<FK>>
+  transcript_number
+  content_digest
+  signature
+}
+entity AUDIT_LOGS {
+  * id : bigint <<PK>>
+  --
+  user_id <<FK>>
+  action
+}
+
+USERS ||--o{ ROLE_USER
+ROLES ||--o{ ROLE_USER
+USERS ||--o| STUDENT_PROFILES
+USERS ||--o{ APPLICATIONS
+USERS ||--o{ AUDIT_LOGS
+PROGRAM_OFFERINGS ||--o{ APPLICATIONS
+PROGRAM_OFFERINGS ||--o{ STUDENT_PROFILES
+PROGRAM_OFFERINGS ||--o{ COURSES
+STUDENT_PROFILES ||--o{ PAYMENT_SUBMISSIONS
+STUDENT_PROFILES ||--o{ TUITION_DEFERRALS
+STUDENT_PROFILES ||--o{ COURSE_RESULTS
+STUDENT_PROFILES ||--o{ TRANSCRIPTS
+PAYMENT_SUBMISSIONS ||--o| SCHOOL_RECEIPTS
+COURSES ||--o{ COURSE_RESULTS
+@enduml

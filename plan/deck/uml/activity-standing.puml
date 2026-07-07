@@ -1,0 +1,40 @@
+@startuml activity-standing
+!pragma layout smetana
+!include _style.puml
+title Activity — payment standing & exam-hall gating
+
+|Student|
+start
+:Report payment installments;
+|System|
+:Compute total validated
+for the academic year;
+if (paid >= installment
+threshold by deadline?) then (yes)
+  #D1FAE5:Standing = Cleared;
+  :Grant access to exam
+  halls & facilities;
+else (no)
+  if (active deferral
+  as of today?) then (yes)
+    #D1FAE5:Standing = Deferred;
+    :Grant access;
+  else (no)
+    #FEE2E2:Standing = At risk;
+    :Block exam-hall access;
+    |Student|
+    :Request deferral;
+    |Accountant|
+    :Review deferral;
+    if (approve?) then (yes)
+      :Record active deferral;
+      |System|
+      :Grant access;
+    else (no)
+      |System|
+      :Access remains blocked;
+    endif
+  endif
+endif
+stop
+@enduml
